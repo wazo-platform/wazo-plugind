@@ -1,0 +1,5 @@
+wazo-plugind (17.04~20170307.142128) xivo-dev; urgency=medium
+
+  * Initial release.
+
+ -- Wazo Maintainers <dev+pkg@wazo.community>  Tue, 07 Mar 2017 14:17:31 -0500
