@@ -2,8 +2,10 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import sys
+
 from wazo_plugind.bin.main import main
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
