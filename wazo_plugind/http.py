@@ -2,12 +2,26 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
-
 from flask import make_response
 from flask_restful import Resource
 from pkg_resources import resource_string
 
 logger = logging.getLogger(__name__)
+
+
+class Config(Resource):
+
+    api_path = '/config'
+    _config = {}
+
+    def get(self):
+        # TODO: add an acl
+        return {k: v for k, v in self._config.items()}, 200
+
+    @classmethod
+    def add_resource(cls, api, config):
+        cls._config = config
+        api.add_resource(cls, cls.api_path)
 
 
 class Api(Resource):

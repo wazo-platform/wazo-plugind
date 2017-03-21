@@ -35,4 +35,5 @@ class Controller(object):
         app.config.update(config)
         api = Api(app, prefix='/0.1')
         http.Api.add_resource(api)
+        http.Config.add_resource(api, config)
         return app

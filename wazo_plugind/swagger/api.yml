@@ -26,3 +26,16 @@ securityDefinitions:
     in: header
 security:
   - xivo_auth_token: []
+paths:
+  /config:
+    get:
+      produces:
+        -application/json
+      summary: Show the current configuration
+      description: '**Required ACL:** `plugind.config.read`'
+      operationId: getConfig
+      tags:
+        - config
+      response:
+        '200':
+          'description': The configuration of the service
