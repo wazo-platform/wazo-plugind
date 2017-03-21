@@ -14,4 +14,9 @@ setup(
     url='http://wazo.community',
     packages=find_packages(),
     scripts=['bin/wazo-plugind'],
+    package_data={
+        'wazo_plugind.swagger': ['*.yml'],
+    },
+    include_package_data=True,
+    zip_safe=False,
 )
