@@ -18,6 +18,7 @@ _DEFAULT_CONFIG = dict(
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
     pid_file='/var/run/{}/{}.pid'.format(_DAEMONNAME, _DAEMONNAME),
+    rest_api={'https': {'listen': '0.0.0.0', 'port': 9503}},
 )
 
 

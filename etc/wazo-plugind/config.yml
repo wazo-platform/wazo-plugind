@@ -11,3 +11,6 @@ foreground: false
 log_level: info
 log_file: /var/log/wazo-plugind.log
 pid_file: /var/run/wazo-plugind/wazo-plugind.pid
+rest_api:
+  https:
+    listen: 0.0.0.0

@@ -1,0 +1,28 @@
+swagger: 2.0
+info:
+  version: 0.1
+  title: Wazo Plugind
+  description: "Wazo's plugin management service"
+  contact:
+    name: Wazo dev team
+    url: http://wazo.community
+    email: dev@wazo.community
+  license:
+    name: GPLv3
+    url: http://www.gnu.org/licenses/gpl-3.0.html
+x-xivo-port: 9503
+x-xivo-name: plugind
+basePath: /0.1
+schemes:
+- https
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  xivo_auth_token:
+    type: apiKey
+    name: X-Auth-Token
+    in: header
+security:
+  - xivo_auth_token: []
