@@ -16,6 +16,7 @@ case "$1" in
                     --home /var/lib/$DAEMONNAME \
                     $USER
         fi
+        adduser --quiet $USER www-data
 
         if [ ! -e "$LOG_FILENAME" ]; then
             touch "$LOG_FILENAME"

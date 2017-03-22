@@ -5,6 +5,7 @@ import argparse
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import read_config_file_hierarchy
+from xivo.http_helpers import DEFAULT_CIPHERS
 from xivo.xivo_logging import get_log_level_by_name
 
 
@@ -18,7 +19,15 @@ _DEFAULT_CONFIG = dict(
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
     pid_file='/var/run/{}/{}.pid'.format(_DAEMONNAME, _DAEMONNAME),
-    rest_api={'https': {'listen': '0.0.0.0', 'port': 9503}},
+    rest_api={
+        'https': {
+            'listen': '0.0.0.0',
+            'port': 9503,
+            'certificate': '/usr/share/xivo-certs/server.crt',
+            'private_key': '/usr/share/xivo-certs/server.key',
+            'ciphers': DEFAULT_CIPHERS,
+        },
+    },
 )
 
 
