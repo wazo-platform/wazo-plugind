@@ -26,9 +26,9 @@ _DEFAULT_CONFIG = dict(
             'certificate': '/usr/share/xivo-certs/server.crt',
             'private_key': '/usr/share/xivo-certs/server.key',
             'ciphers': DEFAULT_CIPHERS,
-            'cors': {'enabled': True,
-                     'allow_headers': ['Content-Type', 'X-Auth-Token']}
         },
+        'cors': {'enabled': True,
+                 'allow_headers': ['Content-Type', 'X-Auth-Token']}
     },
 )
 
