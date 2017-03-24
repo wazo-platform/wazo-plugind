@@ -5,6 +5,7 @@ import logging
 from cherrypy import wsgiserver
 from flask import Flask
 from flask_restful import Api
+from flask_cors import CORS
 from xivo import http_helpers
 from wazo_plugind import http
 
@@ -16,6 +17,7 @@ class Controller(object):
     def __init__(self, config):
         listen_addr = config['rest_api']['https']['listen']
         listen_port = config['rest_api']['https']['port']
+        self._cors_config= config['rest_api']['cors']
         ssl_cert_file = config['rest_api']['https']['certificate']
         ssl_key_file = config['rest_api']['https']['private_key']
         # TODO find how its configured using the builtin ssl adapter
@@ -43,4 +45,6 @@ class Controller(object):
         api = Api(app, prefix='/0.1')
         http.Api.add_resource(api)
         http.Config.add_resource(api, config)
+        if self._cors_config.get('enabled'):
+            CORS(app, **self._cors_config)
         return app
