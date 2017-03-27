@@ -17,7 +17,7 @@ class Controller(object):
     def __init__(self, config):
         listen_addr = config['rest_api']['https']['listen']
         listen_port = config['rest_api']['https']['port']
-        self._cors_config= config['rest_api']['cors']
+        self._cors_config = config['rest_api']['cors']
         ssl_cert_file = config['rest_api']['https']['certificate']
         ssl_key_file = config['rest_api']['https']['private_key']
         # TODO find how its configured using the builtin ssl adapter
