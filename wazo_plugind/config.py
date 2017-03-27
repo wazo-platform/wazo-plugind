@@ -10,6 +10,7 @@ from xivo.xivo_logging import get_log_level_by_name
 
 
 _DAEMONNAME = 'wazo-plugind'
+_DEFAULT_HTTPS_PORT = 9503
 _DEFAULT_CONFIG = dict(
     config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
     extra_config_files='/etc/{}/conf.d/'.format(_DAEMONNAME),
@@ -22,13 +23,29 @@ _DEFAULT_CONFIG = dict(
     rest_api={
         'https': {
             'listen': '0.0.0.0',
-            'port': 9503,
+            'port': _DEFAULT_HTTPS_PORT,
             'certificate': '/usr/share/xivo-certs/server.crt',
             'private_key': '/usr/share/xivo-certs/server.key',
             'ciphers': DEFAULT_CIPHERS,
         },
         'cors': {'enabled': True,
                  'allow_headers': ['Content-Type', 'X-Auth-Token']}
+    },
+    consul={
+        'scheme': 'https',
+        'host': 'localhost',
+        'port': 8500,
+        'verify': '/usr/share/xivo-certs/server.crt',
+    },
+    service_discovery={
+        'advertise_address': 'auto',
+        'advertise_address_interface': 'eth0',
+        'advertise_port': _DEFAULT_HTTPS_PORT,
+        'enabled': True,
+        'ttl_interval': 30,
+        'refresh_interval': 27,
+        'retry_interval': 2,
+        'extra_tags': [],
     },
 )
 

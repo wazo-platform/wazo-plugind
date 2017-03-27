@@ -2,14 +2,40 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+import signal
+import sys
+from contextlib import contextmanager
 from cherrypy import wsgiserver
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 from xivo import http_helpers
+from xivo.consul_helpers import Registerer
 from wazo_plugind import http
 
 logger = logging.getLogger(__name__)
+
+
+def _signal_handler(signum, frame):
+    logger.info('SIGTERM received, terminating')
+    sys.exit(0)
+
+
+@contextmanager
+def service_discovery(name, uuid, *args):
+    if not uuid:
+        logger.info('XIVO_UUID is undefined. service discovery disabled')
+        try:
+            yield
+        finally:
+            return
+
+    registerer = Registerer(name, uuid, *args)
+    registerer.register()
+    try:
+        yield
+    finally:
+        registerer.deregister()
 
 
 class Controller(object):
@@ -20,6 +46,9 @@ class Controller(object):
         self._cors_config = config['rest_api']['cors']
         ssl_cert_file = config['rest_api']['https']['certificate']
         ssl_key_file = config['rest_api']['https']['private_key']
+        self._consul_config = config['consul']
+        self._service_discovery_config = config['service_discovery']
+        self._xivo_uuid = config.get('uuid')
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (listen_addr, listen_port)
@@ -34,10 +63,15 @@ class Controller(object):
 
     def run(self):
         logger.debug('starting http server')
-        try:
-            self._server.start()
-        finally:
-            self._server.stop()
+        signal.signal(signal.SIGTERM, _signal_handler)
+        with service_discovery('wazo-plugind', self._xivo_uuid,
+                               self._consul_config, self._service_discovery_config):
+            try:
+                self._server.start()
+            except KeyboardInterrupt:
+                logger.info("Ctrl-C received, terminating")
+            finally:
+                self._server.stop()
 
     def _new_flask_app(self, config):
         app = Flask('wazo_plugind')

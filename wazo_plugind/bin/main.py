@@ -3,6 +3,7 @@
 
 import logging
 from xivo import xivo_logging
+from xivo.config_helper import set_xivo_uuid, UUIDNotFound
 from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
 from wazo_plugind import config
@@ -18,6 +19,12 @@ def main(args):
 
     if conf['user']:
         change_user(conf['user'])
+
+    try:
+        set_xivo_uuid(conf, logger)
+    except UUIDNotFound:
+        # handled in the controller
+        pass
 
     controller = Controller(conf)
     with pidfile_context(conf['pid_file'], conf['foreground']):
