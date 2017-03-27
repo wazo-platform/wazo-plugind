@@ -1,6 +1,6 @@
-swagger: 2.0
+swagger: "2.0"
 info:
-  version: 0.1
+  version: "0.1"
   title: Wazo Plugind
   description: "Wazo's plugin management service"
   contact:
@@ -30,12 +30,12 @@ paths:
   /config:
     get:
       produces:
-        -application/json
+        - application/json
       summary: Show the current configuration
       description: '**Required ACL:** `plugind.config.read`'
       operationId: getConfig
       tags:
         - config
-      response:
+      responses:
         '200':
           'description': The configuration of the service
