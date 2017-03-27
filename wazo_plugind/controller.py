@@ -1,21 +1,24 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from http import client
 import logging
 import signal
 import sys
-from threading import Lock
+import time
+import threading
 from contextlib import contextmanager
 from cherrypy import wsgiserver
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 from xivo import http_helpers
-from xivo.consul_helpers import Registerer
+from xivo.consul_helpers import Registerer, RegistererError
 from wazo_plugind import http
 
 logger = logging.getLogger(__name__)
-registerer_lock = Lock()
+registerer_lock = threading.Lock()
+registerer_run = threading.Event()
 
 
 def _signal_handler(signum, frame):
@@ -23,10 +26,38 @@ def _signal_handler(signum, frame):
     sys.exit(0)
 
 
-def _register(registerer, self_check_fn):
-    self_check_fn()
-    with registerer_lock:
-        registerer.register()
+def _self_check(port):
+    logger.info('self check...')
+    conn = client.HTTPSConnection('localhost', port)
+    try:
+        conn.request('GET', '/0.1/config')
+    except (client.HTTPException, ConnectionRefusedError):
+        return False
+    response = conn.getresponse()
+    return response.status == 200
+
+
+def _register(registerer, retry_interval, self_check_fn):
+    while True:
+        if not registerer_run.is_set():
+            return
+
+        if self_check_fn():
+            break
+
+        time.sleep(retry_interval)
+
+    while True:
+        if not registerer_run.is_set():
+            return
+
+        with registerer_lock:
+            try:
+                registerer.register()
+                registerer_run.clear()
+                break
+            except RegistererError:
+                time.sleep(retry_interval)
 
 
 @contextmanager
@@ -39,13 +70,26 @@ def service_discovery(name, uuid, consul_config, service_discovery_config, self_
             return
 
     registerer = Registerer(name, uuid, consul_config, service_discovery_config)
-    _register(registerer, self_check_fn)
+    registerer_run.set()
+    registerer_thread = threading.Thread(target=_register,
+                                         args=(registerer,
+                                               service_discovery_config['retry_interval'],
+                                               self_check_fn))
+    registerer_thread.daemon = True
+    registerer_thread.start()
     try:
         yield
     finally:
+        # If not registered get out of the loop
+        if registerer_run.is_set():
+            registerer_run.clear()
+
+        # If still alive wait until it complete exiting from its loops
+        if registerer_thread.is_alive():
+            registerer_thread.join()
+
         with registerer_lock:
-            if registerer.registered():
-                registerer.deregister()
+            registerer.deregister()
 
 
 class Controller(object):
@@ -76,7 +120,7 @@ class Controller(object):
         signal.signal(signal.SIGTERM, _signal_handler)
         with service_discovery('wazo-plugind', self._xivo_uuid,
                                self._consul_config, self._service_discovery_config,
-                               lambda: True):
+                               lambda: _self_check(self._service_discovery_config['advertise_port'])):
             try:
                 self._server.start()
             except KeyboardInterrupt:
