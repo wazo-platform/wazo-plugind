@@ -4,6 +4,7 @@
 import logging
 import signal
 import sys
+from threading import Lock
 from contextlib import contextmanager
 from cherrypy import wsgiserver
 from flask import Flask
@@ -14,6 +15,7 @@ from xivo.consul_helpers import Registerer
 from wazo_plugind import http
 
 logger = logging.getLogger(__name__)
+registerer_lock = Lock()
 
 
 def _signal_handler(signum, frame):
@@ -21,8 +23,14 @@ def _signal_handler(signum, frame):
     sys.exit(0)
 
 
+def _register(registerer, self_check_fn):
+    self_check_fn()
+    with registerer_lock:
+        registerer.register()
+
+
 @contextmanager
-def service_discovery(name, uuid, *args):
+def service_discovery(name, uuid, consul_config, service_discovery_config, self_check_fn):
     if not uuid:
         logger.info('XIVO_UUID is undefined. service discovery disabled')
         try:
@@ -30,12 +38,14 @@ def service_discovery(name, uuid, *args):
         finally:
             return
 
-    registerer = Registerer(name, uuid, *args)
-    registerer.register()
+    registerer = Registerer(name, uuid, consul_config, service_discovery_config)
+    _register(registerer, self_check_fn)
     try:
         yield
     finally:
-        registerer.deregister()
+        with registerer_lock:
+            if registerer.registered():
+                registerer.deregister()
 
 
 class Controller(object):
@@ -65,7 +75,8 @@ class Controller(object):
         logger.debug('starting http server')
         signal.signal(signal.SIGTERM, _signal_handler)
         with service_discovery('wazo-plugind', self._xivo_uuid,
-                               self._consul_config, self._service_discovery_config):
+                               self._consul_config, self._service_discovery_config,
+                               lambda: True):
             try:
                 self._server.start()
             except KeyboardInterrupt:
