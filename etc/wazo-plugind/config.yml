@@ -15,6 +15,15 @@ rest_api:
   https:
     listen: 0.0.0.0
 
+# Event bus (AMQP) connection informations
+bus:
+  username: guest
+  password: guest
+  host: localhost
+  port: 5672
+  exchange_name: xivo
+  exchange_type: topic
+
 # consul connection informations
 consul:
   scheme: https

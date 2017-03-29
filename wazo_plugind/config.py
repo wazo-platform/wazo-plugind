@@ -31,6 +31,14 @@ _DEFAULT_CONFIG = dict(
         'cors': {'enabled': True,
                  'allow_headers': ['Content-Type', 'X-Auth-Token']}
     },
+    bus={
+        'username': 'guest',
+        'password': 'guest',
+        'host': 'localhost',
+        'port': 5672,
+        'exchange_name': 'xivo',
+        'exchange_type': 'topic',
+    },
     consul={
         'scheme': 'https',
         'host': 'localhost',

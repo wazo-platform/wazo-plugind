@@ -2,5 +2,7 @@ cherrypy==3.7.0
 flask==0.10.1
 flask-cors==3.0.2
 flask-restful==0.3.5
+kombu==3.0.34
 netifaces==0.10.4
+git+https://github.com/wazo-pbx/xivo-bus.git
 git+https://github.com/wazo-pbx/xivo-lib-python.git

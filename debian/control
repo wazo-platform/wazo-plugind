@@ -17,7 +17,9 @@ Depends:
  python3-flask,
  python3-flask-cors,
  python3-flask-restful,
- python3-netifaces
+ python3-kombu,
+ python3-netifaces,
+ xivo-bus-python3
 Description: Wazo plugin server
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.

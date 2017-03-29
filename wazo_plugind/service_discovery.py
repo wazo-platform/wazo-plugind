@@ -6,7 +6,7 @@ import threading
 import time
 from contextlib import contextmanager
 from http import client
-from xivo.consul_helpers import Registerer, RegistererError
+from xivo.consul_helpers import NotifyingRegisterer, RegistererError
 
 logger = logging.getLogger(__name__)
 
@@ -37,10 +37,11 @@ class ServiceDiscoveryManager(object):
             self._is_enabled = False
             return
 
-        self._registerer = Registerer(self._NAME,
-                                      self._xivo_uuid,
-                                      config['consul'],
-                                      config['service_discovery'])
+        self._registerer = NotifyingRegisterer(self._NAME,
+                                               self._xivo_uuid,
+                                               config['consul'],
+                                               config['service_discovery'],
+                                               config['bus'])
 
         self._should_stop = threading.Event()
         self._registerer_lock = threading.Lock()
