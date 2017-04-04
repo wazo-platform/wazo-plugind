@@ -1,0 +1,22 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - plugind
+    - consul
+  environment:
+    PORTS: "8500 9503"
+plugind:
+  image: "wazopbx/wazo-plugind"
+  links:
+    - consul
+  volumes:
+    - "./etc/wazo-plugind/conf.d/consul.yml:/etc/wazo-plugind/conf.d/consul.yml"
+  environment:
+    - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
+  ports:
+    - "9503"
+consul:
+  image: "consul"
+  command: consul agent -server -dev -client=0.0.0.0
+  ports:
+    - "8500"
