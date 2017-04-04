@@ -1,0 +1,10 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - plugind
+  environment:
+    PORTS: "9503"
+plugind:
+  image: "wazopbx/wazo-plugind"
+  ports:
+    - "9503"
