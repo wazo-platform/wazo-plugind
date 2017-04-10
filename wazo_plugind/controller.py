@@ -10,8 +10,9 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 from xivo import http_helpers
+from xivo.consul_helpers import ServiceCatalogRegistration
 from wazo_plugind import http
-from .service_discovery import self_check, ServiceDiscoveryManager
+from .service_discovery import self_check
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +25,15 @@ def _signal_handler(signum, frame):
 class Controller(object):
 
     def __init__(self, config):
+        self._xivo_uuid = config.get('uuid')
         self._listen_addr = config['rest_api']['https']['listen']
         self._listen_port = config['rest_api']['https']['port']
         self._cors_config = config['rest_api']['cors']
         ssl_cert_file = config['rest_api']['https']['certificate']
         ssl_key_file = config['rest_api']['https']['private_key']
-        self._service_discovery_manager = ServiceDiscoveryManager(config)
+        self._consul_config = config['consul']
+        self._service_discovery_config = config['service_discovery']
+        self._bus_config = config['bus']
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
@@ -45,7 +49,14 @@ class Controller(object):
     def run(self):
         logger.debug('starting http server')
         signal.signal(signal.SIGTERM, _signal_handler)
-        with self._service_discovery_manager.registration(partial(self_check, self._listen_port)):
+        with ServiceCatalogRegistration(
+                'wazo-plugind',
+                self._xivo_uuid,
+                self._consul_config,
+                self._service_discovery_config,
+                self._bus_config,
+                partial(self_check, self._listen_port),
+        ):
             try:
                 self._server.start()
             except KeyboardInterrupt:
