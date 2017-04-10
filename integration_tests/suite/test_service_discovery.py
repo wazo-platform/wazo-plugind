@@ -56,17 +56,15 @@ class TestServiceDiscoveryWithConsulAndRabbitMQ(BaseIntegrationTest):
                                                                         host='localhost',
                                                                         port=port)
         msg_accumulator = BusClient(bus_url).accumulator('service.#')
-        msg_accumulator.start_accumulating()
 
         self.start_service()
 
         received = self._wait_for_service_started_event(msg_accumulator)
-        msg_accumulator.stop_accumulating()
         assert_that(received, equal_to(True), 'The bus message should have been received')
 
     def _wait_for_service_started_event(self, msg_accumulator):
         for _ in range(10):
-            events = msg_accumulator.get_events()
+            events = msg_accumulator.accumulate()
             for event in events:
                 if self._is_service_started_event(event):
                     return True
