@@ -9,7 +9,14 @@ from pkg_resources import resource_string
 logger = logging.getLogger(__name__)
 
 
-class Config(Resource):
+class _BaseResource(Resource):
+
+    @classmethod
+    def add_resource(cls, api, *args, **kwargs):
+        api.add_resource(cls, cls.api_path)
+
+
+class Config(_BaseResource):
 
     api_path = '/config'
     _config = {}
@@ -21,18 +28,24 @@ class Config(Resource):
     @classmethod
     def add_resource(cls, api, config):
         cls._config = config
-        api.add_resource(cls, cls.api_path)
+        super().add_resource(api)
 
 
-class Api(Resource):
+class Plugins(_BaseResource):
+
+    api_path = '/plugins'
+
+    # @required_acl('plugind.plugins.create')
+    def post(self):
+        # TODO: add an acl
+        return {'hello': 'world'}
+
+
+class Api(_BaseResource):
 
     api_package = 'wazo_plugind.swagger'
     api_filename = 'api.yml'
     api_path = '/api/api.yml'
-
-    @classmethod
-    def add_resource(cls, api):
-        api.add_resource(cls, cls.api_path)
 
     def get(self):
         try:

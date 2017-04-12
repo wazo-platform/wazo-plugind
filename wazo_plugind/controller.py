@@ -70,6 +70,7 @@ class Controller(object):
         api = Api(app, prefix='/0.1')
         http.Api.add_resource(api)
         http.Config.add_resource(api, config)
+        http.Plugins.add_resource(api, config)
         if self._cors_config.get('enabled'):
             CORS(app, **self._cors_config)
         return app
