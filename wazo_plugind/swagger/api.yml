@@ -39,3 +39,77 @@ paths:
       responses:
         '200':
           'description': The configuration of the service
+  /plugins:
+    post:
+      tags:
+        - plugin
+      summary: Install a plugin
+      description: |
+        **Required ACL:** `plugind.plugins.create`
+
+        Allow the administrator to install a plugin on the server.
+        ---
+
+        To install a plugin from the market:
+
+        ```json
+        {"namespace": "<namespace>", "name": "<plugin>"}
+        ```
+
+        To install a plugin that is not registered on the market:
+
+        ```json
+        {"namespace": "<namespace>", "name": "<plugin>", "url": "<URL to the plugin>", "method": "git"}
+        ```
+      parameters:
+        - name: body
+          in: body
+          description: "The plugins' installation parameters"
+          schema:
+            $ref: '#/definitions/PluginInstallParameters'
+      responses:
+        '200':
+          description: "The installed plugin's metadata"
+          schema:
+            $ref: '#/definitions/Plugin'
+definitions:
+  Plugin:
+    type: object
+    properties:
+      namespace:
+        type: string
+        description: "The plugins's namespace"
+      name:
+        type: string
+        description: "The name of this plugin"
+      author_name:
+        type: string
+        description: "The name of the plugin's author"
+      author_email:
+        type: string
+        description: "The email address of the author"
+      description:
+        type: string
+        description: A description of the plugin
+      version:
+        type: string
+        description: The version of the plugin
+  PluginInstallParameters:
+    type: object
+    properties:
+      namespace:
+        type: string
+        description: "The plugin's namespace"
+      name:
+        type: string
+        description: "The plugin's name"
+      url:
+        type: string
+        description: "The URL to fetch the plugin"
+      method:
+        type: string
+        description: "The method used to fetch this plugin"
+        enum: [git]
+    required:
+      - namespace
+      - name
