@@ -8,5 +8,7 @@ python-consul==0.6.0
 pyyaml==3.11
 netifaces==0.10.4
 requests==2.4.3
+git+https://github.com/wazo-pbx/xivo-auth-client.git
 git+https://github.com/wazo-pbx/xivo-bus.git
 git+https://github.com/wazo-pbx/xivo-lib-python.git
+git+https://github.com/wazo-pbx/xivo-lib-rest-client.git

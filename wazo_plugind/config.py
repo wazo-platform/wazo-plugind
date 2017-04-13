@@ -11,6 +11,7 @@ from xivo.xivo_logging import get_log_level_by_name
 
 _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTPS_PORT = 9503
+_DEFAULT_CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _DEFAULT_CONFIG = dict(
     config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
     extra_config_files='/etc/{}/conf.d/'.format(_DAEMONNAME),
@@ -24,7 +25,7 @@ _DEFAULT_CONFIG = dict(
         'https': {
             'listen': '0.0.0.0',
             'port': _DEFAULT_HTTPS_PORT,
-            'certificate': '/usr/share/xivo-certs/server.crt',
+            'certificate': _DEFAULT_CERT_FILE,
             'private_key': '/usr/share/xivo-certs/server.key',
             'ciphers': DEFAULT_CIPHERS,
         },
@@ -55,6 +56,11 @@ _DEFAULT_CONFIG = dict(
         'retry_interval': 2,
         'extra_tags': [],
     },
+    auth={
+        'host': 'localhost',
+        'port': 9497,
+        'verify_certificate': _DEFAULT_CERT_FILE,
+    }
 )
 
 

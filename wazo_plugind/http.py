@@ -5,11 +5,18 @@ import logging
 from flask import make_response
 from flask_restful import Resource
 from pkg_resources import resource_string
+from xivo.auth_verifier import AuthVerifier, required_acl
+from xivo.rest_api_helpers import handle_api_exception
 
 logger = logging.getLogger(__name__)
 
 
+auth_verifier = AuthVerifier()
+
+
 class _BaseResource(Resource):
+
+    method_decorators = [auth_verifier.verify_token, handle_api_exception] + Resource.method_decorators
 
     @classmethod
     def add_resource(cls, api, *args, **kwargs):
@@ -35,9 +42,8 @@ class Plugins(_BaseResource):
 
     api_path = '/plugins'
 
-    # @required_acl('plugind.plugins.create')
+    @required_acl('plugind.plugins.create')
     def post(self):
-        # TODO: add an acl
         return {'hello': 'world'}
 
 

@@ -65,6 +65,7 @@ class Controller(object):
                 self._server.stop()
 
     def _new_flask_app(self, config):
+        http.auth_verifier.set_config(config['auth'])
         app = Flask('wazo_plugind')
         app.config.update(config)
         api = Api(app, prefix='/0.1')

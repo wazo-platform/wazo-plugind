@@ -53,3 +53,9 @@ service_discovery:
   # the time interval to detect that the service is running when starting
   retry_interval: 2
   extra_tags: []
+
+# Connection info to the authentication server
+auth:
+  host: localhost
+  port: 9497
+  verify_certificate: /usr/share/xivo-certs/server.crt
