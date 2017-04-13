@@ -6,12 +6,9 @@ import signal
 import sys
 from functools import partial
 from cherrypy import wsgiserver
-from flask import Flask
-from flask_restful import Api
-from flask_cors import CORS
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
-from wazo_plugind import http
+from wazo_plugind import http, service
 from .service_discovery import self_check
 
 logger = logging.getLogger(__name__)
@@ -37,7 +34,8 @@ class Controller(object):
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
-        flask_app = self._new_flask_app(config)
+        plugin_service = service.PluginService()
+        flask_app = http.new_app(config, plugin_service=plugin_service)
         Adapter = wsgiserver.get_ssl_adapter_class('builtin')
         adapter = Adapter(ssl_cert_file, ssl_key_file)
         wsgiserver.CherryPyWSGIServer.ssl_adapter = adapter
@@ -63,15 +61,3 @@ class Controller(object):
                 logger.info("Ctrl-C received, terminating")
             finally:
                 self._server.stop()
-
-    def _new_flask_app(self, config):
-        http.auth_verifier.set_config(config['auth'])
-        app = Flask('wazo_plugind')
-        app.config.update(config)
-        api = Api(app, prefix='/0.1')
-        http.Api.add_resource(api)
-        http.Config.add_resource(api, config)
-        http.Plugins.add_resource(api, config)
-        if self._cors_config.get('enabled'):
-            CORS(app, **self._cors_config)
-        return app

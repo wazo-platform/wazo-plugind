@@ -113,3 +113,5 @@ definitions:
     required:
       - namespace
       - name
+      - url
+      - method
