@@ -2,11 +2,16 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
-import time
-from hamcrest import assert_that, equal_to
 import requests
+
+from hamcrest import all_of
+from hamcrest import assert_that
+from hamcrest import equal_to
+from hamcrest import has_entry
+from hamcrest import has_item
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
+from xivo_test_helpers import until
 from xivo_test_helpers.bus import BusClient
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -59,20 +64,9 @@ class TestServiceDiscoveryWithConsulAndRabbitMQ(BaseIntegrationTest):
 
         self.start_service()
 
-        received = self._wait_for_service_started_event(msg_accumulator)
-        assert_that(received, equal_to(True), 'The bus message should have been received')
+        def bus_event_received(accumulator):
+            assert_that(accumulator.accumulate(), has_item(all_of(
+                has_entry('name', 'service_registered_event'),
+                has_entry('data', has_entry('service_name', 'wazo-plugind')))))
 
-    def _wait_for_service_started_event(self, msg_accumulator):
-        for _ in range(10):
-            events = msg_accumulator.accumulate()
-            for event in events:
-                if self._is_service_started_event(event):
-                    return True
-            time.sleep(0.25)
-        return False
-
-    @staticmethod
-    def _is_service_started_event(event):
-        event_name, service_name = event['name'], event['data']['service_name']
-        expected = 'service_registered_event', 'wazo-plugind'
-        return event_name, service_name == expected
+        until.assert_(bus_event_received, msg_accumulator, tries=10, interval=0.25, message='The bus message should have been received')
