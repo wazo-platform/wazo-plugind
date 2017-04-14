@@ -1,0 +1,6 @@
+docker-compose
+kombu
+nose
+pyhamcrest
+requests
+https://github.com/wazo-pbx/xivo-test-helpers/archive/master.zip

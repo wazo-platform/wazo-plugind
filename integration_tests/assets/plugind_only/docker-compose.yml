@@ -1,0 +1,12 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - plugind
+  environment:
+    PORTS: "9503"
+plugind:
+  image: "wazopbx/wazo-plugind"
+  environment:
+    - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
+  ports:
+    - "9503"

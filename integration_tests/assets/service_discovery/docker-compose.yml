@@ -1,0 +1,29 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - plugind
+    - consul
+    - rabbitmq
+  environment:
+    PORTS: "5672 8500 9503"
+plugind:
+  image: "wazopbx/wazo-plugind"
+  links:
+    - consul
+    - rabbitmq
+  volumes:
+    - "./etc/wazo-plugind/conf.d/consul.yml:/etc/wazo-plugind/conf.d/consul.yml"
+    - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
+  environment:
+    - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
+  ports:
+    - "9503"
+rabbitmq:
+  image: "rabbitmq"
+  ports:
+    - 5672
+consul:
+  image: "consul"
+  command: consul agent -server -dev -client=0.0.0.0
+  ports:
+    - "8500"
