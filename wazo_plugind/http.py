@@ -55,6 +55,7 @@ class Plugins(_BaseResource):
 
     @required_acl('plugind.plugins.create')
     def post(self):
+        # Add validation on namespace and name to avoid path manipulation
         data = request.get_json() or {}
         namespace, name = data.get('namespace'), data.get('name')
         method, url = data.get('method'), data.get('url')

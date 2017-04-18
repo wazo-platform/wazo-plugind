@@ -6,6 +6,7 @@ DAEMONNAME='wazo-plugind'
 LOG_FILENAME="/var/log/${DAEMONNAME}.log"
 USER=$DAEMONNAME
 GROUP=$USER
+HOMEDIR="/var/lib/$DAEMONNAME"
 
 case "$1" in
     configure)
@@ -13,7 +14,7 @@ case "$1" in
         if ! getent passwd $USER > /dev/null; then
             echo "Adding system user $USER" 1>&2
             adduser --quiet --system --group --no-create-home \
-                    --home /var/lib/$DAEMONNAME \
+                    --home $HOMEDIR \
                     $USER
         fi
         adduser --quiet $USER www-data
@@ -22,6 +23,7 @@ case "$1" in
             touch "$LOG_FILENAME"
         fi
         chown "$USER:$GROUP" "$LOG_FILENAME"
+        chown -R "$USER:$GROUP" "$HOMEDIR"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
