@@ -7,6 +7,8 @@ LOG_FILENAME="/var/log/${DAEMONNAME}.log"
 USER=$DAEMONNAME
 GROUP=$USER
 HOMEDIR="/var/lib/$DAEMONNAME"
+DOWNLOAD_DIR="${HOMEDIR}/downloads"
+PLUGIN_DIR="${HOMEDIR}/plugins"
 
 case "$1" in
     configure)
@@ -23,6 +25,12 @@ case "$1" in
             touch "$LOG_FILENAME"
         fi
         chown "$USER:$GROUP" "$LOG_FILENAME"
+
+        for dir in "${DOWNLOAD_DIR}" "${PLUGIN_DIR}"; do
+            mkdir -p "${dir}"
+            chmod 755 "${dir}"
+        done
+
         chown -R "$USER:$GROUP" "$HOMEDIR"
     ;;
 

@@ -27,11 +27,16 @@ class _MissingFieldError(APIException):
 
 class _BaseResource(Resource):
 
-    method_decorators = [auth_verifier.verify_token, handle_api_exception] + Resource.method_decorators
+    method_decorators = [handle_api_exception] + Resource.method_decorators
 
     @classmethod
     def add_resource(cls, api, *args, **kwargs):
         api.add_resource(cls, cls.api_path)
+
+
+class _AuthentificatedResource(_BaseResource):
+
+    method_decorators = [auth_verifier.verify_token] + _BaseResource.method_decorators
 
 
 class Config(_BaseResource):
@@ -49,12 +54,13 @@ class Config(_BaseResource):
         super().add_resource(api, *args, **kwargs)
 
 
-class Plugins(_BaseResource):
+class Plugins(_AuthentificatedResource):
 
     api_path = '/plugins'
 
     @required_acl('plugind.plugins.create')
     def post(self):
+        # Add a new route for installs from the market POST /plugins/namespace/name?
         # Add validation on namespace and name to avoid path manipulation
         data = request.get_json() or {}
         namespace, name = data.get('namespace'), data.get('name')

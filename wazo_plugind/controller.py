@@ -21,7 +21,7 @@ def _signal_handler(signum, frame):
 
 class Controller(object):
 
-    def __init__(self, config):
+    def __init__(self, config, worker):
         self._xivo_uuid = config.get('uuid')
         self._listen_addr = config['rest_api']['https']['listen']
         self._listen_port = config['rest_api']['https']['port']
@@ -34,7 +34,7 @@ class Controller(object):
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
-        plugin_service = service.PluginService()
+        plugin_service = service.PluginService(worker)
         flask_app = http.new_app(config, plugin_service=plugin_service)
         Adapter = wsgiserver.get_ssl_adapter_class('builtin')
         adapter = Adapter(ssl_cert_file, ssl_key_file)
@@ -43,6 +43,7 @@ class Controller(object):
         self._server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         for route in http_helpers.list_routes(flask_app):
             logger.debug(route)
+        self._worker = worker
 
     def run(self):
         logger.debug('starting http server')
@@ -57,7 +58,8 @@ class Controller(object):
         ):
             try:
                 self._server.start()
-            except KeyboardInterrupt:
-                logger.info("Ctrl-C received, terminating")
+            except (KeyboardInterrupt, SystemExit):
+                logger.info('Stopping')
             finally:
                 self._server.stop()
+        self._worker.stop()
