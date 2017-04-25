@@ -7,7 +7,6 @@
 extra_config_files: '/etc/wazo-plugind/conf.d'
 
 debug: false
-foreground: false
 log_level: info
 log_file: /var/log/wazo-plugind.log
 pid_file: /var/run/wazo-plugind/wazo-plugind.pid

@@ -12,11 +12,13 @@ from wazo_plugind.worker import Worker
 
 logger = logging.getLogger(__name__)
 
+FOREGROUND = True  # Always in foreground systemd takes care of daemonizing
+
 
 def main(args):
     conf = config.load_config(args)
 
-    xivo_logging.setup_logging(conf['log_file'], conf['foreground'], conf['debug'], conf['log_level'])
+    xivo_logging.setup_logging(conf['log_file'], FOREGROUND, conf['debug'], conf['log_level'])
     worker = Worker()
     worker.start()
 
@@ -30,7 +32,8 @@ def main(args):
         pass
 
     controller = Controller(conf, worker)
-    with pidfile_context(conf['pid_file'], conf['foreground']):
+    with pidfile_context(conf['pid_file'], FOREGROUND):
+        # foreground = True is there because systemd will make this process a daemon
         logger.debug('starting')
         controller.run()
         logger.debug('%s', conf)

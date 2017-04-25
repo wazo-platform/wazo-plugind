@@ -4,7 +4,6 @@ After=network.target
 Before=monit.service
 
 [Service]
-Type=forking
 ExecStartPre=/usr/bin/install -d -o wazo-plugind -g wazo-plugind /var/run/wazo-plugind
 ExecStart=/usr/bin/python3 -u /usr/bin/wazo-plugind
 PIDFile=/var/run/wazo-plugind/wazo-plugind.pid

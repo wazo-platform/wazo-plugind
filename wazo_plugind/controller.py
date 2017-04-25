@@ -3,6 +3,7 @@
 
 import logging
 import signal
+import os
 import sys
 from functools import partial
 from cherrypy import wsgiserver
@@ -59,7 +60,7 @@ class Controller(object):
             try:
                 self._server.start()
             except (KeyboardInterrupt, SystemExit):
-                logger.info('Stopping')
+                logger.info('Main process stopping')
             finally:
                 self._server.stop()
         self._worker.stop()

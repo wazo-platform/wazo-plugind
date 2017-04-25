@@ -4,6 +4,7 @@
 import logging
 import subprocess
 import os
+import signal
 from abc import ABCMeta, abstractmethod
 from multiprocessing import JoinableQueue, Process
 
@@ -15,6 +16,9 @@ class Quit(Exception):
 
 
 class Command(metaclass=ABCMeta):
+
+    def __str__(self):
+        return self.__class__.__name__
 
     @abstractmethod
     def execute(self):
@@ -39,6 +43,10 @@ class QuitJob(Command):
         raise Quit()
 
 
+def _on_sig_term(signum, frame):
+    logger.debug('Worker ignoring SIGTERM')
+
+
 class Worker(object):
 
     def __init__(self):
@@ -50,34 +58,39 @@ class Worker(object):
         self._do(job)
 
     def stop(self):
-        if not self._process.is_alive():
-            return
-
         logger.info('stopping worker process...')
         job = QuitJob()
         self._do(job)
-        logger.debug('joining the worker process')
-        self._process.join()
 
     def start(self):
         self._process = Process(target=self._run, args=(self._queue,))
         self._process.start()
 
     def _do(self, job):
+        logger.debug('sending job to worker %s', job)
         self._queue.put(job)
         self._queue.join()
 
     def _run(self, queue):
         # This method is executed in the worker process
         logger.info('starting worker process')
-        try:
-            while True:
-                logger.debug('waiting for a job')
+        signal.signal(signal.SIGTERM, _on_sig_term)
+        while True:
+            logger.debug('waiting for a job')
+            try:
                 command = queue.get()
-                try:
-                    command.execute()
-                finally:
-                    queue.task_done()
-        except (KeyboardInterrupt, Quit):
-            queue.close()
-            logger.debug('worker exit')
+            except KeyboardInterrupt:
+                logger.debug('worker process ignoring exit KeyboardInterrupt')
+                continue
+
+            try:
+                logger.debug('executing command %s', command)
+                command.execute()
+            except Quit:
+                logger.info('Quit received')
+                break
+            finally:
+                logger.debug('task done')
+                queue.task_done()
+
+        logger.info('Worker exit')
