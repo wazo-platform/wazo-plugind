@@ -21,4 +21,4 @@ RUN true \
 
 EXPOSE 9503
 
-CMD ["wazo-plugind", "-fd"]
+CMD ["wazo-plugind", "-d"]
