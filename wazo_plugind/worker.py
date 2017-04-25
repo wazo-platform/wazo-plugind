@@ -79,4 +79,5 @@ class Worker(object):
                 finally:
                     queue.task_done()
         except (KeyboardInterrupt, Quit):
+            queue.close()
             logger.debug('worker exit')
