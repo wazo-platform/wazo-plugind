@@ -63,13 +63,13 @@ class Plugins(_AuthentificatedResource):
         # Add a new route for installs from the market POST /plugins/namespace/name?
         # Add validation on namespace and name to avoid path manipulation
         data = request.get_json() or {}
-        namespace, name = data.get('namespace'), data.get('name')
         method, url = data.get('method'), data.get('url')
 
-        if None in (namespace, name, method, url):
-            raise _MissingFieldError(namespace=namespace, name=name, method=method, url=url)
+        if None in (method, url):
+            raise _MissingFieldError(method=method, url=url)
 
-        return self.plugin_service.create(namespace, name, url, method)
+        namespace, name = self.plugin_service.create(url, method)
+        return {'namespace': namespace, 'name': name}
 
     @classmethod
     def add_resource(cls, api, *args, **kwargs):

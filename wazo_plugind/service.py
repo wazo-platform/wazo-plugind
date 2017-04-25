@@ -80,16 +80,17 @@ class PluginService(object):
         cmd = [installer, 'build']
         subprocess.Popen(cmd, cwd=dir)
 
-    def create(self, namespace, name, url, method):
-        if url and method:
-            logger.debug('create [%s] %s', method, url)
-            downloaded_path = self.download(method, url)
-            extracted_path = self.extract(downloaded_path)
-            namespace, name = self._get_plugin_namespace_and_name(extracted_path)
-            self.move(extracted_path, namespace, name)
+    def create(self, url, method):
+        logger.debug('create [%s] %s', method, url)
+        downloaded_path = self.download(method, url)
+        extracted_path = self.extract(downloaded_path)
+        namespace, name = self._get_plugin_namespace_and_name(extracted_path)
+        self.move(extracted_path, namespace, name)
 
-            self.build(namespace, name)
-            self.install(namespace, name)
+        self.build(namespace, name)
+        self.install(namespace, name)
+
+        return namespace, name
 
     def download(self, method, url):
         return self._downloaders[method].download(url)
