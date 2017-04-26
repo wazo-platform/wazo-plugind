@@ -2,11 +2,22 @@ sync:
   image: n3llyb0y/wait
   links:
     - plugind
+    - auth
   environment:
-    PORTS: "9503"
+    PORTS: "9503 9497"
 plugind:
   image: "wazopbx/wazo-plugind"
+  links:
+    - auth
   environment:
     - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
+  volumes:
+    - "./tmp:/tmp"
+    - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
+    - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"
   ports:
     - "9503"
+auth:
+  image: "wazopbx/xivo-auth-mock"
+  ports:
+    - "9497"
