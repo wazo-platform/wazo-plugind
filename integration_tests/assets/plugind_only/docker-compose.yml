@@ -6,6 +6,8 @@ sync:
   environment:
     PORTS: "9503 9497"
 plugind:
+  cap_add:
+    - LINUX_IMMUTABLE
   image: "wazopbx/wazo-plugind"
   links:
     - auth

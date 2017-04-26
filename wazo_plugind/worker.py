@@ -31,10 +31,15 @@ class ShellJob(Command):
         self._cmd = cmd
         self._args = args
         self._kwargs = kwargs
+        self._plugins_path = '/var/lib/wazo-plugind/plugins'
 
     def execute(self):
         logger.debug('executing %s as %s', self._cmd, os.getuid())
-        subprocess.Popen(self._cmd, *self._args, **self._kwargs)
+        subprocess.Popen(['chattr', '-R', '+i', self._plugins_path]).wait()
+        try:
+            subprocess.Popen(self._cmd, *self._args, **self._kwargs).wait()
+        finally:
+            subprocess.Popen(['chattr', '-R', '-i', self._plugins_path]).wait()
 
 
 class QuitJob(Command):

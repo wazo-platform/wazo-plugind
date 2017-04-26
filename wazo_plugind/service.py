@@ -78,7 +78,7 @@ class PluginService(object):
         dir = os.path.dirname(installer)
         logger.debug('building %s/%s using %s as %s', namespace, name, installer, os.getuid())
         cmd = [installer, 'build']
-        subprocess.Popen(cmd, cwd=dir)
+        subprocess.Popen(cmd, cwd=dir).wait()
 
     def create(self, url, method):
         logger.debug('create [%s] %s', method, url)
