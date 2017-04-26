@@ -1,7 +1,6 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import os
 import requests
 
 from hamcrest import all_of
@@ -10,17 +9,11 @@ from hamcrest import equal_to
 from hamcrest import has_entry
 from hamcrest import has_item
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from xivo_test_helpers import until
 from xivo_test_helpers.bus import BusClient
+from .test_api import BaseIntegrationTest
 
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-
-class BaseIntegrationTest(AssetLaunchingTestCase):
-
-    assets_root = os.path.join(os.path.dirname(__file__), '..', 'assets')
-    service = 'plugind'
 
 
 class TestServiceDiscoveryNoConsulNoRabbitmq(BaseIntegrationTest):
