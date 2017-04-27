@@ -21,7 +21,7 @@ class Command(metaclass=ABCMeta):
         return self.__class__.__name__
 
     @abstractmethod
-    def execute(self):
+    def execute(self, config):
         pass
 
 
@@ -31,20 +31,20 @@ class ShellJob(Command):
         self._cmd = cmd
         self._args = args
         self._kwargs = kwargs
-        self._plugins_path = '/var/lib/wazo-plugind/plugins'
 
-    def execute(self):
+    def execute(self, config):
         logger.debug('executing %s as %s', self._cmd, os.getuid())
-        subprocess.Popen(['chattr', '-R', '+i', self._plugins_path]).wait()
+        plugin_dir = config['plugin_dir']
+        subprocess.Popen(['chattr', '-R', '+i', plugin_dir]).wait()
         try:
             subprocess.Popen(self._cmd, *self._args, **self._kwargs).wait()
         finally:
-            subprocess.Popen(['chattr', '-R', '-i', self._plugins_path]).wait()
+            subprocess.Popen(['chattr', '-R', '-i', plugin_dir]).wait()
 
 
 class QuitJob(Command):
 
-    def execute(self):
+    def execute(self, config):
         raise Quit()
 
 
@@ -54,9 +54,10 @@ def _on_sig_term(signum, frame):
 
 class Worker(object):
 
-    def __init__(self):
+    def __init__(self, config):
         self._queue = JoinableQueue()
         self._process = None
+        self._config = config
 
     def execute(self, cmd, *args, **kwargs):
         job = ShellJob(cmd, *args, **kwargs)
@@ -68,7 +69,7 @@ class Worker(object):
         self._do(job)
 
     def start(self):
-        self._process = Process(target=self._run, args=(self._queue,))
+        self._process = Process(target=self._run, args=(self._queue, self._config))
         self._process.start()
 
     def _do(self, job):
@@ -76,7 +77,7 @@ class Worker(object):
         self._queue.put(job)
         self._queue.join()
 
-    def _run(self, queue):
+    def _run(self, queue, config):
         # This method is executed in the worker process
         logger.info('starting worker process')
         signal.signal(signal.SIGTERM, _on_sig_term)
@@ -90,7 +91,7 @@ class Worker(object):
 
             try:
                 logger.debug('executing command %s', command)
-                command.execute()
+                command.execute(config)
             except Quit:
                 logger.info('Quit received')
                 break

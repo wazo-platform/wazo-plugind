@@ -3,7 +3,6 @@
 
 import logging
 import signal
-import os
 import sys
 from functools import partial
 from cherrypy import wsgiserver
@@ -35,7 +34,7 @@ class Controller(object):
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
-        plugin_service = service.PluginService(worker)
+        plugin_service = service.PluginService(config, worker)
         flask_app = http.new_app(config, plugin_service=plugin_service)
         Adapter = wsgiserver.get_ssl_adapter_class('builtin')
         adapter = Adapter(ssl_cert_file, ssl_key_file)

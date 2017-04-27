@@ -63,11 +63,12 @@ class UndefinedDownloader(object):
 
 class PluginService(object):
 
-    def __init__(self, worker):
-        self._plugin_dir = '/var/lib/wazo-plugind/plugins'
-        self._download_dir = '/var/lib/wazo-plugind/downloads'
-        self._tmp_dir = '/var/lib/wazo-plugind/tmp'
-        self._metadata_filename = 'package.yml'
+    def __init__(self, config, worker):
+        self._plugin_dir = config['plugin_dir']
+        self._download_dir = config['download_dir']
+        self._extract_dir = config['extract_dir']
+        self._metadata_filename = config['default_metadata_filename']
+        self._installer_filename = config['default_install_filename']
         self._downloaders = {
             'git': GitDownloader(self._download_dir),
         }
@@ -99,7 +100,7 @@ class PluginService(object):
 
     def extract(self, download_path):
         # TODO: extract is not really extract since git sources are already extracted
-        extract_path = os.path.join(self._tmp_dir, str(uuid.uuid4()))
+        extract_path = os.path.join(self._extract_dir, str(uuid.uuid4()))
         shutil.rmtree(extract_path, ignore_errors=True)
         shutil.move(download_path, extract_path)
         return extract_path
@@ -120,7 +121,7 @@ class PluginService(object):
         shutil.rmtree(path, ignore_errors=True)
 
     def _get_installer_path(self, namespace, name):
-        installer = os.path.join(self._plugin_dir, namespace, name, 'package.sh')
+        installer = os.path.join(self._plugin_dir, namespace, name, self._installer_filename)
         if not os.path.exists(installer):
             # make this an API error
             raise Exception('No installer for plugin %s/%s', namespace, name)

@@ -19,7 +19,7 @@ def main(args):
     conf = config.load_config(args)
 
     xivo_logging.setup_logging(conf['log_file'], FOREGROUND, conf['debug'], conf['log_level'])
-    worker = Worker()
+    worker = Worker(conf)
     worker.start()
 
     if conf['user']:
