@@ -7,6 +7,7 @@ import uuid
 import os.path
 import shutil
 import yaml
+from uuid import uuid4
 from xivo.rest_api_helpers import APIException
 
 logger = logging.getLogger(__name__)
@@ -81,6 +82,7 @@ class PluginService(object):
         subprocess.Popen(cmd, cwd=dir).wait()
 
     def create(self, url, method):
+        uuid = str(uuid4())
         logger.debug('create [%s] %s', method, url)
         downloaded_path = self.download(method, url)
         extracted_path = self.extract(downloaded_path)
@@ -90,7 +92,7 @@ class PluginService(object):
         self.build(namespace, name)
         self.install(namespace, name)
 
-        return namespace, name
+        return uuid
 
     def download(self, method, url):
         return self._downloaders[method].download(url)

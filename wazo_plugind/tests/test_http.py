@@ -3,6 +3,7 @@
 
 from unittest import TestCase
 from functools import wraps
+from uuid import uuid4
 import json
 from hamcrest import assert_that, equal_to
 from mock import Mock, patch
@@ -37,8 +38,8 @@ class TestPlugins(TestCase):
     def test_that_missing_fields_return_a_400(self):
         bodies = [
             None,
-            {'namespace': 'ns'},
-            {'name': 'n'},
+            {'method': 'git'},
+            {'url': 'u'},
         ]
 
         for body in bodies:
@@ -46,20 +47,18 @@ class TestPlugins(TestCase):
             assert_that(status_code, equal_to(400))
 
     def test_on_succes_returns_result_from_service(self):
-        namespace, name, url, method = 'ns', 'n', 'u', 'm'
+        url, method = 'url', 'method'
         body = {
-            'namespace': namespace,
-            'name': name,
             'url': url,
             'method': method,
         }
-        expected = self.plugin_service.create.return_value = {'foo': 'bar'}
+        self.plugin_service.create.return_value = uuid = str(uuid4())
 
         status_code, data = self.post(body)
 
         assert_that(status_code, equal_to(200))
-        assert_that(data, equal_to(expected))
-        self.plugin_service.create.assert_called_once_with(namespace, name, url, method)
+        assert_that(data, equal_to({'uuid': uuid}))
+        self.plugin_service.create.assert_called_once_with(url, method)
 
     def post(self, body):
         result = self.app.post('/0.1/plugins',

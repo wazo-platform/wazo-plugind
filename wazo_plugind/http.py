@@ -68,8 +68,8 @@ class Plugins(_AuthentificatedResource):
         if None in (method, url):
             raise _MissingFieldError(method=method, url=url)
 
-        namespace, name = self.plugin_service.create(url, method)
-        return {'namespace': namespace, 'name': name}
+        uuid = self.plugin_service.create(url, method)
+        return {'uuid': uuid}
 
     @classmethod
     def add_resource(cls, api, *args, **kwargs):

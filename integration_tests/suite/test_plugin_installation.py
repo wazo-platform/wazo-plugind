@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
+import uuid
 from hamcrest import assert_that, calling, equal_to, has_entries, has_property
 from requests import HTTPError
 from wazo_plugind_client import Client
@@ -9,6 +10,22 @@ from xivo_test_helpers.hamcrest.raises import raises
 from .test_api import BaseIntegrationTest
 
 VALID_TOKEN = 'valid-token'
+
+
+class UUIDMatcher(object):
+
+    def __eq__(self, other):
+        try:
+            uuid.UUID(other)
+            return True
+        except:
+            return False
+
+    def __ne__(self, other):
+        return not self == other
+
+
+ANY_UUID = UUIDMatcher()
 
 
 class TestPluginInstallation(BaseIntegrationTest):
@@ -26,7 +43,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         install_success_exists = self.exists_in_asset('tmp/install_success')
         install_failed_exists = self.exists_in_asset('tmp/install_failed')
 
-        assert_that(result, has_entries(namespace='plugind-tests', name='foobar'))
+        assert_that(result, has_entries(uuid=ANY_UUID))
         assert_that(build_success_exists, 'build_success was not created or copied')
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(install_failed_exists, equal_to(False), 'install_failed should not exists')

@@ -63,19 +63,16 @@ paths:
             $ref: '#/definitions/PluginInstallParameters'
       responses:
         '200':
-          description: "The installed plugin's metadata"
+          description: "Installation started"
           schema:
-            $ref: '#/definitions/Plugin'
+            $ref: '#/definitions/InstallResponse'
 definitions:
-  Plugin:
+  InstallResponse:
     type: object
     properties:
-      namespace:
+      uuid:
         type: string
-        description: "The plugins's namespace"
-      name:
-        type: string
-        description: "The name of this plugin"
+        description: "A UUID associated to this plugin installation"
   PluginInstallParameters:
     type: object
     properties:
