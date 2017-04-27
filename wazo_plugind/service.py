@@ -61,85 +61,86 @@ class UndefinedDownloader(object):
         raise UnsupportedDownloadMethod()
 
 
+class InstallContext(object):
+
+    def __init__(self, config, url, method):
+        self.uuid = str(uuid4())
+        self.url = url
+        self.method = method
+        self.download_path = None
+        self.extract_path = None
+        self.metadata_filename = None
+        self.metadata_base_filename = config['default_metadata_filename']
+        self.plugin_dir = config['plugin_dir']
+        self.extract_dir = config['extract_dir']
+        self.installer_base_filename = config['default_install_filename']
+
+    def with_download_path(self, download_path):
+        self.download_path = download_path
+        self.extract_path = os.path.join(self.extract_dir, self.uuid)
+        return self
+
+    def with_extract_path(self, extract_path):
+        self.extract_path = extract_path
+        self.metadata_filename = os.path.join(self.extract_path, self.metadata_base_filename)
+        return self
+
+    def with_metadata(self, metadata):
+        self.metadata = metadata
+        self.namespace = metadata['namespace']
+        self.name = metadata['name']
+        self.plugin_path = os.path.join(self.plugin_dir, self.namespace, self.name)
+        self.installer_path = os.path.join(self.plugin_path, self.installer_base_filename)
+        return self
+
+
 class PluginService(object):
 
     def __init__(self, config, worker):
-        self._plugin_dir = config['plugin_dir']
-        self._download_dir = config['download_dir']
-        self._extract_dir = config['extract_dir']
-        self._metadata_filename = config['default_metadata_filename']
-        self._installer_filename = config['default_install_filename']
-        self._downloaders = {
-            'git': GitDownloader(self._download_dir),
-        }
-        self._downloaders.setdefault(UndefinedDownloader(self._download_dir))
+        download_dir = config['download_dir']
+        self._config = config
         self._worker = worker
 
-    def build(self, namespace, name):
-        installer = self._get_installer_path(namespace, name)
-        dir = os.path.dirname(installer)
-        logger.debug('building %s/%s using %s as %s', namespace, name, installer, os.getuid())
-        cmd = [installer, 'build']
-        subprocess.Popen(cmd, cwd=dir).wait()
+        self._downloaders = {
+            'git': GitDownloader(download_dir),
+        }
+        self._downloaders.setdefault(UndefinedDownloader(download_dir))
+
+    def build(self, ctx):
+        logger.debug('building %s/%s using %s as %s',
+                     ctx.namespace, ctx.name, ctx.installer_path, os.getuid())
+        cmd = [ctx.installer_path, 'build']
+        subprocess.Popen(cmd, cwd=ctx.plugin_path).wait()
+        return ctx
 
     def create(self, url, method):
-        uuid = str(uuid4())
+        ctx = InstallContext(self._config, url, method)
         logger.debug('create [%s] %s', method, url)
-        downloaded_path = self.download(method, url)
-        extracted_path = self.extract(downloaded_path)
-        namespace, name = self._get_plugin_namespace_and_name(extracted_path)
-        self.move(extracted_path, namespace, name)
+        ctx = self.download(ctx)
+        ctx = self.extract(ctx)
+        ctx = self.move(ctx)
+        ctx = self.build(ctx)
+        ctx = self.install(ctx)
 
-        self.build(namespace, name)
-        self.install(namespace, name)
+        return ctx.uuid
 
-        return uuid
+    def download(self, ctx):
+        download_path = self._downloaders[ctx.method].download(ctx.url)
+        return ctx.with_download_path(download_path)
 
-    def download(self, method, url):
-        return self._downloaders[method].download(url)
-
-    def extract(self, download_path):
-        # TODO: extract is not really extract since git sources are already extracted
-        extract_path = os.path.join(self._extract_dir, str(uuid.uuid4()))
-        shutil.rmtree(extract_path, ignore_errors=True)
-        shutil.move(download_path, extract_path)
-        return extract_path
-
-    def install(self, namespace, name):
-        installer = self._get_installer_path(namespace, name)
-        dir = os.path.dirname(installer)
-        logger.debug('installing %s/%s using %s', namespace, name, installer)
-        self._worker.execute([installer, 'install'], cwd=dir)
-
-    def move(self, extracted_path, namespace, name):
-        plugin_path = os.path.join(self._plugin_dir, namespace, name)
-        shutil.rmtree(plugin_path, ignore_errors=True)
-        shutil.move(extracted_path, plugin_path)
-
-    def _delete(self, path):
-        logger.debug('deleting %s', path)
-        shutil.rmtree(path, ignore_errors=True)
-
-    def _get_installer_path(self, namespace, name):
-        installer = os.path.join(self._plugin_dir, namespace, name, self._installer_filename)
-        if not os.path.exists(installer):
-            # make this an API error
-            raise Exception('No installer for plugin %s/%s', namespace, name)
-
-        return installer
-
-    def _get_plugin_namespace_and_name(self, path):
-        metadata_file = os.path.join(path, self._metadata_filename)
-        if not os.path.exists(metadata_file):
-            # TODO make this an API error
-            raise Exception('No package.yml')
-
-        with open(metadata_file, 'r') as f:
+    def extract(self, ctx):
+        shutil.rmtree(ctx.extract_path, ignore_errors=True)
+        shutil.move(ctx.download_path, ctx.extract_path)
+        metadata_filename = os.path.join(ctx.extract_path, ctx.metadata_base_filename)
+        with open(metadata_filename, 'r') as f:
             metadata = yaml.safe_load(f)
+        return ctx.with_metadata(metadata)
 
-        namespace, name = metadata.get('namespace'), metadata.get('name')
-        if not namespace or not name:
-            # TODO: API error
-            raise Exception('Missing metadata fields: %s', [f for f in (namespace, name) if not f])
+    def install(self, ctx):
+        self._worker.install(ctx)
+        return ctx
 
-        return namespace, name
+    def move(self, ctx):
+        shutil.rmtree(ctx.plugin_path, ignore_errors=True)
+        shutil.move(ctx.extract_path, ctx.plugin_path)
+        return ctx

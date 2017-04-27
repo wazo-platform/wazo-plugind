@@ -3,7 +3,6 @@
 
 import logging
 import subprocess
-import os
 import signal
 from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
@@ -22,22 +21,21 @@ class Command(metaclass=ABCMeta):
         return self.__class__.__name__
 
     @abstractmethod
-    def execute(self, config):
+    def execute(self):
         pass
 
 
-class ShellJob(Command):
+class InstallJob(Command):
 
-    def __init__(self, cmd, *args, **kwargs):
-        self._cmd = cmd
-        self._args = args
-        self._kwargs = kwargs
+    def __init__(self, ctx):
+        self._ctx = ctx
 
-    def execute(self, config):
-        logger.debug('executing %s as %s', self._cmd, os.getuid())
-        plugin_dir = config['plugin_dir']
-        with self.immutable_directory(plugin_dir):
-            subprocess.Popen(self._cmd, *self._args, **self._kwargs).wait()
+    def execute(self):
+        with self.immutable_directory(self._ctx.plugin_dir):
+            subprocess.Popen(
+                [self._ctx.installer_path, 'install'],
+                cwd=self._ctx.plugin_path,
+            ).wait()
 
     @contextmanager
     def immutable_directory(self, directory):
@@ -50,7 +48,7 @@ class ShellJob(Command):
 
 class QuitJob(Command):
 
-    def execute(self, config):
+    def execute(self):
         raise Quit()
 
 
@@ -60,13 +58,12 @@ def _on_sig_term(signum, frame):
 
 class Worker(object):
 
-    def __init__(self, config):
+    def __init__(self):
         self._queue = JoinableQueue()
         self._process = None
-        self._config = config
 
-    def execute(self, cmd, *args, **kwargs):
-        job = ShellJob(cmd, *args, **kwargs)
+    def install(self, ctx):
+        job = InstallJob(ctx)
         self._do(job)
 
     def stop(self):
@@ -75,7 +72,7 @@ class Worker(object):
         self._do(job)
 
     def start(self):
-        self._process = Process(target=self._run, args=(self._queue, self._config))
+        self._process = Process(target=self._run, args=(self._queue,))
         self._process.start()
 
     def _do(self, job):
@@ -83,7 +80,7 @@ class Worker(object):
         self._queue.put(job)
         self._queue.join()
 
-    def _run(self, queue, config):
+    def _run(self, queue):
         # This method is executed in the worker process
         logger.info('starting worker process')
         signal.signal(signal.SIGTERM, _on_sig_term)
@@ -97,7 +94,7 @@ class Worker(object):
 
             try:
                 logger.debug('executing command %s', command)
-                command.execute(config)
+                command.execute()
             except Quit:
                 logger.info('Quit received')
                 break
