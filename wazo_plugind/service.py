@@ -22,15 +22,6 @@ class UnsupportedDownloadMethod(APIException):
                          details={})
 
 
-class DownloadError(APIException):
-
-    def __init__(self, **details):
-        super().__init__(status_code=400,
-                         message='Download failed',
-                         error_id='download_failed',
-                         details=details)
-
-
 class GitDownloader(object):
 
     def __init__(self, download_dir):
@@ -46,7 +37,7 @@ class GitDownloader(object):
         if proc.returncode:
             logger.error('failed to clone: %s', error_msg)
             logger.debug('failed git command: %s', ' '.join(cmd))
-            raise DownloadError(message=error_msg, url=url)
+            raise Exception('Download failed {}'.format(url))
 
         return filename
 
