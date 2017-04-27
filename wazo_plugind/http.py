@@ -18,7 +18,7 @@ auth_verifier = AuthVerifier()
 class _MissingFieldError(APIException):
 
     def __init__(self, *args, **kwargs):
-        missing = [field for field, value in kwargs.items() if value is None]
+        missing = [field for field, value in kwargs.items() if value is None or '']
         super().__init__(status_code=400,
                          message='Missing required fields',
                          error_id='missing_required_fields',
@@ -65,7 +65,11 @@ class Plugins(_AuthentificatedResource):
         data = request.get_json() or {}
         method, url = data.get('method'), data.get('url')
 
+        # TODO: use marshmallow once its packaged for python3
         if None in (method, url):
+            raise _MissingFieldError(method=method, url=url)
+
+        if '' in (method, url):
             raise _MissingFieldError(method=method, url=url)
 
         uuid = self.plugin_service.create(url, method)

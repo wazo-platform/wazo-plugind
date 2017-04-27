@@ -35,8 +35,10 @@ class TestPlugins(TestCase):
         self.plugin_service = Mock(PluginService)
         self.app = new_app(config, plugin_service=self.plugin_service).test_client()
 
-    def test_that_missing_fields_return_a_400(self):
+    def test_that_invalid_values_in_fields_return_a_400(self):
         bodies = [
+            {'method': 'git', 'url': ''},
+            {'method': '', 'url': 'http://...'},
             None,
             {'method': 'git'},
             {'url': 'u'},
