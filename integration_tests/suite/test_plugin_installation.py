@@ -52,6 +52,10 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(calling(self.install_plugin).with_args(url='/tmp/repo', method='git', token='expired'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
 
+    def test_that_an_unknown_download_method_returns_400(self):
+        assert_that(calling(self.install_plugin).with_args(url='/tmp/repo', method='svn'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 400))))
+
     def install_plugin(self, url, method, token=VALID_TOKEN):
         port = self.service_port(9503)
         client = Client('localhost', port=port, token=token, verify_certificate=False)
