@@ -6,6 +6,7 @@ import subprocess
 import os
 import signal
 from abc import ABCMeta, abstractmethod
+from contextlib import contextmanager
 from multiprocessing import JoinableQueue, Process
 
 logger = logging.getLogger(__name__)
@@ -35,11 +36,16 @@ class ShellJob(Command):
     def execute(self, config):
         logger.debug('executing %s as %s', self._cmd, os.getuid())
         plugin_dir = config['plugin_dir']
-        subprocess.Popen(['chattr', '-R', '+i', plugin_dir]).wait()
-        try:
+        with self.immutable_directory(plugin_dir):
             subprocess.Popen(self._cmd, *self._args, **self._kwargs).wait()
+
+    @contextmanager
+    def immutable_directory(self, directory):
+        subprocess.Popen(['chattr', '-R', '+i', directory]).wait()
+        try:
+            yield
         finally:
-            subprocess.Popen(['chattr', '-R', '-i', plugin_dir]).wait()
+            subprocess.Popen(['chattr', '-R', '-i', directory]).wait()
 
 
 class QuitJob(Command):
