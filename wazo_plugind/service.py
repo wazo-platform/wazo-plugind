@@ -112,7 +112,7 @@ class PluginService(object):
         self._downloaders = {
             'git': GitDownloader(download_dir),
         }
-        self._downloaders.setdefault(UndefinedDownloader(download_dir))
+        self._undefined_downloader = UndefinedDownloader(download_dir)
 
     def build(self, ctx):
         ctx.log_debug('building %s/%s', ctx.namespace, ctx.name)
@@ -134,7 +134,8 @@ class PluginService(object):
 
     def download(self, ctx):
         ctx.log_debug('downloading %s', ctx.url)
-        download_path = self._downloaders[ctx.method].download(ctx.url)
+        downloader = self._downloaders.get(ctx.method, self._undefined_downloader)
+        download_path = downloader.download(ctx.url)
         return ctx.with_download_path(download_path)
 
     def extract(self, ctx):
