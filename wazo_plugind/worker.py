@@ -31,6 +31,7 @@ class InstallJob(Command):
         self._ctx = ctx
 
     def execute(self):
+        self._ctx.log_debug('installing %s/%s', self._ctx.namespace, self._ctx.name)
         with self.immutable_directory(self._ctx.plugin_dir):
             subprocess.Popen(
                 [self._ctx.installer_path, 'install'],

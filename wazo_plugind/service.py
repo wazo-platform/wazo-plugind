@@ -38,7 +38,6 @@ class GitDownloader(object):
 
     def download(self, url):
         filename = os.path.join(self._download_dir, str(uuid.uuid4()))
-        logger.debug('git cloning %s into %s', url, filename)
         cmd = ['git', 'clone', '--depth', '1', url, filename]
 
         with subprocess.Popen(cmd, stderr=subprocess.PIPE) as proc:
@@ -75,6 +74,12 @@ class InstallContext(object):
         self.extract_dir = config['extract_dir']
         self.installer_base_filename = config['default_install_filename']
 
+    def log_debug(self, msg, *args):
+        self._log(logger.debug, msg, *args)
+
+    def log_info(self, msg, *args):
+        self._log(logger.info, msg, *args)
+
     def with_download_path(self, download_path):
         self.download_path = download_path
         self.extract_path = os.path.join(self.extract_dir, self.uuid)
@@ -93,6 +98,9 @@ class InstallContext(object):
         self.installer_path = os.path.join(self.plugin_path, self.installer_base_filename)
         return self
 
+    def _log(self, log_fn, msg, *args):
+        log_fn('[%s] '+msg, self.uuid, *args)
+
 
 class PluginService(object):
 
@@ -107,28 +115,30 @@ class PluginService(object):
         self._downloaders.setdefault(UndefinedDownloader(download_dir))
 
     def build(self, ctx):
-        logger.debug('building %s/%s using %s as %s',
-                     ctx.namespace, ctx.name, ctx.installer_path, os.getuid())
+        ctx.log_debug('building %s/%s', ctx.namespace, ctx.name)
         cmd = [ctx.installer_path, 'build']
         subprocess.Popen(cmd, cwd=ctx.plugin_path).wait()
         return ctx
 
     def create(self, url, method):
         ctx = InstallContext(self._config, url, method)
-        logger.debug('create [%s] %s', method, url)
+        ctx.log_info('installing %s...', url)
         ctx = self.download(ctx)
         ctx = self.extract(ctx)
         ctx = self.move(ctx)
         ctx = self.build(ctx)
         ctx = self.install(ctx)
+        ctx.log_info('install completed')
 
         return ctx.uuid
 
     def download(self, ctx):
+        ctx.log_debug('downloading %s', ctx.url)
         download_path = self._downloaders[ctx.method].download(ctx.url)
         return ctx.with_download_path(download_path)
 
     def extract(self, ctx):
+        ctx.log_debug('extracting %s to %s', ctx.url, ctx.extract_path)
         shutil.rmtree(ctx.extract_path, ignore_errors=True)
         shutil.move(ctx.download_path, ctx.extract_path)
         metadata_filename = os.path.join(ctx.extract_path, ctx.metadata_base_filename)
@@ -141,6 +151,7 @@ class PluginService(object):
         return ctx
 
     def move(self, ctx):
+        ctx.log_debug('moving %s to %s', ctx.extract_path, ctx.plugin_path)
         shutil.rmtree(ctx.plugin_path, ignore_errors=True)
         shutil.move(ctx.extract_path, ctx.plugin_path)
         return ctx
