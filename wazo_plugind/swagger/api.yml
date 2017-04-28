@@ -57,6 +57,7 @@ paths:
         ```
       parameters:
         - name: body
+          required: True
           in: body
           description: "The plugins' installation parameters"
           schema:
