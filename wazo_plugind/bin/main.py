@@ -33,7 +33,6 @@ def main(args):
 
     controller = Controller(conf, worker)
     with pidfile_context(conf['pid_file'], FOREGROUND):
-        # foreground = True is there because systemd will make this process a daemon
         logger.debug('starting')
         controller.run()
         logger.debug('%s', conf)
