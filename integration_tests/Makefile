@@ -9,6 +9,7 @@ test-setup: build-plugind create-git
 	docker pull n3llyb0y/wait
 	docker pull rabbitmq
 	docker pull consul
+	docker pull swaggerapi/swagger-validator
 
 build-plugind:
 	docker build -t wazopbx/wazo-plugind ..
