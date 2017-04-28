@@ -32,11 +32,12 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     asset = 'plugind_only'
 
-    def test_when_it_works(self):
+    def setUp(self):
         self.remove_from_asset('/tmp/build_success')
         self.remove_from_asset('/tmp/install_success')
         self.remove_from_asset('/tmp/install_failed')
 
+    def test_when_it_works(self):
         result = self.install_plugin(url='/tmp/repo', method='git')
 
         build_success_exists = self.exists_in_asset('tmp/build_success')
