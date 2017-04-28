@@ -15,10 +15,10 @@ Example:
   - package.yml
   - package.sh
   - ...
-  
+
 will generate
 
-<asset>/tmp/maliciout-repo
+<asset>/tmp/malicious-repo
   - package.yml
   - package.sh
   - .git
