@@ -2,3 +2,9 @@
 integration_tests/assets/plugind_only/tmp/*_success
 
 integration_tests/assets/plugind_only/tmp/repo/
+.coverage
+.tox
+coverage.xml
+nosetests.xml
+pep8.txt
+pylint.txt
