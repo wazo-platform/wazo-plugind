@@ -26,7 +26,7 @@ docker pull wazopbx/wazo-plugind
 ### Running wazo-plugind
 
 ```sh
-docker run -e"XIVO_UUID=<the xivo UUID>" wazopbx/wazo-plugind
+docker run -e"XIVO_UUID=<the xivo UUID>" --cap-add LINUX_IMMUTABLE wazopbx/wazo-plugind
 ```
 
 ### Building the image
