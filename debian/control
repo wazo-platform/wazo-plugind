@@ -12,6 +12,7 @@ Depends:
  ${python3:Depends},
  ${misc:Depends},
  adduser,
+ git,
  xivo-lib-python-python3,
  python3-cherrypy3,
  python3-consul,
@@ -20,7 +21,9 @@ Depends:
  python3-flask-restful,
  python3-kombu,
  python3-netifaces,
- xivo-bus-python3
+ xivo-bus-python3,
+ python3-requests,
+ xivo-auth-client-python3
 Description: Wazo plugin server
  Wazo is a system based on a powerful IPBX, to bring an easy to
  install solution for telephony and related services.

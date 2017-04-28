@@ -39,3 +39,51 @@ paths:
       responses:
         '200':
           'description': The configuration of the service
+  /plugins:
+    post:
+      tags:
+        - plugin
+      summary: Install a plugin
+      description: |
+        **Required ACL:** `plugind.plugins.create`
+
+        Allow the administrator to install a plugin on the server.
+        ---
+
+        To install a plugin that is not registered on the market:
+
+        ```json
+        {"url": "<URL to the plugin>", "method": "git"}
+        ```
+      parameters:
+        - name: body
+          required: True
+          in: body
+          description: "The plugins' installation parameters"
+          schema:
+            $ref: '#/definitions/PluginInstallParameters'
+      responses:
+        '200':
+          description: "Installation started"
+          schema:
+            $ref: '#/definitions/InstallResponse'
+definitions:
+  InstallResponse:
+    type: object
+    properties:
+      uuid:
+        type: string
+        description: "A UUID associated to this plugin installation"
+  PluginInstallParameters:
+    type: object
+    properties:
+      url:
+        type: string
+        description: "The URL to fetch the plugin"
+      method:
+        type: string
+        description: "The method used to fetch this plugin"
+        enum: [git]
+    required:
+      - url
+      - method

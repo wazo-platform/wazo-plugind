@@ -1,1 +1,4 @@
 **/__pycache__
+integration_tests/assets/plugind_only/tmp/*_success
+
+integration_tests/assets/plugind_only/tmp/repo/

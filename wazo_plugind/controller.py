@@ -6,12 +6,9 @@ import signal
 import sys
 from functools import partial
 from cherrypy import wsgiserver
-from flask import Flask
-from flask_restful import Api
-from flask_cors import CORS
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
-from wazo_plugind import http
+from wazo_plugind import http, service
 from .service_discovery import self_check
 
 logger = logging.getLogger(__name__)
@@ -24,7 +21,7 @@ def _signal_handler(signum, frame):
 
 class Controller(object):
 
-    def __init__(self, config):
+    def __init__(self, config, worker):
         self._xivo_uuid = config.get('uuid')
         self._listen_addr = config['rest_api']['https']['listen']
         self._listen_port = config['rest_api']['https']['port']
@@ -37,7 +34,8 @@ class Controller(object):
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
-        flask_app = self._new_flask_app(config)
+        plugin_service = service.PluginService(config, worker)
+        flask_app = http.new_app(config, plugin_service=plugin_service)
         Adapter = wsgiserver.get_ssl_adapter_class('builtin')
         adapter = Adapter(ssl_cert_file, ssl_key_file)
         wsgiserver.CherryPyWSGIServer.ssl_adapter = adapter
@@ -45,6 +43,7 @@ class Controller(object):
         self._server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         for route in http_helpers.list_routes(flask_app):
             logger.debug(route)
+        self._worker = worker
 
     def run(self):
         logger.debug('starting http server')
@@ -59,17 +58,8 @@ class Controller(object):
         ):
             try:
                 self._server.start()
-            except KeyboardInterrupt:
-                logger.info("Ctrl-C received, terminating")
+            except (KeyboardInterrupt, SystemExit):
+                logger.info('Main process stopping')
             finally:
                 self._server.stop()
-
-    def _new_flask_app(self, config):
-        app = Flask('wazo_plugind')
-        app.config.update(config)
-        api = Api(app, prefix='/0.1')
-        http.Api.add_resource(api)
-        http.Config.add_resource(api, config)
-        if self._cors_config.get('enabled'):
-            CORS(app, **self._cors_config)
-        return app
+        self._worker.stop()

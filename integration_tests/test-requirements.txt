@@ -3,4 +3,7 @@ kombu
 nose
 pyhamcrest
 requests
-https://github.com/wazo-pbx/xivo-test-helpers/archive/master.zip
+git+https://github.com/wazo-pbx/xivo-test-helpers.git
+git+https://github.com/wazo-pbx/xivo-lib-rest-client.git
+git+https://github.com/wazo-pbx/wazo-plugind-client.git
+stevedore

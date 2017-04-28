@@ -11,11 +11,16 @@ from xivo.xivo_logging import get_log_level_by_name
 
 _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTPS_PORT = 9503
+_DEFAULT_CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _DEFAULT_CONFIG = dict(
     config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
     extra_config_files='/etc/{}/conf.d/'.format(_DAEMONNAME),
+    plugin_dir='/var/lib/wazo-plugind/plugins',
+    download_dir='/var/lib/wazo-plugind/downloads',
+    extract_dir='/var/lib/wazo-plugind/tmp',
+    default_metadata_filename='package.yml',
+    default_install_filename='package.sh',
     debug=False,
-    foreground=False,
     log_level='info',
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
@@ -24,7 +29,7 @@ _DEFAULT_CONFIG = dict(
         'https': {
             'listen': '0.0.0.0',
             'port': _DEFAULT_HTTPS_PORT,
-            'certificate': '/usr/share/xivo-certs/server.crt',
+            'certificate': _DEFAULT_CERT_FILE,
             'private_key': '/usr/share/xivo-certs/server.key',
             'ciphers': DEFAULT_CIPHERS,
         },
@@ -55,6 +60,11 @@ _DEFAULT_CONFIG = dict(
         'retry_interval': 2,
         'extra_tags': [],
     },
+    auth={
+        'host': 'localhost',
+        'port': 9497,
+        'verify_certificate': _DEFAULT_CERT_FILE,
+    }
 )
 
 
@@ -76,7 +86,6 @@ def _parse_cli_args(args):
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config-file', action='store', help='The path to the config file')
     parser.add_argument('-d', '--debug', action='store_true', help='Log debug mesages. Override log_level')
-    parser.add_argument('-f', '--foreground', action='store_true', help='Execute in foreground')
     parser.add_argument('-u', '--user', action='store', help='The owner of the process')
     parsed_args = parser.parse_args()
 
@@ -85,8 +94,6 @@ def _parse_cli_args(args):
         result['config_file'] = parsed_args.config_file
     if parsed_args.debug:
         result['debug'] = parsed_args.debug
-    if parsed_args.foreground:
-        result['foreground'] = parsed_args.foreground
     if parsed_args.user:
         result['user'] = parsed_args.user
 
