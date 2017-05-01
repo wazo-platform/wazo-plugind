@@ -6,6 +6,7 @@ from flask import Flask, make_response, request
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from pkg_resources import resource_string
+from marshmallow import fields, Schema, validate, pre_load
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import APIException, handle_api_exception
 
@@ -15,14 +16,24 @@ logger = logging.getLogger(__name__)
 auth_verifier = AuthVerifier()
 
 
-class _MissingFieldError(APIException):
+class _PlugindInstallSchema(Schema):
 
-    def __init__(self, *args, **kwargs):
-        missing = [field for field, value in kwargs.items() if value is None or '']
+    url = fields.String(validate=validate.Length(min=1), required=True)
+    method = fields.String(validate=validate.Length(min=1), required=True)
+
+    @pre_load
+    def ensure_dict(self, data):
+        return data or {}
+
+
+class _InvalidInstallParamException(APIException):
+
+    def __init__(self, errors):
         super().__init__(status_code=400,
-                         message='Missing required fields',
-                         error_id='missing_required_fields',
-                         details={'fields': missing})
+                         message='Invalid data',
+                         error_id='invalid_data',
+                         resource='plugins',
+                         details=errors)
 
 
 class _BaseResource(Resource):
@@ -57,22 +68,16 @@ class Config(_AuthentificatedResource):
 class Plugins(_AuthentificatedResource):
 
     api_path = '/plugins'
+    install_schema = _PlugindInstallSchema()
 
     @required_acl('plugind.plugins.create')
     def post(self):
-        # Add a new route for installs from the market POST /plugins/namespace/name?
-        # Add validation on namespace and name to avoid path manipulation
-        data = request.get_json() or {}
-        method, url = data.get('method'), data.get('url')
+        body, errors = self.install_schema.load(request.get_json())
+        if errors:
+            raise _InvalidInstallParamException(errors)
 
-        # TODO: use marshmallow once its packaged for python3
-        if None in (method, url):
-            raise _MissingFieldError(method=method, url=url)
+        uuid = self.plugin_service.create(body['url'], body['method'])
 
-        if '' in (method, url):
-            raise _MissingFieldError(method=method, url=url)
-
-        uuid = self.plugin_service.create(url, method)
         return {'uuid': uuid}
 
     @classmethod
