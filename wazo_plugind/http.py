@@ -39,13 +39,13 @@ class _AuthentificatedResource(_BaseResource):
     method_decorators = [auth_verifier.verify_token] + _BaseResource.method_decorators
 
 
-class Config(_BaseResource):
+class Config(_AuthentificatedResource):
 
     api_path = '/config'
     _config = {}
 
+    @required_acl('plugind.config.read')
     def get(self):
-        # TODO: add an acl
         return {k: v for k, v in self._config.items()}, 200
 
     @classmethod

@@ -5,11 +5,8 @@ import os
 import uuid
 from hamcrest import assert_that, calling, equal_to, has_entries, has_property
 from requests import HTTPError
-from wazo_plugind_client import Client
 from xivo_test_helpers.hamcrest.raises import raises
 from .test_api import BaseIntegrationTest
-
-VALID_TOKEN = 'valid-token'
 
 
 class UUIDMatcher(object):
@@ -57,9 +54,8 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(calling(self.install_plugin).with_args(url='/tmp/repo', method='svn'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 501))))
 
-    def install_plugin(self, url, method, token=VALID_TOKEN):
-        port = self.service_port(9503)
-        client = Client('localhost', port=port, token=token, verify_certificate=False)
+    def install_plugin(self, url, method, **kwargs):
+        client = self.get_client(*kwargs)
         return client.plugins.install(url, method)
 
     def exists_in_asset(self, path):

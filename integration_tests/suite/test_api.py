@@ -3,9 +3,16 @@
 
 import os
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
+from wazo_plugind_client import Client
+
+VALID_TOKEN = 'valid-token'
 
 
 class BaseIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
     service = 'plugind'
+
+    def get_client(self, token=VALID_TOKEN):
+        port = self.service_port(9503)
+        return Client('localhost', port=port, token=token, verify_certificate=False)

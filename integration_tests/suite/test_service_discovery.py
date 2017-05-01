@@ -5,7 +5,6 @@ import requests
 
 from hamcrest import all_of
 from hamcrest import assert_that
-from hamcrest import equal_to
 from hamcrest import has_entry
 from hamcrest import has_item
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -21,12 +20,10 @@ class TestServiceDiscoveryNoConsulNoRabbitmq(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def test_that_plugind_starts_without_consul_and_rabbitmq(self):
-        port = self.service_port(9503)
-        url = 'https://localhost:{}/0.1/config'.format(port)
+        client = self.get_client()
 
-        response = requests.get(url, verify=False)
-
-        assert_that(response.status_code, equal_to(200))
+        client.config.get()
+        # If no exception plugind is running
 
 
 class TestServiceDiscoveryWithConsulAndRabbitMQ(BaseIntegrationTest):
@@ -62,4 +59,5 @@ class TestServiceDiscoveryWithConsulAndRabbitMQ(BaseIntegrationTest):
                 has_entry('name', 'service_registered_event'),
                 has_entry('data', has_entry('service_name', 'wazo-plugind')))))
 
-        until.assert_(bus_event_received, msg_accumulator, tries=10, interval=0.25, message='The bus message should have been received')
+        until.assert_(bus_event_received, msg_accumulator, tries=10, interval=0.25,
+                      message='The bus message should have been received')
