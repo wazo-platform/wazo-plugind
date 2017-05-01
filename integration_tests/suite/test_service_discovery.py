@@ -5,11 +5,8 @@ import requests
 
 from hamcrest import all_of
 from hamcrest import assert_that
-from hamcrest import calling
 from hamcrest import has_entry
 from hamcrest import has_item
-from hamcrest import not_
-from hamcrest import raises
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from xivo_test_helpers import until
 from xivo_test_helpers.bus import BusClient
@@ -25,8 +22,8 @@ class TestServiceDiscoveryNoConsulNoRabbitmq(BaseIntegrationTest):
     def test_that_plugind_starts_without_consul_and_rabbitmq(self):
         client = self.get_client()
 
-        assert_that(calling(client.config.get),
-                    not_(raises(requests.HTTPError)))
+        client.config.get()
+        # If no exception plugind is running
 
 
 class TestServiceDiscoveryWithConsulAndRabbitMQ(BaseIntegrationTest):
