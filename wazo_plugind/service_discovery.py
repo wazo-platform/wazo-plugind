@@ -11,4 +11,4 @@ def self_check(port):
     except (client.HTTPException, ConnectionRefusedError):
         return False
     response = conn.getresponse()
-    return response.status == 200
+    return response.status == 401
