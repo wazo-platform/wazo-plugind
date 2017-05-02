@@ -40,7 +40,10 @@ class _PlugindInstallSchema(Schema):
                                      'constraint': 'required'},
                         'invalid': {'message': 'Not a valid string.',
                                     'constraint_id': 'type',
-                                    'constraint': 'string'},},
+                                    'constraint': 'string'},
+                        'null': {'message': 'Field may not be null.',
+                                 'constraint_id': 'not_null',
+                                 'constraint': 'not_null'}},
     )
     method = fields.String(
         validate=Length(min=1),
@@ -50,7 +53,10 @@ class _PlugindInstallSchema(Schema):
                                      'constraint': 'required'},
                         'invalid': {'message': 'Not a valid string.',
                                     'constraint_id': 'type',
-                                    'constraint': 'string'}},
+                                    'constraint': 'string'},
+                        'null': {'message': 'Field may not be null.',
+                                 'constraint_id': 'not_null',
+                                 'constraint': 'not_null'}},
     )
 
     @pre_load
