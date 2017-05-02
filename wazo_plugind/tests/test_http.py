@@ -42,6 +42,7 @@ class TestPlugins(TestCase):
             {'method': 'git'},
             {'url': 'u'},
             None,
+            {'url': 42, 'method': True}
         ]
         details = [
             {'url': {'constraint_id': 'length',
@@ -61,6 +62,12 @@ class TestPlugins(TestCase):
                         'message': ANY},
              'url': {'constraint_id': 'required',
                      'constraint': 'required',
+                     'message': ANY}},
+            {'method': {'constraint_id': 'type',
+                        'constraint': 'string',
+                        'message': ANY},
+             'url': {'constraint_id': 'type',
+                     'constraint': 'string',
                      'message': ANY}},
         ]
 

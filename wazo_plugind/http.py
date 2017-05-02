@@ -37,14 +37,20 @@ class _PlugindInstallSchema(Schema):
         required=True,
         error_messages={'required': {'message': 'Missing data for required field.',
                                      'constraint_id': 'required',
-                                     'constraint': 'required'}},
+                                     'constraint': 'required'},
+                        'invalid': {'message': 'Not a valid string.',
+                                    'constraint_id': 'type',
+                                    'constraint': 'string'},},
     )
     method = fields.String(
         validate=Length(min=1),
         required=True,
         error_messages={'required': {'message': 'Missing data for required field.',
                                      'constraint_id': 'required',
-                                     'constraint': 'required'}},
+                                     'constraint': 'required'},
+                        'invalid': {'message': 'Not a valid string.',
+                                    'constraint_id': 'type',
+                                    'constraint': 'string'}},
     )
 
     @pre_load
