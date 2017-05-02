@@ -4,6 +4,19 @@
 from marshmallow import fields, Schema, validate, pre_load
 
 
+fields.String.default_error_messages = {
+    'required': {'message': 'Missing data for required field.',
+                 'constraint_id': 'required',
+                 'constraint': 'required'},
+    'invalid': {'message': 'Not a valid string.',
+                'constraint_id': 'type',
+                'constraint': 'string'},
+    'null': {'message': 'Field may not be null.',
+             'constraint_id': 'not_null',
+             'constraint': 'not_null'},
+}
+
+
 class Length(validate.Length):
 
     constraint_id = 'length'
@@ -20,26 +33,8 @@ class Length(validate.Length):
 
 class PluginInstallSchema(Schema):
 
-    fields.String.default_error_messages = {
-        'required': {'message': 'Missing data for required field.',
-                     'constraint_id': 'required',
-                     'constraint': 'required'},
-        'invalid': {'message': 'Not a valid string.',
-                    'constraint_id': 'type',
-                    'constraint': 'string'},
-        'null': {'message': 'Field may not be null.',
-                 'constraint_id': 'not_null',
-                 'constraint': 'not_null'},
-    }
-
-    url = fields.String(
-        validate=Length(min=1),
-        required=True,
-    )
-    method = fields.String(
-        validate=Length(min=1),
-        required=True,
-    )
+    url = fields.String(validate=Length(min=1), required=True)
+    method = fields.String(validate=Length(min=1), required=True)
 
     @pre_load
     def ensure_dict(self, data):
