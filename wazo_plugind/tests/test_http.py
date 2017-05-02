@@ -43,15 +43,26 @@ class TestPlugins(TestCase):
             {'method': 'git'},
             {'url': 'u'},
         ]
+        details = [
+            {'url': [{'constraint_id': 'length',
+                      'constraint': {'min': 1, 'max': None},
+                      'message': ANY}]},
+            {'method': [{'constraint_id': 'length',
+                         'constraint': {'min': 1, 'max': None},
+                         'message': ANY}]},
+            ANY,
+            ANY,
+            ANY,
+        ]
 
-        for body in bodies:
+        for body, detail in zip(bodies, details):
             status_code, body = self.post(body)
             assert_that(status_code, equal_to(400))
             assert_that(body, has_entries(
                 'error_id', 'invalid_data',
                 'message', 'Invalid data',
                 'resource', 'plugins',
-                'details', ANY,
+                'details', detail,
             ))
 
     def test_on_succes_returns_result_from_service(self):

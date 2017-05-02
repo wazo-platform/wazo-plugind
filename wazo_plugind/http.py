@@ -16,10 +16,24 @@ logger = logging.getLogger(__name__)
 auth_verifier = AuthVerifier()
 
 
+class Length(validate.Length):
+
+    constraint_id = 'length'
+
+    def _format_error(self, value, message):
+        msg = super()._format_error(value, message)
+
+        return {
+            'constraint_id': self.constraint_id,
+            'constraint': {'min': self.min, 'max': self.max},
+            'message': msg,
+        }
+
+
 class _PlugindInstallSchema(Schema):
 
-    url = fields.String(validate=validate.Length(min=1), required=True)
-    method = fields.String(validate=validate.Length(min=1), required=True)
+    url = fields.String(validate=Length(min=1), required=True)
+    method = fields.String(validate=Length(min=1), required=True)
 
     @pre_load
     def ensure_dict(self, data):
