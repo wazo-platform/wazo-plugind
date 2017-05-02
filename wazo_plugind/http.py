@@ -64,11 +64,10 @@ class Config(_AuthentificatedResource):
 class Plugins(_AuthentificatedResource):
 
     api_path = '/plugins'
-    install_schema = PluginInstallSchema()
 
     @required_acl('plugind.plugins.create')
     def post(self):
-        body, errors = self.install_schema.load(request.get_json())
+        body, errors = PluginInstallSchema().load(request.get_json())
         if errors:
             raise _InvalidInstallParamException(errors)
 
