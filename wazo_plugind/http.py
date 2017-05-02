@@ -32,31 +32,25 @@ class Length(validate.Length):
 
 class _PlugindInstallSchema(Schema):
 
+    fields.String.default_error_messages = {
+        'required': {'message': 'Missing data for required field.',
+                     'constraint_id': 'required',
+                     'constraint': 'required'},
+        'invalid': {'message': 'Not a valid string.',
+                    'constraint_id': 'type',
+                    'constraint': 'string'},
+        'null': {'message': 'Field may not be null.',
+                 'constraint_id': 'not_null',
+                 'constraint': 'not_null'},
+    }
+
     url = fields.String(
         validate=Length(min=1),
         required=True,
-        error_messages={'required': {'message': 'Missing data for required field.',
-                                     'constraint_id': 'required',
-                                     'constraint': 'required'},
-                        'invalid': {'message': 'Not a valid string.',
-                                    'constraint_id': 'type',
-                                    'constraint': 'string'},
-                        'null': {'message': 'Field may not be null.',
-                                 'constraint_id': 'not_null',
-                                 'constraint': 'not_null'}},
     )
     method = fields.String(
         validate=Length(min=1),
         required=True,
-        error_messages={'required': {'message': 'Missing data for required field.',
-                                     'constraint_id': 'required',
-                                     'constraint': 'required'},
-                        'invalid': {'message': 'Not a valid string.',
-                                    'constraint_id': 'type',
-                                    'constraint': 'string'},
-                        'null': {'message': 'Field may not be null.',
-                                 'constraint_id': 'not_null',
-                                 'constraint': 'not_null'}},
     )
 
     @pre_load
