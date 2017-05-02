@@ -32,8 +32,20 @@ class Length(validate.Length):
 
 class _PlugindInstallSchema(Schema):
 
-    url = fields.String(validate=Length(min=1), required=True)
-    method = fields.String(validate=Length(min=1), required=True)
+    url = fields.String(
+        validate=Length(min=1),
+        required=True,
+        error_messages={'required': {'message': 'Missing data for required field.',
+                                     'constraint_id': 'required',
+                                     'constraint': 'required'}},
+    )
+    method = fields.String(
+        validate=Length(min=1),
+        required=True,
+        error_messages={'required': {'message': 'Missing data for required field.',
+                                     'constraint_id': 'required',
+                                     'constraint': 'required'}},
+    )
 
     @pre_load
     def ensure_dict(self, data):

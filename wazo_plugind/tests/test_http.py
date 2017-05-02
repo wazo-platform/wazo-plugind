@@ -39,9 +39,9 @@ class TestPlugins(TestCase):
         bodies = [
             {'method': 'git', 'url': ''},
             {'method': '', 'url': 'http://...'},
-            None,
             {'method': 'git'},
             {'url': 'u'},
+            None,
         ]
         details = [
             {'url': [{'constraint_id': 'length',
@@ -50,9 +50,18 @@ class TestPlugins(TestCase):
             {'method': [{'constraint_id': 'length',
                          'constraint': {'min': 1, 'max': None},
                          'message': ANY}]},
-            ANY,
-            ANY,
-            ANY,
+            {'url': {'constraint_id': 'required',
+                     'constraint': 'required',
+                     'message': ANY}},
+            {'method': {'constraint_id': 'required',
+                        'constraint': 'required',
+                        'message': ANY}},
+            {'method': {'constraint_id': 'required',
+                        'constraint': 'required',
+                        'message': ANY},
+             'url': {'constraint_id': 'required',
+                     'constraint': 'required',
+                     'message': ANY}},
         ]
 
         for body, detail in zip(bodies, details):
