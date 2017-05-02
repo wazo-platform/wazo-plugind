@@ -59,7 +59,13 @@ class _InvalidInstallParamException(APIException):
                          message='Invalid data',
                          error_id='invalid_data',
                          resource='plugins',
-                         details=errors)
+                         details=self.format_details(errors))
+
+    def format_details(self, errors):
+        return {
+            field: info[0] if isinstance(info, list) else info
+            for field, info in errors.items()
+        }
 
 
 class _BaseResource(Resource):

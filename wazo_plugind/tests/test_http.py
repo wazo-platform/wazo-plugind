@@ -44,12 +44,12 @@ class TestPlugins(TestCase):
             None,
         ]
         details = [
-            {'url': [{'constraint_id': 'length',
-                      'constraint': {'min': 1, 'max': None},
-                      'message': ANY}]},
-            {'method': [{'constraint_id': 'length',
-                         'constraint': {'min': 1, 'max': None},
-                         'message': ANY}]},
+            {'url': {'constraint_id': 'length',
+                     'constraint': {'min': 1, 'max': None},
+                     'message': ANY}},
+            {'method': {'constraint_id': 'length',
+                        'constraint': {'min': 1, 'max': None},
+                        'message': ANY}},
             {'url': {'constraint_id': 'required',
                      'constraint': 'required',
                      'message': ANY}},
