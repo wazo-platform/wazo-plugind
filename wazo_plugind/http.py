@@ -8,6 +8,7 @@ from flask_restful import Api, Resource
 from pkg_resources import resource_string
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import APIException, handle_api_exception
+from .schema import PluginInstallSchema
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +16,20 @@ logger = logging.getLogger(__name__)
 auth_verifier = AuthVerifier()
 
 
-class _MissingFieldError(APIException):
+class _InvalidInstallParamException(APIException):
 
-    def __init__(self, *args, **kwargs):
-        missing = [field for field, value in kwargs.items() if value is None or '']
+    def __init__(self, errors):
         super().__init__(status_code=400,
-                         message='Missing required fields',
-                         error_id='missing_required_fields',
-                         details={'fields': missing})
+                         message='Invalid data',
+                         error_id='invalid_data',
+                         resource='plugins',
+                         details=self.format_details(errors))
+
+    def format_details(self, errors):
+        return {
+            field: info[0] if isinstance(info, list) else info
+            for field, info in errors.items()
+        }
 
 
 class _BaseResource(Resource):
@@ -60,19 +67,12 @@ class Plugins(_AuthentificatedResource):
 
     @required_acl('plugind.plugins.create')
     def post(self):
-        # Add a new route for installs from the market POST /plugins/namespace/name?
-        # Add validation on namespace and name to avoid path manipulation
-        data = request.get_json() or {}
-        method, url = data.get('method'), data.get('url')
+        body, errors = PluginInstallSchema().load(request.get_json())
+        if errors:
+            raise _InvalidInstallParamException(errors)
 
-        # TODO: use marshmallow once its packaged for python3
-        if None in (method, url):
-            raise _MissingFieldError(method=method, url=url)
+        uuid = self.plugin_service.create(body['url'], body['method'])
 
-        if '' in (method, url):
-            raise _MissingFieldError(method=method, url=url)
-
-        uuid = self.plugin_service.create(url, method)
         return {'uuid': uuid}
 
     @classmethod

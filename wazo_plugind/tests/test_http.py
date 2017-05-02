@@ -5,8 +5,8 @@ from unittest import TestCase
 from functools import wraps
 from uuid import uuid4
 import json
-from hamcrest import assert_that, equal_to
-from mock import Mock, patch
+from hamcrest import assert_that, equal_to, has_entries
+from mock import ANY, Mock, patch
 
 from ..service import PluginService
 
@@ -39,14 +39,47 @@ class TestPlugins(TestCase):
         bodies = [
             {'method': 'git', 'url': ''},
             {'method': '', 'url': 'http://...'},
-            None,
             {'method': 'git'},
             {'url': 'u'},
+            None,
+            {'url': 42, 'method': None}
+        ]
+        details = [
+            {'url': {'constraint_id': 'length',
+                     'constraint': {'min': 1, 'max': None},
+                     'message': ANY}},
+            {'method': {'constraint_id': 'length',
+                        'constraint': {'min': 1, 'max': None},
+                        'message': ANY}},
+            {'url': {'constraint_id': 'required',
+                     'constraint': 'required',
+                     'message': ANY}},
+            {'method': {'constraint_id': 'required',
+                        'constraint': 'required',
+                        'message': ANY}},
+            {'method': {'constraint_id': 'required',
+                        'constraint': 'required',
+                        'message': ANY},
+             'url': {'constraint_id': 'required',
+                     'constraint': 'required',
+                     'message': ANY}},
+            {'method': {'constraint_id': 'not_null',
+                        'constraint': 'not_null',
+                        'message': ANY},
+             'url': {'constraint_id': 'type',
+                     'constraint': 'string',
+                     'message': ANY}},
         ]
 
-        for body in bodies:
-            status_code, _= self.post(body)
+        for body, detail in zip(bodies, details):
+            status_code, body = self.post(body)
             assert_that(status_code, equal_to(400))
+            assert_that(body, has_entries(
+                'error_id', 'invalid_data',
+                'message', 'Invalid data',
+                'resource', 'plugins',
+                'details', detail,
+            ))
 
     def test_on_succes_returns_result_from_service(self):
         url, method = 'url', 'method'
