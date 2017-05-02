@@ -6,56 +6,14 @@ from flask import Flask, make_response, request
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from pkg_resources import resource_string
-from marshmallow import fields, Schema, validate, pre_load
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import APIException, handle_api_exception
+from .schema import PluginInstallSchema
 
 logger = logging.getLogger(__name__)
 
 
 auth_verifier = AuthVerifier()
-
-
-class Length(validate.Length):
-
-    constraint_id = 'length'
-
-    def _format_error(self, value, message):
-        msg = super()._format_error(value, message)
-
-        return {
-            'constraint_id': self.constraint_id,
-            'constraint': {'min': self.min, 'max': self.max},
-            'message': msg,
-        }
-
-
-class _PlugindInstallSchema(Schema):
-
-    fields.String.default_error_messages = {
-        'required': {'message': 'Missing data for required field.',
-                     'constraint_id': 'required',
-                     'constraint': 'required'},
-        'invalid': {'message': 'Not a valid string.',
-                    'constraint_id': 'type',
-                    'constraint': 'string'},
-        'null': {'message': 'Field may not be null.',
-                 'constraint_id': 'not_null',
-                 'constraint': 'not_null'},
-    }
-
-    url = fields.String(
-        validate=Length(min=1),
-        required=True,
-    )
-    method = fields.String(
-        validate=Length(min=1),
-        required=True,
-    )
-
-    @pre_load
-    def ensure_dict(self, data):
-        return data or {}
 
 
 class _InvalidInstallParamException(APIException):
@@ -106,7 +64,7 @@ class Config(_AuthentificatedResource):
 class Plugins(_AuthentificatedResource):
 
     api_path = '/plugins'
-    install_schema = _PlugindInstallSchema()
+    install_schema = PluginInstallSchema()
 
     @required_acl('plugind.plugins.create')
     def post(self):
