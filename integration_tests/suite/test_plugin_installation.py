@@ -47,7 +47,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(install_failed_exists, equal_to(False), 'install_failed should not exists')
 
     def test_with_invalid_namespace(self):
-        assert_that(calling(self.install_plugin).with_args(url='/tmp/fail', method='git'),
+        assert_that(calling(self.install_plugin).with_args(url='/tmp/fail_namespace', method='git'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
 
     def test_that_an_unauthorized_token_return_401(self):

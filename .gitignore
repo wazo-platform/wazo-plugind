@@ -1,6 +1,5 @@
 **/__pycache__
 integration_tests/assets/plugind_only/tmp/*_success
-
 integration_tests/assets/plugind_only/tmp/repo/
 .coverage
 .tox
@@ -9,4 +8,4 @@ nosetests.xml
 pep8.txt
 pylint.txt
 integration_tests/assets/plugind_only/tmp/*_failed
-integration_tests/assets/plugind_only/tmp/fail
+integration_tests/assets/plugind_only/tmp/fail_namespace
