@@ -8,3 +8,5 @@ coverage.xml
 nosetests.xml
 pep8.txt
 pylint.txt
+integration_tests/assets/plugind_only/tmp/*_failed
+integration_tests/assets/plugind_only/tmp/fail
