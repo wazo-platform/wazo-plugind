@@ -1,0 +1,2 @@
+namespace: foobar
+name: no_underscore_allowed

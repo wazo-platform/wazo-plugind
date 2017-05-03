@@ -50,6 +50,10 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(calling(self.install_plugin).with_args(url='/tmp/fail_namespace', method='git'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
 
+    def test_with_invalid_name(self):
+        assert_that(calling(self.install_plugin).with_args(url='/tmp/fail_name', method='git'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
+
     def test_that_an_unauthorized_token_return_401(self):
         assert_that(calling(self.install_plugin).with_args(url='/tmp/repo', method='git', token='expired'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
