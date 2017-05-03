@@ -5,6 +5,7 @@ import logging
 import subprocess
 import uuid
 import os.path
+import re
 import shutil
 import yaml
 from uuid import uuid4
@@ -20,6 +21,14 @@ class UnsupportedDownloadMethod(APIException):
                          message='Unsupported download method',
                          error_id='unsupported_download_method',
                          details={})
+
+
+class InvalidNamespaceException(Exception):
+    pass
+
+
+class InvalidNameException(Exception):
+    pass
 
 
 class GitDownloader(object):
@@ -53,6 +62,9 @@ class UndefinedDownloader(object):
 
 class InstallContext(object):
 
+    valid_namespace = re.compile(r'^[a-z0-9]+$')
+    valid_name = re.compile(r'^[a-z0-9-]+$')
+
     def __init__(self, config, url, method):
         self.uuid = str(uuid4())
         self.url = url
@@ -84,7 +96,11 @@ class InstallContext(object):
     def with_metadata(self, metadata):
         self.metadata = metadata
         self.namespace = metadata['namespace']
+        if self.valid_namespace.match(self.namespace) is None:
+            raise InvalidNamespaceException()
         self.name = metadata['name']
+        if self.valid_name.match(self.name) is None:
+            raise InvalidNameException()
         self.plugin_path = os.path.join(self.plugin_dir, self.namespace, self.name)
         self.installer_path = os.path.join(self.plugin_path, self.installer_base_filename)
         return self
