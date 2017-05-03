@@ -27,6 +27,10 @@ class InvalidNamespaceException(Exception):
     pass
 
 
+class InvalidNameException(Exception):
+    pass
+
+
 class GitDownloader(object):
 
     def __init__(self, download_dir):
@@ -59,6 +63,7 @@ class UndefinedDownloader(object):
 class InstallContext(object):
 
     valid_namespace = re.compile(r'^[a-z0-9]+$')
+    valid_name = re.compile(r'^[a-z0-9-]+$')
 
     def __init__(self, config, url, method):
         self.uuid = str(uuid4())
@@ -94,6 +99,8 @@ class InstallContext(object):
         if self.valid_namespace.match(self.namespace) is None:
             raise InvalidNamespaceException()
         self.name = metadata['name']
+        if self.valid_name.match(self.name) is None:
+            raise InvalidNameException()
         self.plugin_path = os.path.join(self.plugin_dir, self.namespace, self.name)
         self.installer_path = os.path.join(self.plugin_path, self.installer_base_filename)
         return self
