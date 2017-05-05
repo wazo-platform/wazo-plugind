@@ -5,7 +5,6 @@ import logging
 import subprocess
 import signal
 from abc import ABCMeta, abstractmethod
-from contextlib import contextmanager
 from multiprocessing import JoinableQueue, Process
 
 logger = logging.getLogger(__name__)
@@ -31,20 +30,8 @@ class InstallJob(Command):
         self._ctx = ctx
 
     def execute(self):
-        self._ctx.log_debug('installing %s/%s', self._ctx.namespace, self._ctx.name)
-        with self.immutable_directory(self._ctx.plugin_dir):
-            subprocess.Popen(
-                [self._ctx.installer_path, 'install'],
-                cwd=self._ctx.plugin_path,
-            ).wait()
-
-    @contextmanager
-    def immutable_directory(self, directory):
-        subprocess.Popen(['chattr', '-R', '+i', directory]).wait()
-        try:
-            yield
-        finally:
-            subprocess.Popen(['chattr', '-R', '-i', directory]).wait()
+        self._ctx.log_debug('installing %s', self._ctx.debian_package)
+        subprocess.Popen(['dpkg', '-i', self._ctx.package_deb_file]).wait()
 
 
 class QuitJob(Command):

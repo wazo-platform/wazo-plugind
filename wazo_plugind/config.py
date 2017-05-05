@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import argparse
+import os
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import read_config_file_hierarchy
@@ -12,14 +13,23 @@ from xivo.xivo_logging import get_log_level_by_name
 _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTPS_PORT = 9503
 _DEFAULT_CERT_FILE = '/usr/share/xivo-certs/server.crt'
+_PLUGIN_DATA_DIR = 'wazo'
 _DEFAULT_CONFIG = dict(
     config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
     extra_config_files='/etc/{}/conf.d/'.format(_DAEMONNAME),
     plugin_dir='/var/lib/wazo-plugind/plugins',
     download_dir='/var/lib/wazo-plugind/downloads',
     extract_dir='/var/lib/wazo-plugind/tmp',
-    default_metadata_filename='wazo/plugin.yml',
-    default_install_filename='wazo/rules',
+    metadata_dir='/usr/lib/wazo-plugind/plugins',
+    template_dir='/usr/lib/wazo-plugind/templates',
+    build_dir='_pkg',
+    control_template='control.jinja',
+    postinst_template='postinst.jinja',
+    prerm_template='prerm.jinja',
+    plugin_data_dir=_PLUGIN_DATA_DIR,
+    default_metadata_filename=os.path.join(_PLUGIN_DATA_DIR, 'plugin.yml'),
+    default_install_filename=os.path.join(_PLUGIN_DATA_DIR, 'rules'),
+    default_debian_package_prefix='wazo-plugind',
     debug=False,
     log_level='info',
     log_file='/var/log/{}.log'.format(_DAEMONNAME),

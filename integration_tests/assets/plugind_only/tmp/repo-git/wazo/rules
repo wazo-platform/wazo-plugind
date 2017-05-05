@@ -5,17 +5,20 @@
 case "$1" in
     build)
         echo "Building..."
-        # During the build files can be created by wazo-plugind
         echo '1' > build_success
+        ;;
+    package)
+        echo "Packaging..."
+        mkdir -p ${pkgdir}/tmp/git
+        cp build_success ${pkgdir}/tmp/git/build_success
+        echo '1' >> ${pkgdir}/tmp/git/package_success
         ;;
     install)
         echo "Installing..."
-        # During the install files cannot be created by root
-        echo '1' > install_failed && mv install_failed /tmp/install_failed
-
-        # During the install files can be copied by root
-        cp build_success /tmp
-        echo '1' > /tmp/install_success
+        echo '1' > /tmp/git/install_success
+        ;;
+    uninstall)
+        echo "Removing..."
         ;;
     *)
         echo "$0 called with unknown argument '$1'" >&2

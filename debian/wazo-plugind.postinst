@@ -6,9 +6,10 @@ DAEMONNAME='wazo-plugind'
 LOG_FILENAME="/var/log/${DAEMONNAME}.log"
 USER=$DAEMONNAME
 GROUP=$USER
-HOMEDIR="/var/lib/$DAEMONNAME"
+HOMEDIR="/var/lib/${DAEMONNAME}"
 DOWNLOAD_DIR="${HOMEDIR}/downloads"
 PLUGIN_DIR="${HOMEDIR}/plugins"
+DATA_DIR="/usr/lib/${DAEMONNAME}"
 
 case "$1" in
     configure)
@@ -32,6 +33,7 @@ case "$1" in
         done
 
         chown -R "$USER:$GROUP" "$HOMEDIR"
+        chown -R "$USER:$GROUP" "$DATA_DIR"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

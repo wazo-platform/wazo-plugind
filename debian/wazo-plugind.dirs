@@ -1,1 +1,3 @@
 etc/wazo-plugind/conf.d
+usr/lib/wazo-plugind/plugins
+usr/lib/wazo-plugind/templates
