@@ -10,7 +10,7 @@ import re
 import shutil
 import yaml
 from uuid import uuid4
-import jinja2
+from . import debian
 from .exceptions import (
     InvalidMetadata,
     InvalidNamespaceException,
@@ -139,52 +139,6 @@ class InstallContext(object):
         log_fn('[%s] '+msg, self.uuid, *args)
 
 
-class DebianFileGenerator(object):
-
-    _debian_dir = 'DEBIAN'
-    _generated_files = ['control', 'postinst', 'prerm']
-    _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755}
-
-    def __init__(self, config):
-        loader = jinja2.FileSystemLoader(config['template_dir'])
-        self._env = jinja2.Environment(loader=loader)
-        self._control_template = config['control_template']
-        self._postint_template = config['postinst_template']
-        self._prerm_template = config['prerm_template']
-        self._template_files = {'control': config['control_template'],
-                                'postinst': config['postinst_template'],
-                                'prerm': config['prerm_template']}
-
-    def generate(self, ctx):
-        ctx = self._make_template_ctx(ctx)
-        ctx = self._make_debian_dir(ctx)
-        for filename in self._generated_files:
-            ctx = self._generate_file(ctx, filename)
-        return ctx
-
-    def _make_template_ctx(self, ctx):
-        installed_rules_path = os.path.join(ctx.destination_plugin_path, ctx.installer_base_filename)
-        template_context = dict(ctx.metadata, rules_path=installed_rules_path)
-        return ctx.with_template_context(template_context)
-
-    def _make_debian_dir(self, ctx):
-        debian_dir = os.path.join(ctx.pkgdir, self._debian_dir)
-        os.mkdir(debian_dir)
-        return ctx.with_debian_dir(debian_dir)
-
-    def _generate_file(self, ctx, filename):
-        file_path = os.path.join(ctx.debian_dir, filename)
-        template = self._env.get_template(self._template_files[filename])
-        with open(file_path, 'w') as f:
-            f.write(template.render(ctx.template_context))
-
-        mod = self._generated_files_mod.get(filename)
-        if mod:
-            os.chmod(file_path, mod)
-
-        return ctx
-
-
 class PluginService(object):
 
     def __init__(self, config, worker):
@@ -193,7 +147,7 @@ class PluginService(object):
         self._deb_file = '{}.deb'.format(self._build_dir)
         self._config = config
         self._worker = worker
-        self._debian_file_generator = DebianFileGenerator(config)
+        self._debian_file_generator = debian.Generator.from_config(config)
 
         self._downloaders = {
             'git': GitDownloader(download_dir),
