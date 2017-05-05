@@ -30,16 +30,14 @@ class TestPluginInstallation(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def setUp(self):
-        self.remove_from_asset('/tmp/build_success')
-        self.remove_from_asset('/tmp/install_success')
-        self.remove_from_asset('/tmp/package_success')
+        self.remove_from_asset('/results')
 
     def test_when_it_works(self):
-        result = self.install_plugin(url='/tmp/git/repo', method='git')
+        result = self.install_plugin(url='/data/git/repo', method='git')
 
-        build_success_exists = self.exists_in_asset('tmp/build_success')
-        package_success_exists = self.exists_in_asset('tmp/package_success')
-        install_success_exists = self.exists_in_asset('tmp/install_success')
+        build_success_exists = self.exists_in_asset('results/build_success')
+        package_success_exists = self.exists_in_asset('results/package_success')
+        install_success_exists = self.exists_in_asset('results/install_success')
 
         assert_that(result, has_entries(uuid=ANY_UUID))
         assert_that(build_success_exists, 'build_success was not created or copied')
@@ -47,19 +45,19 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(package_success_exists, 'package_success was not created')
 
     def test_with_invalid_namespace(self):
-        assert_that(calling(self.install_plugin).with_args(url='/tmp/git/fail_namespace', method='git'),
+        assert_that(calling(self.install_plugin).with_args(url='/data/git/fail_namespace', method='git'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
 
     def test_with_invalid_name(self):
-        assert_that(calling(self.install_plugin).with_args(url='/tmp/git/fail_name', method='git'),
+        assert_that(calling(self.install_plugin).with_args(url='/data/git/fail_name', method='git'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
 
     def test_that_an_unauthorized_token_return_401(self):
-        assert_that(calling(self.install_plugin).with_args(url='/tmp/git/repo', method='git', token='expired'),
+        assert_that(calling(self.install_plugin).with_args(url='/data/git/repo', method='git', token='expired'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
 
     def test_that_an_unknown_download_method_returns_501(self):
-        assert_that(calling(self.install_plugin).with_args(url='/tmp/git/repo', method='svn'),
+        assert_that(calling(self.install_plugin).with_args(url='/data/git/repo', method='svn'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 501))))
 
     def install_plugin(self, url, method, **kwargs):

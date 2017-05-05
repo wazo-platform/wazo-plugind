@@ -9,13 +9,13 @@ case "$1" in
         ;;
     package)
         echo "Packaging..."
-        mkdir -p ${pkgdir}/tmp/git
-        cp build_success ${pkgdir}/tmp/git/build_success
-        echo '1' >> ${pkgdir}/tmp/git/package_success
+        mkdir -p ${pkgdir}/tmp/results
+        cp build_success ${pkgdir}/tmp/results/build_success
+        echo '1' >> ${pkgdir}/tmp/results/package_success
         ;;
     install)
         echo "Installing..."
-        echo '1' > /tmp/git/install_success
+        echo '1' > /tmp/results/install_success
         ;;
     uninstall)
         echo "Removing..."
