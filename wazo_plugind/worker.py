@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
-import subprocess
 import signal
 from abc import ABCMeta, abstractmethod
 from multiprocessing import JoinableQueue, Process
+from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,8 @@ class InstallJob(Command):
 
     def execute(self):
         self._ctx.log_debug('installing %s', self._ctx.debian_package)
-        subprocess.Popen(['dpkg', '-i', self._ctx.package_deb_file]).wait()
+        cmd = ['dpkg', '-i', self._ctx.package_deb_file]
+        exec_and_log(self._ctx.log_debug, self._ctx.log_error, cmd)
 
 
 class QuitJob(Command):

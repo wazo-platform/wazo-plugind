@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
-import subprocess
 import uuid
 import os
 import os.path
@@ -17,6 +16,7 @@ from .exceptions import (
     InvalidNameException,
     UnsupportedDownloadMethod,
 )
+from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +30,8 @@ class GitDownloader(object):
         filename = os.path.join(self._download_dir, str(uuid.uuid4()))
         cmd = ['git', 'clone', '--depth', '1', url, filename]
 
-        with subprocess.Popen(cmd, stderr=subprocess.PIPE) as proc:
-            error_msg = proc.stderr.read().decode('utf-8')
-
+        proc = exec_and_log(logger.debug, logger.error, cmd)
         if proc.returncode:
-            logger.error('failed to clone: %s', error_msg)
-            logger.debug('failed git command: %s', ' '.join(cmd))
             raise Exception('Download failed {}'.format(url))
 
         return filename
@@ -74,6 +70,9 @@ class InstallContext(object):
 
     def log_debug(self, msg, *args):
         self._log(logger.debug, msg, *args)
+
+    def log_error(self, msg, *args):
+        self._log(logger.error, msg, *args)
 
     def log_info(self, msg, *args):
         self._log(logger.info, msg, *args)
@@ -155,8 +154,7 @@ class PluginService(object):
         self._undefined_downloader = UndefinedDownloader(download_dir)
 
     def _exec(self, ctx, *args, **kwargs):
-        ctx.log_debug('Popen(%s, %s)', args, kwargs)
-        return subprocess.Popen(*args, **kwargs).wait()
+        exec_and_log(ctx.log_debug, ctx.log_error, *args, **kwargs)
 
     def build(self, ctx):
         ctx.log_debug('building %s/%s', ctx.namespace, ctx.name)
