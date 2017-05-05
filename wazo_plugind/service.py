@@ -11,30 +11,14 @@ import shutil
 import yaml
 from uuid import uuid4
 import jinja2
-from xivo.rest_api_helpers import APIException
+from .exceptions import (
+    InvalidMetadata,
+    InvalidNamespaceException,
+    InvalidNameException,
+    UnsupportedDownloadMethod,
+)
 
 logger = logging.getLogger(__name__)
-
-
-class UnsupportedDownloadMethod(APIException):
-
-    def __init__(self):
-        super().__init__(status_code=501,
-                         message='Unsupported download method',
-                         error_id='unsupported_download_method',
-                         details={})
-
-
-class InvalidMetadata(Exception):
-    pass
-
-
-class InvalidNamespaceException(InvalidMetadata):
-    pass
-
-
-class InvalidNameException(InvalidMetadata):
-    pass
 
 
 class GitDownloader(object):

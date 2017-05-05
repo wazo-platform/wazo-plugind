@@ -7,29 +7,14 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 from pkg_resources import resource_string
 from xivo.auth_verifier import AuthVerifier, required_acl
-from xivo.rest_api_helpers import APIException, handle_api_exception
+from xivo.rest_api_helpers import handle_api_exception
 from .schema import PluginInstallSchema
+from .exceptions import InvalidInstallParamException
 
 logger = logging.getLogger(__name__)
 
 
 auth_verifier = AuthVerifier()
-
-
-class _InvalidInstallParamException(APIException):
-
-    def __init__(self, errors):
-        super().__init__(status_code=400,
-                         message='Invalid data',
-                         error_id='invalid_data',
-                         resource='plugins',
-                         details=self.format_details(errors))
-
-    def format_details(self, errors):
-        return {
-            field: info[0] if isinstance(info, list) else info
-            for field, info in errors.items()
-        }
 
 
 class _BaseResource(Resource):
@@ -69,7 +54,7 @@ class Plugins(_AuthentificatedResource):
     def post(self):
         body, errors = PluginInstallSchema().load(request.get_json())
         if errors:
-            raise _InvalidInstallParamException(errors)
+            raise InvalidInstallParamException(errors)
 
         uuid = self.plugin_service.create(body['url'], body['method'])
 
