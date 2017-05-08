@@ -237,8 +237,11 @@ class PluginService(object):
                 logger.debug('package %s does not have a name matching the expected pattern', debian_package)
                 continue
             name, namespace = matches.group(1), matches.group(2)
-            metadata = self._get_metadata(namespace, name)
-            result.append(metadata)
+            try:
+                metadata = self._get_metadata(namespace, name)
+                result.append(metadata)
+            except IOError:
+                logger.info('no metadata file found for %s/%s', namespace, name)
         return result
 
     def _get_metadata(self, namespace, name):
