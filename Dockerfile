@@ -20,7 +20,10 @@ RUN true \
     && touch /var/log/wazo-plugind.log \
     && chown wazo-plugind:wazo-plugind /var/log/wazo-plugind.log \
     && python setup.py install \
-    && cp -r etc/* /etc
+    && cp -r etc/* /etc \
+    && mkdir -p /usr/lib/wazo-plugind \
+    && cp -r templates /usr/lib/wazo-plugind \
+    && chown -R wazo-plugind:wazo-plugind /usr/lib/wazo-plugind
 
 VOLUME ["/var/lib/wazo-plugind/plugins"]
 EXPOSE 9503
