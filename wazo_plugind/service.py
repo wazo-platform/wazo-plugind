@@ -7,6 +7,7 @@ import os
 import os.path
 import re
 import shutil
+import subprocess
 import yaml
 from uuid import uuid4
 from . import debian
@@ -214,6 +215,36 @@ class PluginService(object):
     def install(self, ctx):
         self._worker.install(ctx)
         return ctx
+
+    def list_(self):
+        filter_ = "${binary:Package} ${Section}\n"
+        cmd = ['dpkg-query', '-W', '-f={}'.format(filter_)]
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        debian_packages = []
+        for line in out.decode('utf-8').split('\n'):
+            debian_package_name, _, section = line.partition(' ')
+            if section != 'wazo-plugind-plugin':
+                continue
+            logger.debug('[%s] [%s]', debian_package_name, section)
+            debian_packages.append(debian_package_name)
+        result = []
+        package_name_pattern = re.compile(r'^wazo-plugind-([a-z0-9-]+)-([a-z0-9]+)$')
+        for debian_package in debian_packages:
+            logger.debug('*** %s ***', debian_package)
+            matches = package_name_pattern.match(debian_package)
+            if not matches:
+                logger.debug('package %s does not have a name matching the expected pattern', debian_package)
+                continue
+            name, namespace = matches.group(1), matches.group(2)
+            metadata = self._get_metadata(namespace, name)
+            result.append(metadata)
+        return result
+
+    def _get_metadata(self, namespace, name):
+        metadata_file = os.path.join('/usr/lib/wazo-plugind/plugins', namespace, name, 'wazo', 'plugin.yml')
+        with open(metadata_file, 'r') as f:
+            return yaml.load(f)
 
     def move(self, ctx):
         ctx.log_debug('moving %s to %s', ctx.extract_path, ctx.plugin_path)

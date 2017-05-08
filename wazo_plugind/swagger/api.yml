@@ -40,6 +40,17 @@ paths:
         '200':
           'description': The configuration of the service
   /plugins:
+    get:
+      tags:
+        - plugin
+      summary: List installed plugins
+      description: |
+        **Required ACL:** `plugind.plugins.read`
+
+        Allow the administrator to get a list of all installed plugins
+    responses:
+      '200':
+        description: "The plugin list"
     post:
       tags:
         - plugin
