@@ -173,6 +173,7 @@ class PluginService(object):
     def package(self, ctx):
         ctx.log_debug('packaging %s/%s', ctx.namespace, ctx.name)
         pkgdir = os.path.join(ctx.plugin_path, self._build_dir)
+        os.makedirs(pkgdir)
         cmd = ['fakeroot', ctx.installer_path, 'package']
         self._exec(ctx, cmd, cwd=ctx.plugin_path, env=dict(os.environ, pkgdir=pkgdir))
         installed_plugin_data_path = os.path.join(pkgdir, 'usr/lib/wazo-plugind/plugins', ctx.namespace, ctx.name)
