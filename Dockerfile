@@ -25,7 +25,6 @@ RUN true \
     && cp -r templates /usr/lib/wazo-plugind \
     && chown -R wazo-plugind:wazo-plugind /usr/lib/wazo-plugind
 
-VOLUME ["/var/lib/wazo-plugind/plugins"]
 EXPOSE 9503
 
 CMD ["wazo-plugind"]

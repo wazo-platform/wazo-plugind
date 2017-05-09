@@ -73,6 +73,21 @@ class Plugins(_AuthentificatedResource):
         super().add_resource(api, *args, **kwargs)
 
 
+class PluginsItem(_AuthentificatedResource):
+
+    api_path = '/plugins/<namespace>/<name>'
+
+    @required_acl('plugind.plugins.{namespace}.{name}.delete')
+    def delete(self, namespace, name):
+        uuid = self.plugin_service.delete(namespace, name)
+        return {'uuid': uuid}
+
+    @classmethod
+    def add_resource(cls, api, *args, **kwargs):
+        cls.plugin_service = kwargs['plugin_service']
+        super().add_resource(api, *args, **kwargs)
+
+
 class Swagger(_BaseResource):
 
     api_package = 'wazo_plugind.swagger'
@@ -97,6 +112,7 @@ def new_app(config, *args, **kwargs):
     Swagger.add_resource(api, *args, **kwargs)
     Config.add_resource(api, config, *args, **kwargs)
     Plugins.add_resource(api, config, *args, **kwargs)
+    PluginsItem.add_resource(api, config, *args, **kwargs)
     if cors_config.pop('enabled', False):
         CORS(app, **cors_config)
     return app

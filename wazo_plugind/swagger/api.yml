@@ -82,6 +82,41 @@ paths:
             $ref: '#/definitions/InstallResponse'
         '400':
           $ref: '#/responses/InvalidRequest'
+  /plugins/{namespace}/{name}:
+    delete:
+      tags:
+        - plugin
+      summary: Uninstall a plugin
+      description: |
+        **Required ACL:** `plugind.plugins.{namespace}.{name}.delete`
+
+        Allow the administrator to uninstall a plugin.
+        ---
+      parameters:
+        - $ref: '#/parameters/namespace'
+        - $ref: '#/parameters/name'
+      responses:
+        '204':
+          description: "Uninstallation started"
+        '400':
+          $ref: '#/responses/InvalidRequest'
+        '404':
+          $ref: '#/responses/NotFoundError'
+
+parameters:
+  namespace:
+    required: true
+    type: string
+    name: namespace
+    in: path
+    description: namespace's plugin
+  name:
+    required: true
+    type: string
+    name: name
+    in: path
+    description: name's plugin
+
 definitions:
   Error:
     title: Error
@@ -150,5 +185,9 @@ definitions:
 responses:
   InvalidRequest:
     description: Invalid request
+    schema:
+      $ref: '#/definitions/Error'
+  NotFoundError:
+    description: 'Plugin not found'
     schema:
       $ref: '#/definitions/Error'
