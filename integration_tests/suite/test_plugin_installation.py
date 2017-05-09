@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
+import shutil
 import uuid
 from hamcrest import (
     assert_that, calling, contains_inanyorder, equal_to, empty, has_entries, has_property, not_
@@ -57,7 +58,10 @@ class TestPluginInstallation(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def setUp(self):
-        self.remove_from_asset('/results')
+        self.remove_from_asset('results')
+
+    def tearDown(self):
+        self.remove_from_asset('results')
 
     def test_when_it_works(self):
         result = self.install_plugin(url='/data/git/repo', method='git')
@@ -114,9 +118,10 @@ class TestPluginInstallation(BaseIntegrationTest):
     def remove_from_asset(self, path):
         complete_path = self.path_in_asset(path)
         try:
+            shutil.rmtree(complete_path)
             os.unlink(complete_path)
         except OSError:
             return
 
     def path_in_asset(self, path):
-        return os.path.join(self.assets_root, self.asset, path)
+        return os.path.sep.join([self.assets_root, self.asset, path])
