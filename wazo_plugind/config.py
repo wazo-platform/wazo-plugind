@@ -30,6 +30,7 @@ _DEFAULT_CONFIG = dict(
     default_metadata_filename=os.path.join(_PLUGIN_DATA_DIR, 'plugin.yml'),
     default_install_filename=os.path.join(_PLUGIN_DATA_DIR, 'rules'),
     default_debian_package_prefix='wazo-plugind',
+    debian_package_section='wazo-plugind-plugin',
     debug=False,
     log_level='info',
     log_file='/var/log/{}.log'.format(_DAEMONNAME),

@@ -50,6 +50,13 @@ class Plugins(_AuthentificatedResource):
 
     api_path = '/plugins'
 
+    @required_acl('plugind.plugins.read')
+    def get(self):
+        return {
+            'items': self.plugin_service.list_(),
+            'total': self.plugin_service.count(),
+        }
+
     @required_acl('plugind.plugins.create')
     def post(self):
         body, errors = PluginInstallSchema().load(request.get_json())

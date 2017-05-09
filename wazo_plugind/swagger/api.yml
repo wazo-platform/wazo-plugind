@@ -40,6 +40,19 @@ paths:
         '200':
           'description': The configuration of the service
   /plugins:
+    get:
+      tags:
+        - plugin
+      summary: List installed plugins
+      description: |
+        **Required ACL:** `plugind.plugins.read`
+
+        Allow the administrator to get a list of all installed plugins
+      responses:
+        '200':
+          description: "The plugin list"
+          schema:
+            $ref: '#/definitions/GetPluginsResult'
     post:
       tags:
         - plugin
@@ -92,6 +105,17 @@ definitions:
         description: Time when the error occured
         type: number
         format: timestamp
+  GetPluginsResult:
+    type: object
+    properties:
+      total:
+        type: integer
+        description: The number of plugins installed on the system
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/PluginMetadata'
+        description: A list of plugins
   InstallResponse:
     type: object
     properties:
@@ -111,6 +135,18 @@ definitions:
     required:
       - url
       - method
+  PluginMetadata:
+    type: object
+    properties:
+      namespace:
+        type: string
+        description: "The namespace of the plugin"
+      name:
+        type: string
+        description: "The name of the plugin"
+      version:
+        type: string
+        description: "The version of the installed version"
 responses:
   InvalidRequest:
     description: Invalid request

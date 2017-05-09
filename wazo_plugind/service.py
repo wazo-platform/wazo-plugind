@@ -9,7 +9,7 @@ import re
 import shutil
 import yaml
 from uuid import uuid4
-from . import debian
+from . import db, debian
 from .exceptions import (
     InvalidMetadata,
     InvalidNamespaceException,
@@ -152,6 +152,7 @@ class PluginService(object):
             'git': GitDownloader(download_dir),
         }
         self._undefined_downloader = UndefinedDownloader(download_dir)
+        self._plugin_db = db.PluginDB(config)
 
     def _exec(self, ctx, *args, **kwargs):
         exec_and_log(ctx.log_debug, ctx.log_error, *args, **kwargs)
@@ -161,6 +162,9 @@ class PluginService(object):
         cmd = [ctx.installer_path, 'build']
         self._exec(ctx, cmd, cwd=ctx.plugin_path)
         return ctx
+
+    def count(self):
+        return self._plugin_db.count()
 
     def debianize(self, ctx):
         ctx.log_debug('debianizing %s/%s', ctx.namespace, ctx.name)
@@ -214,6 +218,9 @@ class PluginService(object):
     def install(self, ctx):
         self._worker.install(ctx)
         return ctx
+
+    def list_(self):
+        return self._plugin_db.list_()
 
     def move(self, ctx):
         ctx.log_debug('moving %s to %s', ctx.extract_path, ctx.plugin_path)

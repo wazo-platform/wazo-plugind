@@ -13,6 +13,14 @@ class UnsupportedDownloadMethod(APIException):
                          details={})
 
 
+class InvalidPackageNameException(Exception):
+
+    _fmt = 'invalid debian package name {}'
+
+    def __init__(self, name):
+        super().__init__(self._fmt.format(name))
+
+
 class InvalidMetadata(Exception):
     pass
 
