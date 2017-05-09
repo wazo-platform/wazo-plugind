@@ -1,4 +1,3 @@
-nose
 mock
+nose
 pyhamcrest
-pyopenssl==0.14
