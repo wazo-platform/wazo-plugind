@@ -22,11 +22,7 @@ class PluginDB(object):
         return len(self.list_())
 
     def is_installed(self, namespace, name):
-        try:
-            plugin = Plugin(self._config, namespace, name)
-            return plugin.metadata() is not None
-        except (IOError, InvalidPackageNameException):
-            return False
+        return Plugin(self._config, namespace, name).is_installed()
 
     def list_(self):
         result = []
@@ -52,6 +48,12 @@ class Plugin(object):
             config['default_metadata_filename'],
         )
         self._metadata = None
+
+    def is_installed(self):
+        try:
+            return self.metadata() is not None
+        except IOError:
+            return False
 
     def metadata(self):
         if not self._metadata:
