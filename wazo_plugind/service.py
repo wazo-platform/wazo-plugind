@@ -12,6 +12,7 @@ from uuid import uuid4
 from . import debian
 from .exceptions import (
     InvalidMetadata,
+    InvalidPackageNameException,
     InvalidNamespaceException,
     InvalidNameException,
     UnsupportedDownloadMethod,
@@ -217,30 +218,44 @@ class PluginService(object):
         return ctx
 
     def list_(self):
-        package_name_pattern = re.compile(r'^wazo-plugind-([a-z0-9-]+)-([a-z0-9]+)$')
         result = []
         debian_packages = self._debian_package_db.list_installed_packages('wazo-plugind-plugin')
         for debian_package in debian_packages:
-            logger.debug('package: %s', debian_package)
-            matches = package_name_pattern.match(debian_package)
-            if not matches:
-                logger.debug('package %s does not have a name matching the expected pattern', debian_package)
-                continue
-            name, namespace = matches.group(1), matches.group(2)
             try:
-                metadata = self._get_metadata(namespace, name)
-                result.append(metadata)
-            except IOError:
-                logger.info('no metadata file found for %s/%s', namespace, name)
+                plugin = DebianPackageProxy(self._config, debian_package)
+                result.append(plugin.metadata())
+            except (IOError, InvalidPackageNameException):
+                logger.info('no metadata file found for %s/%s', plugin.namespace, plugin.name)
         return result
-
-    def _get_metadata(self, namespace, name):
-        metadata_file = os.path.join('/usr/lib/wazo-plugind/plugins', namespace, name, 'wazo', 'plugin.yml')
-        with open(metadata_file, 'r') as f:
-            return yaml.load(f)
 
     def move(self, ctx):
         ctx.log_debug('moving %s to %s', ctx.extract_path, ctx.plugin_path)
         shutil.rmtree(ctx.plugin_path, ignore_errors=True)
         shutil.move(ctx.extract_path, ctx.plugin_path)
         return ctx
+
+
+class DebianPackageProxy(object):
+
+    def __init__(self, config, package_name):
+        package_name_prefix = config['default_debian_package_prefix']
+        namespace, name = self._extract_namespace_and_name(package_name_prefix, package_name)
+        self.namespace = namespace
+        self.name = name
+        self.metadata_filename = os.path.join(
+            config['metadata_dir'],
+            self.namespace,
+            self.name,
+            config['default_metadata_filename'],
+        )
+
+    def metadata(self):
+        with open(self.metadata_filename, 'r') as f:
+            return yaml.load(f)
+
+    def _extract_namespace_and_name(self, package_name_prefix, package_name):
+        package_name_pattern = re.compile(r'^{}-([a-z0-9-]+)-([a-z0-9]+)$'.format(package_name_prefix))
+        matches = package_name_pattern.match(package_name)
+        if not matches:
+            raise InvalidPackageNameException(package_name)
+        return matches.group(2), matches.group(1)
