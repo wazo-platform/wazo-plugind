@@ -14,6 +14,7 @@ from .exceptions import (
     InvalidMetadata,
     InvalidNamespaceException,
     InvalidNameException,
+    PluginNotFoundException,
     UnsupportedDownloadMethod,
 )
 from .helpers import exec_and_log
@@ -251,6 +252,8 @@ class PluginService(object):
     def delete(self, namespace, name):
         ctx = UninstallContext(self._config, namespace, name)
         ctx.log_info('uninstalling %s...', ctx.package_name)
+        if not self._plugin_db.is_installed(namespace, name):
+            raise PluginNotFoundException(namespace, name)
         ctx = self.uninstall(ctx)
         ctx.log_info('uninstall completed')
 

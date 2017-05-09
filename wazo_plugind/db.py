@@ -21,12 +21,19 @@ class PluginDB(object):
     def count(self):
         return len(self.list_())
 
+    def is_installed(self, namespace, name):
+        try:
+            plugin = Plugin(self._config, namespace, name)
+            return plugin.metadata() is not None
+        except (IOError, InvalidPackageNameException):
+            return False
+
     def list_(self):
         result = []
         debian_packages = self._debian_package_db.list_installed_packages(self._debian_package_section)
         for debian_package in debian_packages:
             try:
-                plugin = Plugin(self._config, debian_package)
+                plugin = Plugin.from_debian_package(self._config, debian_package)
                 result.append(plugin.metadata())
             except (IOError, InvalidPackageNameException):
                 logger.info('no metadata file found for %s/%s', plugin.namespace, plugin.name)
@@ -35,9 +42,7 @@ class PluginDB(object):
 
 class Plugin(object):
 
-    def __init__(self, config, package_name):
-        package_name_prefix = config['default_debian_package_prefix']
-        namespace, name = self._extract_namespace_and_name(package_name_prefix, package_name)
+    def __init__(self, config, namespace, name):
         self.namespace = namespace
         self.name = name
         self.metadata_filename = os.path.join(
@@ -55,9 +60,16 @@ class Plugin(object):
 
         return self._metadata
 
-    def _extract_namespace_and_name(self, package_name_prefix, package_name):
+    @staticmethod
+    def _extract_namespace_and_name(package_name_prefix, package_name):
         package_name_pattern = re.compile(r'^{}-([a-z0-9-]+)-([a-z0-9]+)$'.format(package_name_prefix))
         matches = package_name_pattern.match(package_name)
         if not matches:
             raise InvalidPackageNameException(package_name)
         return matches.group(2), matches.group(1)
+
+    @classmethod
+    def from_debian_package(cls, config, debian_package_name):
+        package_name_prefix = config['default_debian_package_prefix']
+        namespace, name = cls._extract_namespace_and_name(package_name_prefix, debian_package_name)
+        return cls(config, namespace, name)
