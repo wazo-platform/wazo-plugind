@@ -82,6 +82,11 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(not_(install_success_exists), 'install_success was not removed')
         assert_that(not_(package_success_exists), 'package_success was not removed')
 
+    def test_that_uninstalling_an_uninstalled_plugin_returns_404(self):
+        assert_that(calling(self.uninstall_plugin).with_args(namespace='plugindtests',
+                                                             name='foobar'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
+
     def test_with_invalid_namespace(self):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/fail_namespace', method='git'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))

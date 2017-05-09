@@ -47,3 +47,13 @@ class InvalidInstallParamException(APIException):
             field: info[0] if isinstance(info, list) else info
             for field, info in errors.items()
         }
+
+
+class PluginNotFoundException(APIException):
+
+    def __init__(self, namespace, name):
+        super().__init__(status_code=404,
+                         message='Plugin not found {}/{}'.format(namespace, name),
+                         error_id='plugin_not_found',
+                         resource='plugins',
+                         details={'name': name, 'namespace': namespace})
