@@ -18,6 +18,9 @@ class PluginDB(object):
         self._debian_package_section = config['debian_package_section']
         self._debian_package_db = debian.PackageDB()
 
+    def count(self):
+        return len(self.list_())
+
     def list_(self):
         result = []
         debian_packages = self._debian_package_db.list_installed_packages(self._debian_package_section)
@@ -43,10 +46,14 @@ class Plugin(object):
             self.name,
             config['default_metadata_filename'],
         )
+        self._metadata = None
 
     def metadata(self):
-        with open(self.metadata_filename, 'r') as f:
-            return yaml.load(f)
+        if not self._metadata:
+            with open(self.metadata_filename, 'r') as f:
+                self._metadata = yaml.load(f)
+
+        return self._metadata
 
     def _extract_namespace_and_name(self, package_name_prefix, package_name):
         package_name_pattern = re.compile(r'^{}-([a-z0-9-]+)-([a-z0-9]+)$'.format(package_name_prefix))

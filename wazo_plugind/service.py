@@ -163,6 +163,9 @@ class PluginService(object):
         self._exec(ctx, cmd, cwd=ctx.plugin_path)
         return ctx
 
+    def count(self):
+        return self._plugin_db.count()
+
     def debianize(self, ctx):
         ctx.log_debug('debianizing %s/%s', ctx.namespace, ctx.name)
         ctx = self._debian_file_generator.generate(ctx)

@@ -52,7 +52,10 @@ class Plugins(_AuthentificatedResource):
 
     @required_acl('plugind.plugins.read')
     def get(self):
-        return self.plugin_service.list_()
+        return {
+            'items': self.plugin_service.list_(),
+            'total': self.plugin_service.count(),
+        }
 
     @required_acl('plugind.plugins.create')
     def post(self):

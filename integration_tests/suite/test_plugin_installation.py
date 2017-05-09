@@ -3,7 +3,7 @@
 
 import os
 import uuid
-from hamcrest import assert_that, calling, contains_inanyorder, empty, has_entries, has_property
+from hamcrest import assert_that, calling, contains_inanyorder, equal_to, empty, has_entries, has_property
 from requests import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
 from .test_api import BaseIntegrationTest
@@ -34,18 +34,20 @@ class TestPluginList(BaseIntegrationTest):
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
 
     def test_that_installed_plugins_are_listed(self):
-        installed_plugins = self.list_plugins()
+        response = self.list_plugins()
 
-        assert_that(installed_plugins, empty())
+        assert_that(response['total'], equal_to(0))
+        assert_that(response['items'], empty())
 
         self.install_plugin(url='file:///data/git/repo', method='git')
 
-        installed_plugins = self.list_plugins()
+        result = self.list_plugins()
 
         expected_metadata = {'namespace': 'plugindtests',
                              'name': 'foobar',
                              'version': '0.0.1'}
-        assert_that(installed_plugins, contains_inanyorder(expected_metadata))
+        assert_that(result['total'], equal_to(1))
+        assert_that(result['items'], contains_inanyorder(expected_metadata))
 
 
 class TestPluginInstallation(BaseIntegrationTest):
