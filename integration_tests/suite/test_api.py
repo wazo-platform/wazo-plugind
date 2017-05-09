@@ -13,6 +13,9 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     assets_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
     service = 'plugind'
 
+    def tearDown(self):
+        self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
+
     def get_client(self, token=VALID_TOKEN):
         port = self.service_port(9503)
         return Client('localhost', port=port, token=token, verify_certificate=False)
