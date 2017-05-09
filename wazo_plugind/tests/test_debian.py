@@ -2,13 +2,64 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
+import random
 import tempfile
 from unittest import TestCase
-from hamcrest import assert_that, equal_to
+from string import ascii_lowercase
+from operator import itemgetter
+from hamcrest import assert_that, contains_inanyorder, equal_to
 from jinja2 import DictLoader, Environment
 from ..service import InstallContext
-from ..debian import Generator
+from ..debian import Generator, PackageDB
 from ..config import _DEFAULT_CONFIG
+
+
+def random_string(min, max):
+    length = random.randint(min, max)
+    valid_characters = ascii_lowercase + '-'
+    return ''.join(random.choice(valid_characters) for _ in range(length))
+
+
+class TestPackageDB(TestCase):
+
+    def test_that_list_installed_packages_returns_a_list_of_package_and_section(self):
+        packages_and_sections = [
+            (random_string(5, 30), random_string(3, 15)) for _ in range(10)
+        ]
+
+        def generator():
+            for package, section in packages_and_sections:
+                yield '{} {}'.format(package, section)
+
+        db = PackageDB(generator)
+
+        installed_packages_and_sections = db.list_installed_packages()
+
+        expected = [package for package, section in packages_and_sections]
+        assert_that(installed_packages_and_sections, contains_inanyorder(*expected))
+
+    def test_that_list_installed_package_can_filter_by_section(self):
+        section = 'wazo-plugind-plugins'
+        packages_and_sections = [
+            (random_string(5, 30), random_string(3, 15)),
+            (random_string(5, 30), section),
+            (random_string(5, 30), section),
+            (random_string(5, 30), random_string(3, 15)),
+            (random_string(5, 30), random_string(3, 15)),
+            (random_string(5, 30), random_string(3, 15)),
+            (random_string(5, 30), section),
+        ]
+        expected = [name for name, section in itemgetter(1, 2, 6)(packages_and_sections)]
+
+        def generator():
+            for package, section in packages_and_sections:
+                yield '{} {}'.format(package, section)
+
+        db = PackageDB(generator)
+
+        installed_packages_and_sections = db.list_installed_packages(section)
+
+        assert_that(installed_packages_and_sections, contains_inanyorder(*expected))
 
 
 class TestDebianGenerator(TestCase):

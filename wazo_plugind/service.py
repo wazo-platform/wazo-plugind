@@ -7,7 +7,6 @@ import os
 import os.path
 import re
 import shutil
-import subprocess
 import yaml
 from uuid import uuid4
 from . import debian
@@ -153,6 +152,7 @@ class PluginService(object):
             'git': GitDownloader(download_dir),
         }
         self._undefined_downloader = UndefinedDownloader(download_dir)
+        self._debian_package_db = debian.PackageDB()
 
     def _exec(self, ctx, *args, **kwargs):
         exec_and_log(ctx.log_debug, ctx.log_error, *args, **kwargs)
@@ -217,21 +217,11 @@ class PluginService(object):
         return ctx
 
     def list_(self):
-        filter_ = "${binary:Package} ${Section}\n"
-        cmd = ['dpkg-query', '-W', '-f={}'.format(filter_)]
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate()
-        debian_packages = []
-        for line in out.decode('utf-8').split('\n'):
-            debian_package_name, _, section = line.partition(' ')
-            if section != 'wazo-plugind-plugin':
-                continue
-            logger.debug('[%s] [%s]', debian_package_name, section)
-            debian_packages.append(debian_package_name)
-        result = []
         package_name_pattern = re.compile(r'^wazo-plugind-([a-z0-9-]+)-([a-z0-9]+)$')
+        result = []
+        debian_packages = self._debian_package_db.list_installed_packages('wazo-plugind-plugin')
         for debian_package in debian_packages:
-            logger.debug('*** %s ***', debian_package)
+            logger.debug('package: %s', debian_package)
             matches = package_name_pattern.match(debian_package)
             if not matches:
                 logger.debug('package %s does not have a name matching the expected pattern', debian_package)

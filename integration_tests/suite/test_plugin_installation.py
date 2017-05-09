@@ -38,7 +38,7 @@ class TestPluginList(BaseIntegrationTest):
 
         assert_that(installed_plugins, empty())
 
-        self.install_plugin(url='/data/git/repo', method='git')
+        self.install_plugin(url='file:///data/git/repo', method='git')
 
         installed_plugins = self.list_plugins()
 

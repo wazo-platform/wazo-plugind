@@ -2,7 +2,36 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
+import subprocess
 import jinja2
+
+
+class PackageDB(object):
+
+    _package_and_section_format = "${binary:Package} ${Section}\n"
+
+    def __init__(self, package_section_generator=None):
+        self._package_section_generator = package_section_generator or self._list_packages
+
+    def list_installed_packages(self, selected_section=None):
+        def filter_(name, section):
+            if not selected_section:
+                return True
+            return selected_section == section
+
+        for line in self._package_section_generator():
+            debian_package_name, _, section = line.partition(' ')
+            if not filter_(debian_package_name, section):
+                continue
+            yield debian_package_name
+
+    @classmethod
+    def _list_packages(cls):
+        cmd = ['dpkg-query', '-W', '-f={}'.format(cls._package_and_section_format)]
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        out, _ = p.communicate()
+        for line in out.decode('utf-8').split('\n'):
+            yield line
 
 
 class Generator(object):
