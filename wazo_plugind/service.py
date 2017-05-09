@@ -138,6 +138,32 @@ class InstallContext(object):
         log_fn('[%s] '+msg, self.uuid, *args)
 
 
+class UninstallContext(object):
+
+    def __init__(self, config, namespace, name):
+        self.uuid = str(uuid4())
+        self.namespace = namespace
+        self.name = name
+        self.debian_package_prefix = config['default_debian_package_prefix']
+        self.package_name = '{prefix}-{name}-{namespace}'.format(
+            prefix=self.debian_package_prefix,
+            name=self.name,
+            namespace=self.namespace,
+        )
+
+    def log_debug(self, msg, *args):
+        self._log(logger.debug, msg, *args)
+
+    def log_error(self, msg, *args):
+        self._log(logger.error, msg, *args)
+
+    def log_info(self, msg, *args):
+        self._log(logger.info, msg, *args)
+
+    def _log(self, log_fn, msg, *args):
+        log_fn('[%s] '+msg, self.uuid, *args)
+
+
 class PluginService(object):
 
     def __init__(self, config, worker):
@@ -226,4 +252,16 @@ class PluginService(object):
         ctx.log_debug('moving %s to %s', ctx.extract_path, ctx.plugin_path)
         shutil.rmtree(ctx.plugin_path, ignore_errors=True)
         shutil.move(ctx.extract_path, ctx.plugin_path)
+        return ctx
+
+    def delete(self, namespace, name):
+        ctx = UninstallContext(self._config, namespace, name)
+        ctx.log_info('uninstalling %s...', ctx.package_name)
+        ctx = self.uninstall(ctx)
+        ctx.log_info('uninstall completed')
+
+        return ctx.uuid
+
+    def uninstall(self, ctx):
+        self._worker.uninstall(ctx)
         return ctx

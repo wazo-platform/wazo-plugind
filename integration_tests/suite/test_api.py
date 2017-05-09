@@ -24,3 +24,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     def list_plugins(self, **kwargs):
         client = self.get_client(**kwargs)
         return client.plugins.list()
+
+    def uninstall_plugin(self, namespace, name, **kwargs):
+        client = self.get_client(*kwargs)
+        return client.plugins.uninstall(namespace, name)

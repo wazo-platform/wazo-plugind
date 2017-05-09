@@ -35,6 +35,17 @@ class InstallJob(Command):
         exec_and_log(self._ctx.log_debug, self._ctx.log_error, cmd)
 
 
+class UninstallJob(Command):
+
+    def __init__(self, ctx):
+        self._ctx = ctx
+
+    def execute(self):
+        self._ctx.log_debug('uninstalling %s', self._ctx.package_name)
+        cmd = ['apt-get', 'remove', '-y', self._ctx.package_name]
+        exec_and_log(self._ctx.log_debug, self._ctx.log_error, cmd)
+
+
 class QuitJob(Command):
 
     def execute(self):
@@ -53,6 +64,10 @@ class Worker(object):
 
     def install(self, ctx):
         job = InstallJob(ctx)
+        self._do(job)
+
+    def uninstall(self, ctx):
+        job = UninstallJob(ctx)
         self._do(job)
 
     def stop(self):

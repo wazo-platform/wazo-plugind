@@ -3,7 +3,9 @@
 
 import os
 import uuid
-from hamcrest import assert_that, calling, contains_inanyorder, equal_to, empty, has_entries, has_property
+from hamcrest import (
+    assert_that, calling, contains_inanyorder, equal_to, empty, has_entries, has_property, not_
+)
 from requests import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
 from .test_api import BaseIntegrationTest
@@ -69,6 +71,20 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(package_success_exists, 'package_success was not created')
 
+    def test_when_uninstall_works(self):
+        self.install_plugin(url='/data/git/repo', method='git')
+
+        result = self.uninstall_plugin(namespace='plugindtests', name='foobar')
+
+        build_success_exists = self.exists_in_asset('results/build_success')
+        package_success_exists = self.exists_in_asset('results/package_success')
+        install_success_exists = self.exists_in_asset('results/install_success')
+
+        assert_that(result, has_entries(uuid=ANY_UUID))
+        assert_that(not_(build_success_exists), 'build_success was not removed')
+        assert_that(not_(install_success_exists), 'install_success was not removed')
+        assert_that(not_(package_success_exists), 'package_success was not removed')
+
     def test_with_invalid_namespace(self):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/fail_namespace', method='git'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
@@ -79,6 +95,12 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     def test_that_an_unauthorized_token_return_401(self):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/repo', method='git', token='expired'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
+
+    def test_that_an_unauthorized_token_return_401_when_uninstall(self):
+        assert_that(calling(self.uninstall_plugin).with_args(namespace='plugindtests',
+                                                             name='foobar',
+                                                             token='expired'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
 
     def test_that_an_unknown_download_method_returns_501(self):
