@@ -8,12 +8,13 @@ sync:
   environment:
     PORTS: "5672 8500 9497 9503"
 plugind:
-  image: "wazopbx/wazo-plugind"
+  image: "wazo-plugind-test"
   links:
     - consul
     - rabbitmq
     - auth
   volumes:
+    - "../../..:/usr/src/wazo-plugind"
     - "./etc/wazo-plugind/conf.d/consul.yml:/etc/wazo-plugind/conf.d/consul.yml"
     - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
     - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"

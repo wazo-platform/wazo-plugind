@@ -13,6 +13,7 @@ test-setup: build-plugind create-git
 
 build-plugind:
 	docker build -t wazopbx/wazo-plugind ..
+	docker build --no-cache -t wazo-plugind-test -f Dockerfile ..
 
 test:
 	nosetests -x
