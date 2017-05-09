@@ -46,7 +46,25 @@ class UndefinedDownloader(object):
         raise UnsupportedDownloadMethod()
 
 
-class InstallContext(object):
+class LoggerContext(object):
+
+    def __init__(self):
+        self.uuid = str(uuid4())
+
+    def log_debug(self, msg, *args):
+        self._log(logger.debug, msg, *args)
+
+    def log_error(self, msg, *args):
+        self._log(logger.error, msg, *args)
+
+    def log_info(self, msg, *args):
+        self._log(logger.info, msg, *args)
+
+    def _log(self, log_fn, msg, *args):
+        log_fn('[%s] '+msg, self.uuid, *args)
+
+
+class InstallContext(LoggerContext):
 
     valid_namespace = re.compile(r'^[a-z0-9]+$')
     valid_name = re.compile(r'^[a-z0-9-]+$')
@@ -67,15 +85,6 @@ class InstallContext(object):
         self.installer_base_filename = config['default_install_filename']
         self.debian_package_prefix = config['default_debian_package_prefix']
         self.metadata_dir = config['metadata_dir']
-
-    def log_debug(self, msg, *args):
-        self._log(logger.debug, msg, *args)
-
-    def log_error(self, msg, *args):
-        self._log(logger.error, msg, *args)
-
-    def log_info(self, msg, *args):
-        self._log(logger.info, msg, *args)
 
     def with_built(self):
         self._built = True
@@ -134,11 +143,8 @@ class InstallContext(object):
         self.package_deb_file = os.path.join(self.plugin_path, filename)
         return self
 
-    def _log(self, log_fn, msg, *args):
-        log_fn('[%s] '+msg, self.uuid, *args)
 
-
-class UninstallContext(object):
+class UninstallContext(LoggerContext):
 
     def __init__(self, config, namespace, name):
         self.uuid = str(uuid4())
@@ -150,18 +156,6 @@ class UninstallContext(object):
             name=self.name,
             namespace=self.namespace,
         )
-
-    def log_debug(self, msg, *args):
-        self._log(logger.debug, msg, *args)
-
-    def log_error(self, msg, *args):
-        self._log(logger.error, msg, *args)
-
-    def log_info(self, msg, *args):
-        self._log(logger.info, msg, *args)
-
-    def _log(self, log_fn, msg, *args):
-        log_fn('[%s] '+msg, self.uuid, *args)
 
 
 class PluginService(object):
