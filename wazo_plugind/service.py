@@ -9,10 +9,9 @@ import re
 import shutil
 import yaml
 from uuid import uuid4
-from . import debian
+from . import db, debian
 from .exceptions import (
     InvalidMetadata,
-    InvalidPackageNameException,
     InvalidNamespaceException,
     InvalidNameException,
     UnsupportedDownloadMethod,
@@ -153,7 +152,7 @@ class PluginService(object):
             'git': GitDownloader(download_dir),
         }
         self._undefined_downloader = UndefinedDownloader(download_dir)
-        self._plugin_db = PluginDB(config)
+        self._plugin_db = db.PluginDB(config)
 
     def _exec(self, ctx, *args, **kwargs):
         exec_and_log(ctx.log_debug, ctx.log_error, *args, **kwargs)
@@ -225,51 +224,3 @@ class PluginService(object):
         shutil.rmtree(ctx.plugin_path, ignore_errors=True)
         shutil.move(ctx.extract_path, ctx.plugin_path)
         return ctx
-
-
-class PluginDB(object):
-
-    def __init__(self, config):
-        self._config = config
-        self._debian_package_section = config['debian_package_section']
-        self._debian_package_db = debian.PackageDB()
-
-    def list_(self):
-        result = []
-        debian_packages = self._debian_package_db.list_installed_packages(self._debian_package_section)
-        for debian_package in debian_packages:
-            try:
-                plugin = self._new_plugin(debian_package)
-                result.append(plugin.metadata())
-            except (IOError, InvalidPackageNameException):
-                logger.info('no metadata file found for %s/%s', plugin.namespace, plugin.name)
-        return result
-
-    def _new_plugin(self, debian_package_name):
-        return DebianPackageProxy(self._config, debian_package_name)
-
-
-class DebianPackageProxy(object):
-
-    def __init__(self, config, package_name):
-        package_name_prefix = config['default_debian_package_prefix']
-        namespace, name = self._extract_namespace_and_name(package_name_prefix, package_name)
-        self.namespace = namespace
-        self.name = name
-        self.metadata_filename = os.path.join(
-            config['metadata_dir'],
-            self.namespace,
-            self.name,
-            config['default_metadata_filename'],
-        )
-
-    def metadata(self):
-        with open(self.metadata_filename, 'r') as f:
-            return yaml.load(f)
-
-    def _extract_namespace_and_name(self, package_name_prefix, package_name):
-        package_name_pattern = re.compile(r'^{}-([a-z0-9-]+)-([a-z0-9]+)$'.format(package_name_prefix))
-        matches = package_name_pattern.match(package_name)
-        if not matches:
-            raise InvalidPackageNameException(package_name)
-        return matches.group(2), matches.group(1)
