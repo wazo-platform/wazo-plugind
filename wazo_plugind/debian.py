@@ -40,9 +40,10 @@ class Generator(object):
     _generated_files = ['control', 'postinst', 'prerm']
     _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755}
 
-    def __init__(self, jinja_env=None, template_files=None):
+    def __init__(self, jinja_env=None, template_files=None, section=None):
         self._env = jinja_env
         self._template_files = template_files
+        self._section = section
 
     def generate(self, ctx):
         ctx = self._make_template_ctx(ctx)
@@ -53,7 +54,9 @@ class Generator(object):
 
     def _make_template_ctx(self, ctx):
         installed_rules_path = os.path.join(ctx.destination_plugin_path, ctx.installer_base_filename)
-        template_context = dict(ctx.metadata, rules_path=installed_rules_path)
+        template_context = dict(ctx.metadata,
+                                rules_path=installed_rules_path,
+                                debian_package_section=self._section)
         return ctx.with_template_context(template_context)
 
     def _make_debian_dir(self, ctx):
@@ -80,4 +83,5 @@ class Generator(object):
         template_files = {'control': config['control_template'],
                           'postinst': config['postinst_template'],
                           'prerm': config['prerm_template']}
-        return cls(env, template_files)
+        debian_section = config['debian_package_section']
+        return cls(env, template_files, debian_section)

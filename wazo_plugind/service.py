@@ -153,7 +153,7 @@ class PluginService(object):
             'git': GitDownloader(download_dir),
         }
         self._undefined_downloader = UndefinedDownloader(download_dir)
-        self._debian_package_db = debian.PackageDB()
+        self._plugin_db = PluginDB(config)
 
     def _exec(self, ctx, *args, **kwargs):
         exec_and_log(ctx.log_debug, ctx.log_error, *args, **kwargs)
@@ -218,21 +218,35 @@ class PluginService(object):
         return ctx
 
     def list_(self):
-        result = []
-        debian_packages = self._debian_package_db.list_installed_packages('wazo-plugind-plugin')
-        for debian_package in debian_packages:
-            try:
-                plugin = DebianPackageProxy(self._config, debian_package)
-                result.append(plugin.metadata())
-            except (IOError, InvalidPackageNameException):
-                logger.info('no metadata file found for %s/%s', plugin.namespace, plugin.name)
-        return result
+        return self._plugin_db.list_()
 
     def move(self, ctx):
         ctx.log_debug('moving %s to %s', ctx.extract_path, ctx.plugin_path)
         shutil.rmtree(ctx.plugin_path, ignore_errors=True)
         shutil.move(ctx.extract_path, ctx.plugin_path)
         return ctx
+
+
+class PluginDB(object):
+
+    def __init__(self, config):
+        self._config = config
+        self._debian_package_section = config['debian_package_section']
+        self._debian_package_db = debian.PackageDB()
+
+    def list_(self):
+        result = []
+        debian_packages = self._debian_package_db.list_installed_packages(self._debian_package_section)
+        for debian_package in debian_packages:
+            try:
+                plugin = self._new_plugin(debian_package)
+                result.append(plugin.metadata())
+            except (IOError, InvalidPackageNameException):
+                logger.info('no metadata file found for %s/%s', plugin.namespace, plugin.name)
+        return result
+
+    def _new_plugin(self, debian_package_name):
+        return DebianPackageProxy(self._config, debian_package_name)
 
 
 class DebianPackageProxy(object):
