@@ -57,6 +57,10 @@ class TestPluginInstallation(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def test_when_it_works(self):
+        dependency = 'tig'
+        assert_that(self._is_installed(dependency), equal_to(False),
+                    'Test precondition, {} should not be installed'.format(dependency))
+
         result = self.install_plugin(url='/data/git/repo', method='git')
 
         build_success_exists = self.exists_in_asset('results/build_success')
@@ -67,6 +71,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(build_success_exists, 'build_success was not created or copied')
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(package_success_exists, 'package_success was not created')
+        assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_when_uninstall_works(self):
         self.install_plugin(url='/data/git/repo', method='git')
@@ -115,3 +120,10 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     def path_in_asset(self, path):
         return os.path.sep.join([self.assets_root, self.asset, path])
+
+    def _is_installed(self, search):
+        installed_packages = self.docker_exec(['dpkg-query', '-W', '-f=${binary:Package}\n'])
+        for debian_package in installed_packages.split('\n'):
+            if debian_package == search:
+                return True
+        return False
