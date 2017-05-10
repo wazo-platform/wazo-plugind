@@ -18,7 +18,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
 
     def get_client(self, token=VALID_TOKEN):
         port = self.service_port(9503)
-        return Client('localhost', port=port, token=token, verify_certificate=False)
+        return Client('localhost', port=port, token=token, verify_certificate=False, timeout=20)
 
     def install_plugin(self, url, method, **kwargs):
         client = self.get_client(**kwargs)
