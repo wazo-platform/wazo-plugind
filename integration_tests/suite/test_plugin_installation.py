@@ -7,6 +7,7 @@ import uuid
 from hamcrest import (
     assert_that,
     calling,
+    contains,
     equal_to,
     empty,
     has_entries,
@@ -52,10 +53,9 @@ class TestPluginList(BaseIntegrationTest):
 
         result = self.list_plugins()
 
-        expected = {'namespace': 'plugindtests', 'name': 'foobar'}
         assert_that(result['total'], equal_to(1))
-        for key, value in expected.iteritems():
-            assert_that(result['items'][0][key], equal_to(value))
+        assert_that(result['items'], contains(has_entries(namespace='plugindtests',
+                                                          name='foobar')))
 
 
 class TestPluginInstallation(BaseIntegrationTest):
