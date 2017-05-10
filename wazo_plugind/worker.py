@@ -31,7 +31,7 @@ class InstallJob(Command):
 
     def execute(self):
         self._ctx.log_debug('installing %s', self._ctx.debian_package)
-        cmd = ['dpkg', '-i', self._ctx.package_deb_file]
+        cmd = ['gdebi', '-n', self._ctx.package_deb_file]
         exec_and_log(self._ctx.log_debug, self._ctx.log_error, cmd)
 
 
