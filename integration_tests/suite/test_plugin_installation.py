@@ -1,10 +1,17 @@
+# -*- coding: utf-8 -*-
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
 import uuid
 from hamcrest import (
-    assert_that, calling, contains_inanyorder, equal_to, empty, has_entries, has_property, not_
+    assert_that,
+    calling,
+    equal_to,
+    empty,
+    has_entries,
+    has_property,
+    not_,
 )
 from requests import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
@@ -45,11 +52,10 @@ class TestPluginList(BaseIntegrationTest):
 
         result = self.list_plugins()
 
-        expected_metadata = {'namespace': 'plugindtests',
-                             'name': 'foobar',
-                             'version': '0.0.1'}
+        expected = {'namespace': 'plugindtests', 'name': 'foobar'}
         assert_that(result['total'], equal_to(1))
-        assert_that(result['items'], contains_inanyorder(expected_metadata))
+        for key, value in expected.iteritems():
+            assert_that(result['items'][0][key], equal_to(value))
 
 
 class TestPluginInstallation(BaseIntegrationTest):
