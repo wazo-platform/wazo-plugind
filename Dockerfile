@@ -6,6 +6,8 @@ ADD ./contribs/docker/certs /usr/share/xivo-certs
 WORKDIR /usr/src/wazo-plugind
 
 RUN true \
+    && apt-get update \
+    && apt-get -yqq install gdebi-core \
     && pip install pyparsing \
     && pip install appdirs \
     && pip install -r requirements.txt \
