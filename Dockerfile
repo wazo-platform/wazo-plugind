@@ -15,7 +15,6 @@ RUN true \
     && mkdir -p /etc/wazo-plugind/conf.d \
     && mkdir -p /var/run/wazo-plugind \
     && mkdir -p /var/lib/wazo-plugind/downloads \
-    && mkdir -p /var/lib/wazo-plugind/plugins \
     && chown -R wazo-plugind:wazo-plugind /var/lib/wazo-plugind \
     && chmod 755 /var/lib/wazo-plugind \
     && chmod a+w /var/run/wazo-plugind \

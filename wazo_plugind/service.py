@@ -111,7 +111,6 @@ class PluginService(object):
         ctx.log(logger.info, 'installing %s...', url)
         ctx = self.download(ctx)
         ctx = self.extract(ctx)
-        ctx = self.move(ctx)
         ctx = self.build(ctx)
         ctx = self.package(ctx)
         ctx = self.debianize(ctx)
@@ -134,7 +133,11 @@ class PluginService(object):
         metadata_filename = os.path.join(extract_path, self._config['default_metadata_filename'])
         with open(metadata_filename, 'r') as f:
             metadata = yaml.safe_load(f)
-        return ctx.with_fields(metadata=metadata, extract_path=extract_path)
+        return ctx.with_fields(
+            metadata=metadata,
+            extract_path=extract_path,
+            plugin_path=extract_path,
+        )
 
     def install(self, ctx):
         ctx = self._worker.install(ctx)
@@ -142,15 +145,6 @@ class PluginService(object):
 
     def list_(self):
         return self._plugin_db.list_()
-
-    def move(self, ctx):
-        # TODO: remove this step since plugins are stored in /usr/lib/wazo-plugind after the install.
-        namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
-        plugin_path = os.path.join(self._config['plugin_dir'], namespace, name)
-        ctx.log(logger.debug, 'moving %s to %s', ctx.extract_path, plugin_path)
-        shutil.rmtree(plugin_path, ignore_errors=True)
-        shutil.move(ctx.extract_path, plugin_path)
-        return ctx.with_fields(plugin_path=plugin_path)
 
     def delete(self, namespace, name):
         ctx = Context(self._config, namespace=namespace, name=name)

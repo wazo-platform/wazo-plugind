@@ -4,7 +4,7 @@
 from unittest import TestCase
 from hamcrest import assert_that, equal_to
 from mock import Mock, sentinel as s
-from xivo_test_helpers.hamcrest.uuid import uuid
+from xivo_test_helpers.hamcrest.uuid_ import uuid_
 
 from ..context import Context
 
@@ -17,7 +17,7 @@ class TestContext(TestCase):
         ctx = Context(config, foo='bar')
 
         assert_that(ctx.config, equal_to(config))
-        assert_that(ctx.uuid, uuid())
+        assert_that(ctx.uuid, uuid_())
         assert_that(ctx.foo, equal_to('bar'))
 
     def test_with_fields(self):
