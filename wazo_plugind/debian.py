@@ -40,10 +40,12 @@ class Generator(object):
     _generated_files = ['control', 'postinst', 'prerm']
     _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755}
 
-    def __init__(self, jinja_env=None, template_files=None, section=None):
+    def __init__(self, jinja_env=None, template_files=None, section=None, metadata_dir=None, rules_path=None):
         self._env = jinja_env
         self._template_files = template_files
         self._section = section
+        self._metadata_dir = metadata_dir
+        self._rules_path = rules_path
 
     def generate(self, ctx):
         ctx = self._make_template_ctx(ctx)
@@ -53,16 +55,15 @@ class Generator(object):
         return ctx
 
     def _make_template_ctx(self, ctx):
-        installed_rules_path = os.path.join(ctx.destination_plugin_path, ctx.installer_base_filename)
         template_context = dict(ctx.metadata,
-                                rules_path=installed_rules_path,
+                                rules_path=self._generate_rules_path(ctx),
                                 debian_package_section=self._section)
-        return ctx.with_template_context(template_context)
+        return ctx.with_fields(template_context=template_context)
 
     def _make_debian_dir(self, ctx):
         debian_dir = os.path.join(ctx.pkgdir, self._debian_dir)
         os.mkdir(debian_dir)
-        return ctx.with_debian_dir(debian_dir)
+        return ctx.with_fields(debian_dir=debian_dir)
 
     def _generate_file(self, ctx, filename):
         file_path = os.path.join(ctx.debian_dir, filename)
@@ -76,6 +77,9 @@ class Generator(object):
 
         return ctx
 
+    def _generate_rules_path(self, ctx):
+        return os.path.join(self._metadata_dir, ctx.namespace, ctx.name, self._rules_path)
+
     @classmethod
     def from_config(cls, config):
         loader = jinja2.FileSystemLoader(config['template_dir'])
@@ -84,4 +88,6 @@ class Generator(object):
                           'postinst': config['postinst_template'],
                           'prerm': config['prerm_template']}
         debian_section = config['debian_package_section']
-        return cls(env, template_files, debian_section)
+        metadata_dir = config['metadata_dir']
+        rules_path = config['default_install_filename']
+        return cls(env, template_files, debian_section, metadata_dir, rules_path)

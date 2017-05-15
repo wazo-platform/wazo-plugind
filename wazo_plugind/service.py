@@ -8,16 +8,15 @@ import os.path
 import re
 import shutil
 import yaml
-from uuid import uuid4
 from . import db, debian
 from .exceptions import (
-    InvalidMetadata,
     InvalidNamespaceException,
     InvalidNameException,
     PluginNotFoundException,
     UnsupportedDownloadMethod,
 )
 from .helpers import exec_and_log
+from .context import Context
 
 logger = logging.getLogger(__name__)
 
@@ -47,119 +46,10 @@ class UndefinedDownloader(object):
         raise UnsupportedDownloadMethod()
 
 
-class LoggerContext(object):
-
-    def __init__(self):
-        self.uuid = str(uuid4())
-
-    def log_debug(self, msg, *args):
-        self._log(logger.debug, msg, *args)
-
-    def log_error(self, msg, *args):
-        self._log(logger.error, msg, *args)
-
-    def log_info(self, msg, *args):
-        self._log(logger.info, msg, *args)
-
-    def _log(self, log_fn, msg, *args):
-        log_fn('[%s] '+msg, self.uuid, *args)
-
-
-class InstallContext(LoggerContext):
+class PluginService(object):
 
     valid_namespace = re.compile(r'^[a-z0-9]+$')
     valid_name = re.compile(r'^[a-z0-9-]+$')
-
-    def __init__(self, config, url, method):
-        self.uuid = str(uuid4())
-        self.url = url
-        self.method = method
-        self.download_path = None
-        self.extract_path = None
-        self.metadata_filename = None
-        self.debian_package = None
-        self.package_deb_file = None
-        self.metadata_base_filename = config['default_metadata_filename']
-        self.plugin_dir = config['plugin_dir']
-        self.plugin_data_dir = config['plugin_data_dir']
-        self.extract_dir = config['extract_dir']
-        self.installer_base_filename = config['default_install_filename']
-        self.debian_package_prefix = config['default_debian_package_prefix']
-        self.metadata_dir = config['metadata_dir']
-
-    def with_built(self):
-        self._built = True
-
-    def with_download_path(self, download_path):
-        self.download_path = download_path
-        self.extract_path = os.path.join(self.extract_dir, self.uuid)
-        return self
-
-    def with_extract_path(self, extract_path):
-        self.extract_path = extract_path
-        self.metadata_filename = os.path.join(self.extract_path, self.metadata_base_filename)
-        return self
-
-    def with_metadata(self, metadata):
-        self.metadata = metadata
-        self.namespace = metadata['namespace']
-        if self.valid_namespace.match(self.namespace) is None:
-            raise InvalidNamespaceException()
-        self.name = metadata['name']
-        if self.valid_name.match(self.name) is None:
-            raise InvalidNameException()
-        if 'version' not in metadata:
-            raise InvalidMetadata('no version')
-        self.package_name = '{prefix}-{name}-{namespace}'.format(
-            prefix=self.debian_package_prefix,
-            name=self.name,
-            namespace=self.namespace,
-        )
-        self.plugin_path = os.path.join(self.plugin_dir, self.namespace, self.name)
-        self.installer_path = os.path.join(self.plugin_path, self.installer_base_filename)
-        self.plugin_data_path = os.path.join(self.plugin_path, self.plugin_data_dir)
-        self.destination_plugin_path = os.path.join(self.metadata_dir, self.namespace, self.name)
-        self.destination_plugin_data_path = os.path.join(self.destination_plugin_path, self.plugin_data_dir)
-        return self
-
-    def with_template_context(self, template_context):
-        self.template_context = template_context
-        return self
-
-    def with_debian_dir(self, debian_dir):
-        self.debian_dir = debian_dir
-        return self
-
-    def with_deb_file(self, deb_file):
-        self.package_deb_file = deb_file
-        return self
-
-    def with_pkgdir(self, pkgdir):
-        self.pkgdir = pkgdir
-        self.plugin_data_dst = os.path.join(pkgdir, self.destination_plugin_data_path)
-        return self
-
-    def with_deb_package(self):
-        filename = '{package_name}.deb'.format(package_name=self.package_name)
-        self.package_deb_file = os.path.join(self.plugin_path, filename)
-        return self
-
-
-class UninstallContext(LoggerContext):
-
-    def __init__(self, config, namespace, name):
-        self.uuid = str(uuid4())
-        self.namespace = namespace
-        self.name = name
-        self.debian_package_prefix = config['default_debian_package_prefix']
-        self.package_name = '{prefix}-{name}-{namespace}'.format(
-            prefix=self.debian_package_prefix,
-            name=self.name,
-            namespace=self.namespace,
-        )
-
-
-class PluginService(object):
 
     def __init__(self, config, worker):
         download_dir = config['download_dir']
@@ -176,40 +66,49 @@ class PluginService(object):
         self._plugin_db = db.PluginDB(config)
 
     def _exec(self, ctx, *args, **kwargs):
-        exec_and_log(ctx.log_debug, ctx.log_error, *args, **kwargs)
+        log_debug = ctx.get_logger(logger.debug)
+        log_error = ctx.get_logger(logger.error)
+        exec_and_log(log_debug, log_error, *args, **kwargs)
 
     def build(self, ctx):
-        ctx.log_debug('building %s/%s', ctx.namespace, ctx.name)
-        cmd = [ctx.installer_path, 'build']
+        namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
+        if self.valid_namespace.match(namespace) is None:
+            raise InvalidNamespaceException()
+        if self.valid_name.match(name) is None:
+            raise InvalidNameException()
+        installer_path = os.path.join(ctx.plugin_path, self._config['default_install_filename'])
+        ctx.log(logger.debug, 'building %s/%s', namespace, name)
+        cmd = [installer_path, 'build']
         self._exec(ctx, cmd, cwd=ctx.plugin_path)
-        return ctx
+        return ctx.with_fields(installer_path=installer_path, namespace=namespace, name=name)
 
     def count(self):
         return self._plugin_db.count()
 
     def debianize(self, ctx):
-        ctx.log_debug('debianizing %s/%s', ctx.namespace, ctx.name)
+        ctx.log(logger.debug, 'debianizing %s/%s', ctx.namespace, ctx.name)
         ctx = self._debian_file_generator.generate(ctx)
         cmd = ['dpkg-deb', '--build', ctx.pkgdir]
         self._exec(ctx, cmd, cwd=ctx.plugin_path)
         deb_path = os.path.join(ctx.plugin_path, self._deb_file)
-        return ctx.with_deb_file(deb_path)
+        return ctx.with_fields(package_deb_file=deb_path)
 
     def package(self, ctx):
-        ctx.log_debug('packaging %s/%s', ctx.namespace, ctx.name)
+        ctx.log(logger.debug, 'packaging %s/%s', ctx.namespace, ctx.name)
         pkgdir = os.path.join(ctx.plugin_path, self._build_dir)
         os.makedirs(pkgdir)
         cmd = ['fakeroot', ctx.installer_path, 'package']
         self._exec(ctx, cmd, cwd=ctx.plugin_path, env=dict(os.environ, pkgdir=pkgdir))
         installed_plugin_data_path = os.path.join(pkgdir, 'usr/lib/wazo-plugind/plugins', ctx.namespace, ctx.name)
         os.makedirs(installed_plugin_data_path)
-        cmd = ['fakeroot', 'cp', '-R', ctx.plugin_data_path, installed_plugin_data_path]
+        plugin_data_path = os.path.join(ctx.plugin_path, self._config['plugin_data_dir'])
+        cmd = ['fakeroot', 'cp', '-R', plugin_data_path, installed_plugin_data_path]
         self._exec(ctx, cmd, cwd=ctx.plugin_path)
-        return ctx.with_pkgdir(pkgdir)
+        return ctx.with_fields(pkgdir=pkgdir)
 
     def create(self, url, method):
-        ctx = InstallContext(self._config, url, method)
-        ctx.log_info('installing %s...', url)
+        ctx = Context(self._config, url=url, method=method)
+        ctx.log(logger.info, 'installing %s...', url)
         ctx = self.download(ctx)
         ctx = self.extract(ctx)
         ctx = self.move(ctx)
@@ -217,45 +116,51 @@ class PluginService(object):
         ctx = self.package(ctx)
         ctx = self.debianize(ctx)
         ctx = self.install(ctx)
-        ctx.log_info('install completed')
+        ctx.log(logger.info, 'install completed')
 
         return ctx.uuid
 
     def download(self, ctx):
-        ctx.log_debug('downloading %s', ctx.url)
+        ctx.log(logger.debug, 'downloading %s', ctx.url)
         downloader = self._downloaders.get(ctx.method, self._undefined_downloader)
         download_path = downloader.download(ctx.url)
-        return ctx.with_download_path(download_path)
+        return ctx.with_fields(download_path=download_path)
 
     def extract(self, ctx):
-        ctx.log_debug('extracting %s to %s', ctx.url, ctx.extract_path)
-        shutil.rmtree(ctx.extract_path, ignore_errors=True)
-        shutil.move(ctx.download_path, ctx.extract_path)
-        metadata_filename = os.path.join(ctx.extract_path, ctx.metadata_base_filename)
+        extract_path = os.path.join(self._config['extract_dir'], ctx.uuid)
+        ctx.log(logger.debug, 'extracting %s to %s', ctx.url, extract_path)
+        shutil.rmtree(extract_path, ignore_errors=True)
+        shutil.move(ctx.download_path, extract_path)
+        metadata_filename = os.path.join(extract_path, self._config['default_metadata_filename'])
         with open(metadata_filename, 'r') as f:
             metadata = yaml.safe_load(f)
-        return ctx.with_metadata(metadata)
+        return ctx.with_fields(metadata=metadata, extract_path=extract_path)
 
     def install(self, ctx):
-        self._worker.install(ctx)
+        ctx = self._worker.install(ctx)
         return ctx
 
     def list_(self):
         return self._plugin_db.list_()
 
     def move(self, ctx):
-        ctx.log_debug('moving %s to %s', ctx.extract_path, ctx.plugin_path)
-        shutil.rmtree(ctx.plugin_path, ignore_errors=True)
-        shutil.move(ctx.extract_path, ctx.plugin_path)
-        return ctx
+        # TODO: remove this step since plugins are stored in /usr/lib/wazo-plugind after the install.
+        namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
+        plugin_path = os.path.join(self._config['plugin_dir'], namespace, name)
+        ctx.log(logger.debug, 'moving %s to %s', ctx.extract_path, plugin_path)
+        shutil.rmtree(plugin_path, ignore_errors=True)
+        shutil.move(ctx.extract_path, plugin_path)
+        return ctx.with_fields(plugin_path=plugin_path)
 
     def delete(self, namespace, name):
-        ctx = UninstallContext(self._config, namespace, name)
-        ctx.log_info('uninstalling %s...', ctx.package_name)
-        if not self._plugin_db.is_installed(namespace, name):
+        ctx = Context(self._config, namespace=namespace, name=name)
+        ctx.log(logger.info, 'uninstalling %s/%s...', namespace, name)
+        plugin = self._plugin_db.get_plugin(namespace, name)
+        if not plugin.is_installed():
             raise PluginNotFoundException(namespace, name)
+        ctx.with_fields(package_name=plugin.debian_package_name)
         ctx = self.uninstall(ctx)
-        ctx.log_info('uninstall completed')
+        ctx.log(logger.info, 'uninstall completed')
 
         return ctx.uuid
 

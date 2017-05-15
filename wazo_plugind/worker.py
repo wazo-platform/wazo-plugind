@@ -30,9 +30,9 @@ class InstallJob(Command):
         self._ctx = ctx
 
     def execute(self):
-        self._ctx.log_debug('installing %s', self._ctx.debian_package)
+        self._ctx.log(logger.debug, 'installing %s', self._ctx.package_deb_file)
         cmd = ['gdebi', '-n', self._ctx.package_deb_file]
-        exec_and_log(self._ctx.log_debug, self._ctx.log_error, cmd)
+        exec_and_log(self._ctx.get_logger(logger.debug), self._ctx.get_logger(logger.error), cmd)
 
 
 class UninstallJob(Command):
@@ -41,9 +41,9 @@ class UninstallJob(Command):
         self._ctx = ctx
 
     def execute(self):
-        self._ctx.log_debug('uninstalling %s', self._ctx.package_name)
+        self._ctx.log(logger.debug, 'uninstalling %s', self._ctx.package_name)
         cmd = ['apt-get', 'remove', '-y', self._ctx.package_name]
-        exec_and_log(self._ctx.log_debug, self._ctx.log_error, cmd)
+        exec_and_log(self._ctx.get_logger(logger.debug), self._ctx.get_logger(logger.error), cmd)
 
 
 class QuitJob(Command):
@@ -65,6 +65,7 @@ class Worker(object):
     def install(self, ctx):
         job = InstallJob(ctx)
         self._do(job)
+        return ctx
 
     def uninstall(self, ctx):
         job = UninstallJob(ctx)

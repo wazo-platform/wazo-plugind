@@ -10,7 +10,7 @@ from operator import itemgetter
 from hamcrest import assert_that, contains_inanyorder, equal_to
 from mock import sentinel as s
 from jinja2 import DictLoader, Environment
-from ..service import InstallContext
+from ..context import Context
 from ..debian import Generator, PackageDB
 from ..config import _DEFAULT_CONFIG
 
@@ -66,25 +66,30 @@ class TestPackageDB(TestCase):
 class TestDebianGenerator(TestCase):
 
     def test_make_template_ctx_adds_all_necessary_fields(self):
-        ctx = self.new_install_context(
+        ctx = Context(
+            None,
+            namespace='foobar',
+            name='foo',
             metadata={'foo': 'bar'},
             destination_plugin_path='/var/lib/foobar',
-            installer_base_filename='rules',
+            installer_base_filename='wazo/rules')
+
+        generator = Generator(
+            metadata_dir='/usr/lib/wazo-plugind',
+            rules_path='wazo/rules',
+            section=s.section,
         )
-        generator = Generator(section=s.section)
 
         ctx = generator._make_template_ctx(ctx)
 
         expected = {'foo': 'bar',
-                    'rules_path': '/var/lib/foobar/rules',
+                    'rules_path': '/usr/lib/wazo-plugind/foobar/foo/wazo/rules',
                     'debian_package_section': s.section}
         assert_that(ctx.template_context, equal_to(expected))
 
     def test_make_debian_dir(self):
         with tempfile.TemporaryDirectory() as pkgdir:
-            ctx = self.new_install_context(
-                pkgdir=pkgdir,
-            )
+            ctx = Context(None, pkgdir=pkgdir)
             generator = Generator()
 
             ctx = generator._make_debian_dir(ctx)
@@ -98,7 +103,8 @@ class TestDebianGenerator(TestCase):
         template_name = 'control.jinja'
         loader = DictLoader({template_name: '{{ status }}'})
         with tempfile.TemporaryDirectory() as debian_dir:
-            ctx = self.new_install_context(
+            ctx = Context(
+                None,
                 template_context={'status': 'SUCCESS'},
                 debian_dir=debian_dir,
             )
@@ -109,9 +115,3 @@ class TestDebianGenerator(TestCase):
             expected_path = os.path.join(debian_dir, filename)
             with open(expected_path) as f:
                 assert_that(f.read(), equal_to('SUCCESS'))
-
-    def new_install_context(self, **kwargs):
-        ctx = InstallContext(_DEFAULT_CONFIG, 'foo', 'bar')
-        for field, value in kwargs.items():
-            setattr(ctx, field, value)
-        return ctx
