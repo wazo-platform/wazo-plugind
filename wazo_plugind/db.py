@@ -21,6 +21,9 @@ class PluginDB(object):
     def count(self):
         return len(self.list_())
 
+    def get_plugin(self, namespace, name):
+        return Plugin(self._config, namespace, name)
+
     def is_installed(self, namespace, name):
         return Plugin(self._config, namespace, name).is_installed()
 
@@ -41,6 +44,7 @@ class Plugin(object):
     def __init__(self, config, namespace, name):
         self.namespace = namespace
         self.name = name
+        self.debian_package_name = '{}-{}-{}'.format(config['default_debian_package_prefix'], name, namespace)
         self.metadata_filename = os.path.join(
             config['metadata_dir'],
             self.namespace,

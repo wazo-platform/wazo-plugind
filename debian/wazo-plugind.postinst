@@ -8,7 +8,6 @@ USER=$DAEMONNAME
 GROUP=$USER
 HOMEDIR="/var/lib/${DAEMONNAME}"
 DOWNLOAD_DIR="${HOMEDIR}/downloads"
-PLUGIN_DIR="${HOMEDIR}/plugins"
 DATA_DIR="/usr/lib/${DAEMONNAME}"
 
 case "$1" in
@@ -27,10 +26,9 @@ case "$1" in
         fi
         chown "$USER:$GROUP" "$LOG_FILENAME"
 
-        for dir in "${DOWNLOAD_DIR}" "${PLUGIN_DIR}"; do
-            mkdir -p "${dir}"
-            chmod 755 "${dir}"
-        done
+        if dpkg --compare-versions "$2" lt '17.08'; then
+            rm -rf "${HOMEDIR}/plugins"
+        fi
 
         chown -R "$USER:$GROUP" "$HOMEDIR"
         chown -R "$USER:$GROUP" "$DATA_DIR"

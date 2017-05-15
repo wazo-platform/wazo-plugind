@@ -17,7 +17,6 @@ _PLUGIN_DATA_DIR = 'wazo'
 _DEFAULT_CONFIG = dict(
     config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
     extra_config_files='/etc/{}/conf.d/'.format(_DAEMONNAME),
-    plugin_dir='/var/lib/wazo-plugind/plugins',
     download_dir='/var/lib/wazo-plugind/downloads',
     extract_dir='/var/lib/wazo-plugind/tmp',
     metadata_dir='/usr/lib/wazo-plugind/plugins',
