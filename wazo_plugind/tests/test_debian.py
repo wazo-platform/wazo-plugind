@@ -67,7 +67,7 @@ class TestDebianGenerator(TestCase):
 
     def test_make_template_ctx_adds_all_necessary_fields(self):
         ctx = Context(
-            None,
+            _DEFAULT_CONFIG,
             namespace='foobar',
             name='foo',
             metadata={'foo': 'bar'},
@@ -89,7 +89,7 @@ class TestDebianGenerator(TestCase):
 
     def test_make_debian_dir(self):
         with tempfile.TemporaryDirectory() as pkgdir:
-            ctx = Context(None, pkgdir=pkgdir)
+            ctx = Context(_DEFAULT_CONFIG, pkgdir=pkgdir)
             generator = Generator()
 
             ctx = generator._make_debian_dir(ctx)
@@ -104,7 +104,7 @@ class TestDebianGenerator(TestCase):
         loader = DictLoader({template_name: '{{ status }}'})
         with tempfile.TemporaryDirectory() as debian_dir:
             ctx = Context(
-                None,
+                _DEFAULT_CONFIG,
                 template_context={'status': 'SUCCESS'},
                 debian_dir=debian_dir,
             )
