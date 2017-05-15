@@ -76,10 +76,10 @@ class PluginService(object):
             raise InvalidNamespaceException()
         if self.valid_name.match(name) is None:
             raise InvalidNameException()
-        installer_path = os.path.join(ctx.plugin_path, self._config['default_install_filename'])
+        installer_path = os.path.join(ctx.extract_path, self._config['default_install_filename'])
         ctx.log(logger.debug, 'building %s/%s', namespace, name)
         cmd = [installer_path, 'build']
-        self._exec(ctx, cmd, cwd=ctx.plugin_path)
+        self._exec(ctx, cmd, cwd=ctx.extract_path)
         return ctx.with_fields(installer_path=installer_path, namespace=namespace, name=name)
 
     def count(self):
@@ -89,21 +89,21 @@ class PluginService(object):
         ctx.log(logger.debug, 'debianizing %s/%s', ctx.namespace, ctx.name)
         ctx = self._debian_file_generator.generate(ctx)
         cmd = ['dpkg-deb', '--build', ctx.pkgdir]
-        self._exec(ctx, cmd, cwd=ctx.plugin_path)
-        deb_path = os.path.join(ctx.plugin_path, self._deb_file)
+        self._exec(ctx, cmd, cwd=ctx.extract_path)
+        deb_path = os.path.join(ctx.extract_path, self._deb_file)
         return ctx.with_fields(package_deb_file=deb_path)
 
     def package(self, ctx):
         ctx.log(logger.debug, 'packaging %s/%s', ctx.namespace, ctx.name)
-        pkgdir = os.path.join(ctx.plugin_path, self._build_dir)
+        pkgdir = os.path.join(ctx.extract_path, self._build_dir)
         os.makedirs(pkgdir)
         cmd = ['fakeroot', ctx.installer_path, 'package']
-        self._exec(ctx, cmd, cwd=ctx.plugin_path, env=dict(os.environ, pkgdir=pkgdir))
+        self._exec(ctx, cmd, cwd=ctx.extract_path, env=dict(os.environ, pkgdir=pkgdir))
         installed_plugin_data_path = os.path.join(pkgdir, 'usr/lib/wazo-plugind/plugins', ctx.namespace, ctx.name)
         os.makedirs(installed_plugin_data_path)
-        plugin_data_path = os.path.join(ctx.plugin_path, self._config['plugin_data_dir'])
+        plugin_data_path = os.path.join(ctx.extract_path, self._config['plugin_data_dir'])
         cmd = ['fakeroot', 'cp', '-R', plugin_data_path, installed_plugin_data_path]
-        self._exec(ctx, cmd, cwd=ctx.plugin_path)
+        self._exec(ctx, cmd, cwd=ctx.extract_path)
         return ctx.with_fields(pkgdir=pkgdir)
 
     def create(self, url, method):
@@ -136,7 +136,6 @@ class PluginService(object):
         return ctx.with_fields(
             metadata=metadata,
             extract_path=extract_path,
-            plugin_path=extract_path,
         )
 
     def install(self, ctx):
