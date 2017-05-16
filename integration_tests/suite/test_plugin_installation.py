@@ -51,17 +51,15 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     asset = 'plugind_only'
 
+    def setUp(self):
+        self.bus_config = dict(username='guest', password='guest', host='localhost')
+
     def test_when_it_works(self):
         dependency = 'tig'
         assert_that(self._is_installed(dependency), equal_to(False),
                     'Test precondition, {} should not be installed'.format(dependency))
-        port = self.service_port(5672, service_name='rabbitmq')
-        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(username='guest',
-                                                                        password='guest',
-                                                                        host='localhost',
-                                                                        port=port)
-        routing_key = 'plugin.install.#'
-        msg_accumulator = BusClient(bus_url).accumulator(routing_key)
+
+        msg_accumulator = self.new_message_accumulator('plugin.install.#')
 
         result = self.install_plugin(url='/data/git/repo', method='git')
 
@@ -71,14 +69,10 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         assert_that(result, has_entries(uuid=uuid_()))
 
-        def bus_event_received(accumulator):
-            assert_that(accumulator.accumulate(), has_item(all_of(
-                has_entry('name', 'plugin_install_progress'),
-                has_entry('data', has_entries('uuid', result['uuid'],
-                                              'status', 'completed')))))
-
-        until.assert_(bus_event_received, msg_accumulator, tries=10, interval=0.25,
-                      message='The bus message should have been received')
+        statuses = ['starting', 'downloading', 'extracting', 'building',
+                    'packaging', 'installing', 'completed']
+        for status in statuses:
+            self.assert_status_received(msg_accumulator, result['uuid'], status)
         assert_that(build_success_exists, 'build_success was not created or copied')
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(package_success_exists, 'package_success was not created')
@@ -128,6 +122,11 @@ class TestPluginInstallation(BaseIntegrationTest):
     def exists_in_asset(self, path):
         complete_path = self.path_in_asset(path)
         return os.path.exists(complete_path)
+
+    def new_message_accumulator(self, routing_key):
+        port = self.service_port(5672, service_name='rabbitmq')
+        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(port=port, **self.bus_config)
+        return BusClient(bus_url).accumulator(routing_key)
 
     def path_in_asset(self, path):
         return os.path.sep.join([self.assets_root, self.asset, path])
