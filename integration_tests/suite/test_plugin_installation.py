@@ -3,20 +3,24 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
-import uuid
 from hamcrest import (
+    all_of,
     assert_that,
     calling,
     contains,
     equal_to,
     empty,
+    has_entry,
     has_entries,
+    has_item,
     has_property,
     not_,
 )
 from requests import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
+from xivo_test_helpers.bus import BusClient
+from xivo_test_helpers import until
 from .test_api import BaseIntegrationTest
 
 
@@ -51,6 +55,13 @@ class TestPluginInstallation(BaseIntegrationTest):
         dependency = 'tig'
         assert_that(self._is_installed(dependency), equal_to(False),
                     'Test precondition, {} should not be installed'.format(dependency))
+        port = self.service_port(5672, service_name='rabbitmq')
+        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(username='guest',
+                                                                        password='guest',
+                                                                        host='localhost',
+                                                                        port=port)
+        routing_key = 'plugin.install.#'
+        msg_accumulator = BusClient(bus_url).accumulator(routing_key)
 
         result = self.install_plugin(url='/data/git/repo', method='git')
 
@@ -59,6 +70,15 @@ class TestPluginInstallation(BaseIntegrationTest):
         install_success_exists = self.exists_in_asset('results/install_success')
 
         assert_that(result, has_entries(uuid=uuid_()))
+
+        def bus_event_received(accumulator):
+            assert_that(accumulator.accumulate(), has_item(all_of(
+                has_entry('name', 'plugin_install_progress'),
+                has_entry('data', has_entries('uuid', result['uuid'],
+                                              'status', 'completed')))))
+
+        until.assert_(bus_event_received, msg_accumulator, tries=10, interval=0.25,
+                      message='The bus message should have been received')
         assert_that(build_success_exists, 'build_success was not created or copied')
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(package_success_exists, 'package_success was not created')
