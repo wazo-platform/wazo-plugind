@@ -4,6 +4,7 @@
 import logging
 import signal
 import sys
+from threading import Thread
 from functools import partial
 from cherrypy import wsgiserver
 from xivo import http_helpers
@@ -34,7 +35,8 @@ class Controller(object):
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
-        plugin_service = service.PluginService(config, worker)
+        self._publisher = service.StatusPublisher(config)
+        plugin_service = service.PluginService(config, worker, self._publisher)
         flask_app = http.new_app(config, plugin_service=plugin_service)
         Adapter = wsgiserver.get_ssl_adapter_class('builtin')
         adapter = Adapter(ssl_cert_file, ssl_key_file)
@@ -48,6 +50,8 @@ class Controller(object):
     def run(self):
         logger.debug('starting http server')
         signal.signal(signal.SIGTERM, _signal_handler)
+        publisher_thread = Thread(target=self._publisher.run)
+        publisher_thread.start()
         with ServiceCatalogRegistration(
                 'wazo-plugind',
                 self._xivo_uuid,
@@ -63,3 +67,5 @@ class Controller(object):
             finally:
                 self._server.stop()
         self._worker.stop()
+        self._publisher.stop()
+        publisher_thread.join()

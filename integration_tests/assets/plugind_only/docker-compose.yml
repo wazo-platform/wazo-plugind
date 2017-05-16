@@ -3,12 +3,14 @@ sync:
   links:
     - plugind
     - auth
+    - rabbitmq
   environment:
-    PORTS: "9503 9497"
+    PORTS: "5672 9503 9497"
 plugind:
   image: "wazo-plugind-test"
   links:
     - auth
+    - rabbitmq
   environment:
     - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
   volumes:
@@ -17,9 +19,14 @@ plugind:
     - "./results:/tmp/results"
     - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
     - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"
+    - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
     - "./etc/wazo-plugind/conf.d/disable_service_discovery.yml:/etc/wazo-plugind/conf.d/disable_service_discovery.yml"
   ports:
     - "9503"
+rabbitmq:
+  image: "rabbitmq"
+  ports:
+    - 5672
 auth:
   image: "wazopbx/xivo-auth-mock"
   ports:

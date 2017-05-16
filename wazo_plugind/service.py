@@ -8,6 +8,10 @@ import os.path
 import re
 import shutil
 import yaml
+import kombu
+import xivo_bus
+from functools import partial
+from xivo_bus.resources.plugins.events import PluginInstallProgressEvent
 from . import db, debian
 from .exceptions import (
     InvalidNamespaceException,
@@ -46,18 +50,53 @@ class UndefinedDownloader(object):
         raise UnsupportedDownloadMethod()
 
 
+class StatusPublisher(object):
+
+    def __init__(self, config):
+        uuid = config.get('uuid')
+        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(**config['bus'])
+        exchange_name = config['bus']['exchange_name']
+        exchange_type = config['bus']['exchange_type']
+        publisher_fcty = partial(self._new_publisher, uuid, bus_url, exchange_name, exchange_type)
+        self._publisher = xivo_bus.PublishingQueue(publisher_fcty)
+
+    def publish(self, ctx, status):
+        ctx.log(logger.debug, 'publishing new status: %s', status)
+        event = PluginInstallProgressEvent(ctx.uuid, status)
+        self._send_event(event)
+
+    def run(self):
+        logger.info('status publisher starting')
+        self._publisher.run()
+
+    def stop(self):
+        logger.info('status publisher stoping')
+        self._publisher.stop()
+
+    def _new_publisher(self, uuid, url, exchange_name, exchange_type):
+        bus_connection = kombu.Connection(url)
+        bus_exchange = kombu.Exchange(exchange_name, type=exchange_type)
+        bus_producer = kombu.Producer(bus_connection, exchange=bus_exchange, auto_declare=True)
+        bus_marshaler = xivo_bus.Marshaler(uuid)
+        return xivo_bus.Publisher(bus_producer, bus_marshaler)
+
+    def _send_event(self, event):
+        self._publisher.publish(event)
+
+
 class PluginService(object):
 
     valid_namespace = re.compile(r'^[a-z0-9]+$')
     valid_name = re.compile(r'^[a-z0-9-]+$')
 
-    def __init__(self, config, worker):
+    def __init__(self, config, worker, status_publisher):
         download_dir = config['download_dir']
         self._build_dir = config['build_dir']
         self._deb_file = '{}.deb'.format(self._build_dir)
         self._config = config
         self._worker = worker
         self._debian_file_generator = debian.Generator.from_config(config)
+        self._status_publisher = status_publisher
 
         self._downloaders = {
             'git': GitDownloader(download_dir),
@@ -109,12 +148,19 @@ class PluginService(object):
     def create(self, url, method):
         ctx = Context(self._config, url=url, method=method)
         ctx.log(logger.info, 'installing %s...', url)
+        self._status_publisher.publish(ctx, 'starting')
+        self._status_publisher.publish(ctx, 'downloading')
         ctx = self.download(ctx)
+        self._status_publisher.publish(ctx, 'extracting')
         ctx = self.extract(ctx)
+        self._status_publisher.publish(ctx, 'building')
         ctx = self.build(ctx)
+        self._status_publisher.publish(ctx, 'packaging')
         ctx = self.package(ctx)
         ctx = self.debianize(ctx)
+        self._status_publisher.publish(ctx, 'installing')
         ctx = self.install(ctx)
+        self._status_publisher.publish(ctx, 'completed')
         ctx.log(logger.info, 'install completed')
 
         return ctx.uuid

@@ -3,36 +3,25 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
-import uuid
 from hamcrest import (
+    all_of,
     assert_that,
     calling,
     contains,
     equal_to,
     empty,
+    has_entry,
     has_entries,
+    has_item,
     has_property,
     not_,
 )
 from requests import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
+from xivo_test_helpers.hamcrest.uuid_ import uuid_
+from xivo_test_helpers.bus import BusClient
+from xivo_test_helpers import until
 from .test_api import BaseIntegrationTest
-
-
-class UUIDMatcher(object):
-
-    def __eq__(self, other):
-        try:
-            uuid.UUID(other)
-            return True
-        except:
-            return False
-
-    def __ne__(self, other):
-        return not self == other
-
-
-ANY_UUID = UUIDMatcher()
 
 
 class TestPluginList(BaseIntegrationTest):
@@ -62,10 +51,15 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     asset = 'plugind_only'
 
+    def setUp(self):
+        self.bus_config = dict(username='guest', password='guest', host='localhost')
+
     def test_when_it_works(self):
         dependency = 'tig'
         assert_that(self._is_installed(dependency), equal_to(False),
                     'Test precondition, {} should not be installed'.format(dependency))
+
+        msg_accumulator = self.new_message_accumulator('plugin.install.#')
 
         result = self.install_plugin(url='/data/git/repo', method='git')
 
@@ -73,7 +67,12 @@ class TestPluginInstallation(BaseIntegrationTest):
         package_success_exists = self.exists_in_asset('results/package_success')
         install_success_exists = self.exists_in_asset('results/install_success')
 
-        assert_that(result, has_entries(uuid=ANY_UUID))
+        assert_that(result, has_entries(uuid=uuid_()))
+
+        statuses = ['starting', 'downloading', 'extracting', 'building',
+                    'packaging', 'installing', 'completed']
+        for status in statuses:
+            self.assert_status_received(msg_accumulator, result['uuid'], status)
         assert_that(build_success_exists, 'build_success was not created or copied')
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(package_success_exists, 'package_success was not created')
@@ -88,7 +87,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         package_success_exists = self.exists_in_asset('results/package_success')
         install_success_exists = self.exists_in_asset('results/install_success')
 
-        assert_that(result, has_entries(uuid=ANY_UUID))
+        assert_that(result, has_entries(uuid=uuid_()))
         assert_that(not_(build_success_exists), 'build_success was not removed')
         assert_that(not_(install_success_exists), 'install_success was not removed')
         assert_that(not_(package_success_exists), 'package_success was not removed')
@@ -123,6 +122,11 @@ class TestPluginInstallation(BaseIntegrationTest):
     def exists_in_asset(self, path):
         complete_path = self.path_in_asset(path)
         return os.path.exists(complete_path)
+
+    def new_message_accumulator(self, routing_key):
+        port = self.service_port(5672, service_name='rabbitmq')
+        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(port=port, **self.bus_config)
+        return BusClient(bus_url).accumulator(routing_key)
 
     def path_in_asset(self, path):
         return os.path.sep.join([self.assets_root, self.asset, path])
