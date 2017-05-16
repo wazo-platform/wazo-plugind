@@ -15,7 +15,7 @@ case "$1" in
         # add/update user
         if ! getent passwd $USER > /dev/null; then
             echo "Adding system user $USER" 1>&2
-            adduser --quiet --system --group --no-create-home \
+            adduser --quiet --system --group \
                     --home $HOMEDIR \
                     $USER
         fi
@@ -25,6 +25,9 @@ case "$1" in
             touch "$LOG_FILENAME"
         fi
         chown "$USER:$GROUP" "$LOG_FILENAME"
+
+        mkdir -p "${DOWNLOAD_DIR}"
+        chmod 755 "${DOWNLOAD_DIR}"
 
         if dpkg --compare-versions "$2" lt '17.08'; then
             rm -rf "${HOMEDIR}/plugins"
