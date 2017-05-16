@@ -16,23 +16,8 @@ from hamcrest import (
 )
 from requests import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
+from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from .test_api import BaseIntegrationTest
-
-
-class UUIDMatcher(object):
-
-    def __eq__(self, other):
-        try:
-            uuid.UUID(other)
-            return True
-        except:
-            return False
-
-    def __ne__(self, other):
-        return not self == other
-
-
-ANY_UUID = UUIDMatcher()
 
 
 class TestPluginList(BaseIntegrationTest):
@@ -73,7 +58,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         package_success_exists = self.exists_in_asset('results/package_success')
         install_success_exists = self.exists_in_asset('results/install_success')
 
-        assert_that(result, has_entries(uuid=ANY_UUID))
+        assert_that(result, has_entries(uuid=uuid_()))
         assert_that(build_success_exists, 'build_success was not created or copied')
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(package_success_exists, 'package_success was not created')
@@ -88,7 +73,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         package_success_exists = self.exists_in_asset('results/package_success')
         install_success_exists = self.exists_in_asset('results/install_success')
 
-        assert_that(result, has_entries(uuid=ANY_UUID))
+        assert_that(result, has_entries(uuid=uuid_()))
         assert_that(not_(build_success_exists), 'build_success was not removed')
         assert_that(not_(install_success_exists), 'install_success was not removed')
         assert_that(not_(package_success_exists), 'package_success was not removed')
