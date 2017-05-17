@@ -139,4 +139,10 @@ class TestPluginInstallation(BaseIntegrationTest):
         return False
 
     def assert_status_received(self, msg_accumulator, uuid, status):
-        return True
+        def aux():
+            assert_that(msg_accumulator.accumulate(), has_item(all_of(
+                has_entry('name', 'plugin_install_progress'),
+                has_entry('data', has_entries('status', status, 'uuid', uuid)))))
+
+        until.assert_(aux, tries=10, interval=0.25,
+                      message='The bus message should have been received')
