@@ -15,13 +15,8 @@ logger = logging.getLogger(__name__)
 
 class StatusPublisher(object):
 
-    def __init__(self, config):
-        uuid = config.get('uuid')
-        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(**config['bus'])
-        exchange_name = config['bus']['exchange_name']
-        exchange_type = config['bus']['exchange_type']
-        publisher_fcty = partial(self._new_publisher, uuid, bus_url, exchange_name, exchange_type)
-        self._publisher = xivo_bus.PublishingQueue(publisher_fcty)
+    def __init__(self, publisher):
+        self._publisher = publisher
 
     def install(self, ctx, status):
         ctx.log(logger.debug, 'publishing new install status: %s', status)
@@ -33,7 +28,7 @@ class StatusPublisher(object):
 
     def _publish(self, Event, ctx, status):
         event = Event(ctx.uuid, status)
-        self._send_event(event)
+        self._publisher.publish(event)
 
     def run(self):
         logger.info('status publisher starting')
@@ -43,13 +38,20 @@ class StatusPublisher(object):
         logger.info('status publisher stoping')
         self._publisher.stop()
 
-    def _new_publisher(self, uuid, url, exchange_name, exchange_type):
-        bus_connection = kombu.Connection(url)
-        bus_exchange = kombu.Exchange(exchange_name, type=exchange_type)
-        bus_producer = kombu.Producer(bus_connection, exchange=bus_exchange, auto_declare=True)
-        bus_marshaler = xivo_bus.Marshaler(uuid)
-        return xivo_bus.Publisher(bus_producer, bus_marshaler)
+    @classmethod
+    def from_config(cls, config):
+        uuid = config.get('uuid')
+        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(**config['bus'])
+        exchange_name = config['bus']['exchange_name']
+        exchange_type = config['bus']['exchange_type']
+        publisher_fcty = partial(_new_publisher, uuid, bus_url, exchange_name, exchange_type)
+        publisher = xivo_bus.PublishingQueue(publisher_fcty)
+        return cls(publisher)
 
-    def _send_event(self, event):
-        self._publisher.publish(event)
 
+def _new_publisher(uuid, url, exchange_name, exchange_type):
+    bus_connection = kombu.Connection(url)
+    bus_exchange = kombu.Exchange(exchange_name, type=exchange_type)
+    bus_producer = kombu.Producer(bus_connection, exchange=bus_exchange, auto_declare=True)
+    bus_marshaler = xivo_bus.Marshaler(uuid)
+    return xivo_bus.Publisher(bus_producer, bus_marshaler)

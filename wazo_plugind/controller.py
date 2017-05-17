@@ -35,7 +35,7 @@ class Controller(object):
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
-        self._publisher = bus.StatusPublisher(config)
+        self._publisher = bus.StatusPublisher.from_config(config)
         plugin_service = service.PluginService(config, worker, self._publisher)
         flask_app = http.new_app(config, plugin_service=plugin_service)
         Adapter = wsgiserver.get_ssl_adapter_class('builtin')
