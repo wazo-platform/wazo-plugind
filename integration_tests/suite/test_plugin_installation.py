@@ -72,7 +72,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         statuses = ['starting', 'downloading', 'extracting', 'building',
                     'packaging', 'installing', 'completed']
         for status in statuses:
-            self.assert_status_received(msg_accumulator, result['uuid'], status)
+            self.assert_status_received(msg_accumulator, 'install', result['uuid'], status)
         assert_that(build_success_exists, 'build_success was not created or copied')
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(package_success_exists, 'package_success was not created')
@@ -80,6 +80,7 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     def test_when_uninstall_works(self):
         self.install_plugin(url='/data/git/repo', method='git')
+        msg_accumulator = self.new_message_accumulator('plugin.uninstall.#')
 
         result = self.uninstall_plugin(namespace='plugindtests', name='foobar')
 
@@ -87,6 +88,9 @@ class TestPluginInstallation(BaseIntegrationTest):
         package_success_exists = self.exists_in_asset('results/package_success')
         install_success_exists = self.exists_in_asset('results/install_success')
 
+        statuses = ['starting', 'removing', 'completed']
+        for status in statuses:
+            self.assert_status_received(msg_accumulator, 'uninstall', result['uuid'], status)
         assert_that(result, has_entries(uuid=uuid_()))
         assert_that(not_(build_success_exists), 'build_success was not removed')
         assert_that(not_(install_success_exists), 'install_success was not removed')
@@ -138,10 +142,12 @@ class TestPluginInstallation(BaseIntegrationTest):
                 return True
         return False
 
-    def assert_status_received(self, msg_accumulator, uuid, status):
+    def assert_status_received(self, msg_accumulator, operation, uuid, status):
+        event_name = 'plugin_{}_progress'.format(operation)
+
         def aux():
             assert_that(msg_accumulator.accumulate(), has_item(all_of(
-                has_entry('name', 'plugin_install_progress'),
+                has_entry('name', event_name),
                 has_entry('data', has_entries('status', status, 'uuid', uuid)))))
 
         until.assert_(aux, tries=10, interval=0.25,

@@ -9,7 +9,7 @@ from functools import partial
 from cherrypy import wsgiserver
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
-from wazo_plugind import http, service
+from wazo_plugind import http, bus, service
 from .service_discovery import self_check
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class Controller(object):
         # TODO find how its configured using the builtin ssl adapter
         # ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
-        self._publisher = service.StatusPublisher(config)
+        self._publisher = bus.StatusPublisher.from_config(config)
         plugin_service = service.PluginService(config, worker, self._publisher)
         flask_app = http.new_app(config, plugin_service=plugin_service)
         Adapter = wsgiserver.get_ssl_adapter_class('builtin')
