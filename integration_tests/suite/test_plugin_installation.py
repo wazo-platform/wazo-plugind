@@ -137,3 +137,6 @@ class TestPluginInstallation(BaseIntegrationTest):
             if debian_package == search:
                 return True
         return False
+
+    def assert_status_received(self, msg_accumulator, uuid, status):
+        return True
