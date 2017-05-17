@@ -8,10 +8,6 @@ import os.path
 import re
 import shutil
 import yaml
-import kombu
-import xivo_bus
-from functools import partial
-from xivo_bus.resources.plugins.events import PluginInstallProgressEvent
 from . import db, debian
 from .exceptions import (
     InvalidNamespaceException,
@@ -48,40 +44,6 @@ class UndefinedDownloader(object):
 
     def download(self, url):
         raise UnsupportedDownloadMethod()
-
-
-class StatusPublisher(object):
-
-    def __init__(self, config):
-        uuid = config.get('uuid')
-        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(**config['bus'])
-        exchange_name = config['bus']['exchange_name']
-        exchange_type = config['bus']['exchange_type']
-        publisher_fcty = partial(self._new_publisher, uuid, bus_url, exchange_name, exchange_type)
-        self._publisher = xivo_bus.PublishingQueue(publisher_fcty)
-
-    def publish(self, ctx, status):
-        ctx.log(logger.debug, 'publishing new status: %s', status)
-        event = PluginInstallProgressEvent(ctx.uuid, status)
-        self._send_event(event)
-
-    def run(self):
-        logger.info('status publisher starting')
-        self._publisher.run()
-
-    def stop(self):
-        logger.info('status publisher stoping')
-        self._publisher.stop()
-
-    def _new_publisher(self, uuid, url, exchange_name, exchange_type):
-        bus_connection = kombu.Connection(url)
-        bus_exchange = kombu.Exchange(exchange_name, type=exchange_type)
-        bus_producer = kombu.Producer(bus_connection, exchange=bus_exchange, auto_declare=True)
-        bus_marshaler = xivo_bus.Marshaler(uuid)
-        return xivo_bus.Publisher(bus_producer, bus_marshaler)
-
-    def _send_event(self, event):
-        self._publisher.publish(event)
 
 
 class PluginService(object):
@@ -148,19 +110,19 @@ class PluginService(object):
     def create(self, url, method):
         ctx = Context(self._config, url=url, method=method)
         ctx.log(logger.info, 'installing %s...', url)
-        self._status_publisher.publish(ctx, 'starting')
-        self._status_publisher.publish(ctx, 'downloading')
+        self._status_publisher.install(ctx, 'starting')
+        self._status_publisher.install(ctx, 'downloading')
         ctx = self.download(ctx)
-        self._status_publisher.publish(ctx, 'extracting')
+        self._status_publisher.install(ctx, 'extracting')
         ctx = self.extract(ctx)
-        self._status_publisher.publish(ctx, 'building')
+        self._status_publisher.install(ctx, 'building')
         ctx = self.build(ctx)
-        self._status_publisher.publish(ctx, 'packaging')
+        self._status_publisher.install(ctx, 'packaging')
         ctx = self.package(ctx)
         ctx = self.debianize(ctx)
-        self._status_publisher.publish(ctx, 'installing')
+        self._status_publisher.install(ctx, 'installing')
         ctx = self.install(ctx)
-        self._status_publisher.publish(ctx, 'completed')
+        self._status_publisher.install(ctx, 'completed')
         ctx.log(logger.info, 'install completed')
 
         return ctx.uuid
@@ -194,12 +156,15 @@ class PluginService(object):
     def delete(self, namespace, name):
         ctx = Context(self._config, namespace=namespace, name=name)
         ctx.log(logger.info, 'uninstalling %s/%s...', namespace, name)
+        self._status_publisher.uninstall(ctx, 'starting')
         plugin = self._plugin_db.get_plugin(namespace, name)
         if not plugin.is_installed():
             raise PluginNotFoundException(namespace, name)
         ctx.with_fields(package_name=plugin.debian_package_name)
+        self._status_publisher.uninstall(ctx, 'removing')
         ctx = self.uninstall(ctx)
         ctx.log(logger.info, 'uninstall completed')
+        self._status_publisher.uninstall(ctx, 'completed')
 
         return ctx.uuid
 
