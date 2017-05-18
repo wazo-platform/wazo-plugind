@@ -6,6 +6,7 @@ import signal
 import sys
 from threading import Thread
 from functools import partial
+from celery import Celery
 from cherrypy import wsgiserver
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
@@ -18,6 +19,36 @@ logger = logging.getLogger(__name__)
 def _signal_handler(signum, frame):
     logger.info('SIGTERM received, terminating')
     sys.exit(0)
+
+
+class CeleryWorker(object):
+
+    _worker_config = dict(
+        CELERY_ACCEPT_CONTENT=['json'],
+        CELERYD_HIJACK_ROOT_LOGGER=False,
+    )
+
+    def __init__(self, celery):
+        self._celery = celery
+
+    def run(self):
+        logger.info('starting celery worker')
+        worker_args = sys.argv[1:] + ['-n', 'plugind_worker@%h']
+        self._thread = Thread(target=self._celery.worker_main, kwargs=dict(argv=worker_args))
+        self._thread.daemon = True
+        self._thread.start()
+
+    @classmethod
+    def from_config(cls, config):
+        broker_uri = config['celery']['broker']
+        celery = Celery('plugind_tasks', broker=broker_uri)
+        celery.conf.update(cls._worker_config)
+        celery.conf.update(config)
+        celery.conf.update(
+            CELERYD_LOG_LEVEL='debug' if config['debug'] else config['log_level'],
+            CELERY_DEFAULT_EXCHANGE=config['celery']['exchange_name'],
+        )
+        return cls(celery)
 
 
 class Controller(object):
@@ -46,12 +77,14 @@ class Controller(object):
         for route in http_helpers.list_routes(flask_app):
             logger.debug(route)
         self._worker = worker
+        self._celery_worker = CeleryWorker.from_config(config)
 
     def run(self):
         logger.debug('starting http server')
         signal.signal(signal.SIGTERM, _signal_handler)
         publisher_thread = Thread(target=self._publisher.run)
         publisher_thread.start()
+        self._celery_worker.run()
         with ServiceCatalogRegistration(
                 'wazo-plugind',
                 self._xivo_uuid,

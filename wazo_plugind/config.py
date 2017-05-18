@@ -35,6 +35,10 @@ _DEFAULT_CONFIG = dict(
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
     pid_file='/var/run/{}/{}.pid'.format(_DAEMONNAME, _DAEMONNAME),
+    celery={
+        'broker': 'amqp://guest:guest@localhost:5672',
+        'exchange_name': 'celery_plugind',
+    },
     rest_api={
         'https': {
             'listen': '0.0.0.0',
