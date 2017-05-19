@@ -1,8 +1,11 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import logging
 from uuid import uuid4
 from functools import partial
+
+logger = logging.getLogger(__name__)
 
 
 class Context(object):

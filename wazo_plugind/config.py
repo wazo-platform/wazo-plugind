@@ -37,7 +37,16 @@ _DEFAULT_CONFIG = dict(
     pid_file='/var/run/{}/{}.pid'.format(_DAEMONNAME, _DAEMONNAME),
     celery={
         'broker': 'amqp://guest:guest@localhost:5672',
-        'exchange_name': 'celery_plugind',
+        'unpriviledged': {
+            'exchange_name': 'celery_plugind',
+            'queue_name': 'plugind_task_queue',
+            'routing_key': 'plugind.tasks',
+        },
+        'priviledged': {
+            'exchange_name': 'celery_plugind_root',
+            'queue_name': 'plugind_root_task_queue',
+            'routing_key': 'plugind.root_tasks',
+        },
     },
     rest_api={
         'https': {
