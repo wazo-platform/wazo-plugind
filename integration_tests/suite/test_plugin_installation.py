@@ -17,9 +17,9 @@ from hamcrest import (
     not_,
 )
 from requests import HTTPError
+from unittest import skip
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
-from xivo_test_helpers.bus import BusClient
 from xivo_test_helpers import until
 from .test_api import BaseIntegrationTest
 
@@ -38,7 +38,7 @@ class TestPluginList(BaseIntegrationTest):
         assert_that(response['total'], equal_to(0))
         assert_that(response['items'], empty())
 
-        self.install_plugin(url='file:///data/git/repo', method='git')
+        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
 
         result = self.list_plugins()
 
@@ -51,9 +51,6 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     asset = 'plugind_only'
 
-    def setUp(self):
-        self.bus_config = dict(username='guest', password='guest', host='localhost')
-
     def test_when_it_works(self):
         dependency = 'tig'
         assert_that(self._is_installed(dependency), equal_to(False),
@@ -61,11 +58,7 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         msg_accumulator = self.new_message_accumulator('plugin.install.#')
 
-        result = self.install_plugin(url='/data/git/repo', method='git')
-
-        build_success_exists = self.exists_in_asset('results/build_success')
-        package_success_exists = self.exists_in_asset('results/package_success')
-        install_success_exists = self.exists_in_asset('results/install_success')
+        result = self.install_plugin(url='file:///data/git/repo', method='git')
 
         assert_that(result, has_entries(uuid=uuid_()))
 
@@ -73,6 +66,11 @@ class TestPluginInstallation(BaseIntegrationTest):
                     'packaging', 'installing', 'completed']
         for status in statuses:
             self.assert_status_received(msg_accumulator, 'install', result['uuid'], status)
+
+        build_success_exists = self.exists_in_asset('results/build_success')
+        package_success_exists = self.exists_in_asset('results/package_success')
+        install_success_exists = self.exists_in_asset('results/install_success')
+
         assert_that(build_success_exists, 'build_success was not created or copied')
         assert_that(install_success_exists, 'install_success was not created')
         assert_that(package_success_exists, 'package_success was not created')
@@ -101,10 +99,12 @@ class TestPluginInstallation(BaseIntegrationTest):
                                                              name='foobar'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
 
+    @skip('to be enabled when async errors are implemented')
     def test_with_invalid_namespace(self):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/fail_namespace', method='git'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
 
+    @skip('to be enabled when async errors are implemented')
     def test_with_invalid_name(self):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/fail_name', method='git'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
@@ -119,18 +119,13 @@ class TestPluginInstallation(BaseIntegrationTest):
                                                              token='expired'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
 
-    def test_that_an_unknown_download_method_returns_501(self):
+    def test_that_an_unknown_download_method_returns_400(self):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/repo', method='svn'),
-                    raises(HTTPError).matching(has_property('response', has_property('status_code', 501))))
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 400))))
 
     def exists_in_asset(self, path):
         complete_path = self.path_in_asset(path)
         return os.path.exists(complete_path)
-
-    def new_message_accumulator(self, routing_key):
-        port = self.service_port(5672, service_name='rabbitmq')
-        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(port=port, **self.bus_config)
-        return BusClient(bus_url).accumulator(routing_key)
 
     def path_in_asset(self, path):
         return os.path.sep.join([self.assets_root, self.asset, path])
@@ -150,5 +145,5 @@ class TestPluginInstallation(BaseIntegrationTest):
                 has_entry('name', event_name),
                 has_entry('data', has_entries('status', status, 'uuid', uuid)))))
 
-        until.assert_(aux, tries=10, interval=0.25,
+        until.assert_(aux, tries=20, interval=0.5,
                       message='The bus message should have been received')

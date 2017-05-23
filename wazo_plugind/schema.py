@@ -31,10 +31,24 @@ class Length(validate.Length):
         }
 
 
+class OneOf(validate.OneOf):
+
+    constraint_id = 'enum'
+
+    def _format_error(self, value):
+        msg = super()._format_error(value)
+
+        return {
+            'constraint_id': self.constraint_id,
+            'constraint': {'choices': self.choices},
+            'message': msg,
+        }
+
+
 class PluginInstallSchema(Schema):
 
     url = fields.String(validate=Length(min=1), required=True)
-    method = fields.String(validate=Length(min=1), required=True)
+    method = fields.String(validate=OneOf(['git']), required=True)
 
     @pre_load
     def ensure_dict(self, data):

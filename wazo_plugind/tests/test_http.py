@@ -48,8 +48,8 @@ class TestPlugins(TestCase):
             {'url': {'constraint_id': 'length',
                      'constraint': {'min': 1, 'max': None},
                      'message': ANY}},
-            {'method': {'constraint_id': 'length',
-                        'constraint': {'min': 1, 'max': None},
+            {'method': {'constraint_id': 'enum',
+                        'constraint': {'choices': ['git']},
                         'message': ANY}},
             {'url': {'constraint_id': 'required',
                      'constraint': 'required',
@@ -82,7 +82,7 @@ class TestPlugins(TestCase):
             ))
 
     def test_on_succes_returns_result_from_service(self):
-        url, method = 'url', 'method'
+        url, method = 'url', 'git'
         body = {
             'url': url,
             'method': method,

@@ -1,3 +1,4 @@
+celery==3.1.23
 cherrypy==3.7.0
 flask==0.10.1
 flask-cors==3.0.2
