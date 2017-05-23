@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
-import sys
 import os
 from multiprocessing import Process
 from celery import Celery
@@ -28,15 +27,14 @@ class RootWorker(object):
 
     def __init__(self, app):
         logger.debug('New RootWorker created with app: %s', app)
+        self._worker_args = ['-d', '-n', 'plugind_root_worker@%h']
         self.app = app
 
     def run(self):
         logger.info('starting celery root worker: %s', self.app)
-        worker_args = sys.argv[1:] + ['-n', 'plugind_root_worker@%h']
         c_force_root = os.environ.get('C_FORCE_ROOT', 'false')
         os.environ['C_FORCE_ROOT'] = 'true'
-        self._process = Process(target=self.app.worker_main, kwargs=dict(argv=worker_args))
-        self._process.daemon = True
+        self._process = Process(target=self.app.worker_main, kwargs=dict(argv=self._worker_args))
         self._process.start()
         os.environ['C_FORCE_ROOT'] = c_force_root
 
@@ -70,12 +68,11 @@ class Worker(object):
 
     def __init__(self, app):
         self.app = app
+        self._worker_args = ['-d', '-n', 'plugind_worker@%h']
 
     def run(self):
         logger.info('starting celery worker')
-        worker_args = sys.argv[1:] + ['-n', 'plugind_worker@%h']
-        self._process = Process(target=self.app.worker_main, kwargs=dict(argv=worker_args))
-        self._process.daemon = True
+        self._process = Process(target=self.app.worker_main, kwargs=dict(argv=self._worker_args))
         self._process.start()
 
     @classmethod
