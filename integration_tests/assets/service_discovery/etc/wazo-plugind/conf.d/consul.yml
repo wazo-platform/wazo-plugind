@@ -1,3 +1,0 @@
-consul:
-  scheme: http
-  host: consul
