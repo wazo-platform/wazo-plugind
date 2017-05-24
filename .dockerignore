@@ -1,2 +1,4 @@
-.git
-integration_tests
+.tox/*
+.git/*
+integration_tests/*
+debian/*
