@@ -12,63 +12,11 @@ worker = None
 root_worker = None
 
 
-class RootWorker(object):
-
-    _bus_config_section = 'priviledged'
-    _worker_config = dict(
-        CELERY_ACCEPT_CONTENT=['json'],
-        CELERYD_HIJACK_ROOT_LOGGER=False,
-        CELERY_IGNORE_RESULT=False,
-        CELERY_TASK_SERIALIZER='json',
-        CELERY_RESULT_SERIALIZER='json',
-        CELERY_RESULT_BACKEND='amqp',
-        CELERY_IMPORTS=('wazo_plugind.root_tasks',),
-    )
+class _Worker(object):
 
     def __init__(self, app):
-        logger.debug('New RootWorker created with app: %s', app)
-        self._worker_args = ['-d', '-n', 'plugind_root_worker@%h']
+        self._worker_args = ['-d', '-n', self._worker_name]
         self.app = app
-
-    def run(self):
-        logger.info('starting celery root worker: %s', self.app)
-        c_force_root = os.environ.get('C_FORCE_ROOT', 'false')
-        os.environ['C_FORCE_ROOT'] = 'true'
-        self._process = Process(target=self.app.worker_main, kwargs=dict(argv=self._worker_args))
-        self._process.start()
-        os.environ['C_FORCE_ROOT'] = c_force_root
-
-    @classmethod
-    def from_config(cls, config):
-        bus_config = config['celery'][cls._bus_config_section]
-        broker_uri = config['celery']['broker']
-        app = Celery('plugind_tasks', broker=broker_uri)
-        app.conf.update(cls._worker_config)
-        app.conf.update(config)
-        app.conf.update(
-            CELERYD_LOG_LEVEL='debug' if config['debug'] else config['log_level'],
-            CELERY_DEFAULT_EXCHANGE=bus_config['exchange_name'],
-            CELERY_DEFAULT_QUEUE=bus_config['queue_name'],
-            CELERY_DEFAULT_ROUTING_KEY=bus_config['routing_key'],
-        )
-        return cls(app)
-
-
-class Worker(object):
-
-    _bus_config_section = 'unpriviledged'
-    _worker_config = dict(
-        CELERY_ACCEPT_CONTENT=['json', 'pickle'],
-        CELERYD_HIJACK_ROOT_LOGGER=False,
-        CELERY_IGNORE_RESULT=False,
-        CELERY_RESULT_SERIALIZER='pickle',
-        CELERY_RESULT_BACKEND='amqp',
-        CELERY_IMPORTS=('wazo_plugind.tasks',),
-    )
-
-    def __init__(self, app):
-        self.app = app
-        self._worker_args = ['-d', '-n', 'plugind_worker@%h']
 
     def run(self):
         logger.info('starting celery worker')
@@ -77,8 +25,8 @@ class Worker(object):
 
     @classmethod
     def from_config(cls, config):
-        broker_uri = config['celery']['broker']
         bus_config = config['celery'][cls._bus_config_section]
+        broker_uri = config['celery']['broker']
         app = Celery('plugind_tasks', broker=broker_uri)
         app.conf.update(cls._worker_config)
         app.conf.update(config)
@@ -87,5 +35,37 @@ class Worker(object):
             CELERY_DEFAULT_EXCHANGE=bus_config['exchange_name'],
             CELERY_DEFAULT_QUEUE=bus_config['queue_name'],
             CELERY_DEFAULT_ROUTING_KEY=bus_config['routing_key'],
+            CELERYD_HIJACK_ROOT_LOGGER=False,
         )
         return cls(app)
+
+
+class RootWorker(_Worker):
+
+    _bus_config_section = 'priviledged'
+    _worker_config = dict(
+        CELERY_ACCEPT_CONTENT=['json'],
+        CELERY_IGNORE_RESULT=False,
+        CELERY_TASK_SERIALIZER='json',
+        CELERY_RESULT_SERIALIZER='json',
+        CELERY_RESULT_BACKEND='amqp',
+        CELERY_IMPORTS=('wazo_plugind.root_tasks',),
+    )
+    _worker_name = 'plugind_root_worker@%h'
+
+    def run(self):
+        c_force_root = os.environ.get('C_FORCE_ROOT', 'false')
+        os.environ['C_FORCE_ROOT'] = 'true'
+        super().run()
+        os.environ['C_FORCE_ROOT'] = c_force_root
+
+
+class Worker(_Worker):
+
+    _bus_config_section = 'unpriviledged'
+    _worker_config = dict(
+        CELERY_ACCEPT_CONTENT=['json', 'pickle'],
+        CELERY_IGNORE_RESULT=True,
+        CELERY_IMPORTS=('wazo_plugind.tasks',),
+    )
+    _worker_name = 'plugind_worker@%h'
