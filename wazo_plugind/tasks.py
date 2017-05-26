@@ -19,14 +19,26 @@ _publisher = None
 
 
 @worker.app.task
-def uninstall_and_publish(ctx, package_name):
-    from .root_tasks import uninstall
-    publisher = get_publisher(ctx.config)
-    publisher.uninstall(ctx, 'removing')
-    result = uninstall.apply_async(args=(ctx.uuid, package_name))
-    while not result.ready():
-        time.sleep(0.1)
-    publisher.uninstall(ctx, 'completed')
+def uninstall_and_publish(ctx):
+    try:
+        step = 'initializing'
+        publisher = get_publisher(ctx.config)
+        remover = _PackageRemover(ctx.config)
+
+        steps = [
+            ('starting', lambda ctx: ctx),
+            ('removing', remover.remove),
+            ('completed', lambda ctx: ctx),
+        ]
+        for step, fn in steps:
+            publisher.uninstall(ctx, step)
+            ctx = fn(ctx)
+    except:
+        debug_enabled = ctx.config['debug']
+        ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
+        error_id = '{}_error'.format(step)
+        message = '{} Error'.format(step.capitalize())
+        publisher.uninstall_error(ctx, error_id, message)
 
 
 @worker.app.task
@@ -67,6 +79,21 @@ def get_publisher(config):
         publisher_thread.daemon = True
         publisher_thread.start()
     return _publisher
+
+
+class _PackageRemover(object):
+
+    def __init__(self, config):
+        self._config = config
+
+    def remove(self, ctx):
+        from .root_tasks import uninstall
+        result = uninstall.apply_async(args=(ctx.uuid, ctx.package_name))
+        while not result.ready():
+            time.sleep(0.1)
+        if result.result is not True:
+            raise Exception('Uninstallation failed')
+        return ctx
 
 
 class _PackageBuilder(object):
