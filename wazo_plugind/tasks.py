@@ -35,23 +35,29 @@ def package_and_install(ctx):
     try:
         builder = _PackageBuilder(ctx.config)
         publisher = get_publisher(ctx.config)
+
         publisher.install(ctx, step)
+
         step = 'downloading'
         publisher.install(ctx, step)
         ctx = builder.download(ctx)
+
         step = 'extracting'
         publisher.install(ctx, step)
         ctx = builder.extract(ctx)
+
         step = 'building'
         publisher.install(ctx, step)
         ctx = builder.build(ctx)
+
         step = 'packaging'
         publisher.install(ctx, step)
         ctx = builder.package(ctx)
-        ctx = builder.debianize(ctx)
+
         step = 'installing'
         publisher.install(ctx, step)
         ctx = builder.install(ctx)
+
         step = 'completed'
         publisher.install(ctx, step)
     except:
@@ -95,7 +101,7 @@ class _PackageBuilder(object):
         self._exec(ctx, cmd, cwd=ctx.extract_path)
         return ctx.with_fields(installer_path=installer_path, namespace=namespace, name=name)
 
-    def debianize(self, ctx):
+    def _debianize(self, ctx):
         ctx.log(logger.debug, 'debianizing %s/%s', ctx.namespace, ctx.name)
         ctx = self._debian_file_generator.generate(ctx)
         cmd = ['dpkg-deb', '--build', ctx.pkgdir]
@@ -138,7 +144,7 @@ class _PackageBuilder(object):
         plugin_data_path = os.path.join(ctx.extract_path, self._config['plugin_data_dir'])
         cmd = ['fakeroot', 'cp', '-R', plugin_data_path, installed_plugin_data_path]
         self._exec(ctx, cmd, cwd=ctx.extract_path)
-        return ctx.with_fields(pkgdir=pkgdir)
+        return self._debianize(ctx.with_fields(pkgdir=pkgdir))
 
     def _exec(self, ctx, *args, **kwargs):
         log_debug = ctx.get_logger(logger.debug)
