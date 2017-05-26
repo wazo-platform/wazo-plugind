@@ -31,21 +31,35 @@ def uninstall_and_publish(ctx, package_name):
 
 @worker.app.task
 def package_and_install(ctx):
-    builder = _PackageBuilder(ctx.config)
-    publisher = get_publisher(ctx.config)
-    publisher.install(ctx, 'starting')
-    publisher.install(ctx, 'downloading')
-    ctx = builder.download(ctx)
-    publisher.install(ctx, 'extracting')
-    ctx = builder.extract(ctx)
-    publisher.install(ctx, 'building')
-    ctx = builder.build(ctx)
-    publisher.install(ctx, 'packaging')
-    ctx = builder.package(ctx)
-    ctx = builder.debianize(ctx)
-    publisher.install(ctx, 'installing')
-    ctx = builder.install(ctx)
-    publisher.install(ctx, 'completed')
+    step = 'starting'
+    try:
+        builder = _PackageBuilder(ctx.config)
+        publisher = get_publisher(ctx.config)
+        publisher.install(ctx, step)
+        step = 'downloading'
+        publisher.install(ctx, step)
+        ctx = builder.download(ctx)
+        step = 'extracting'
+        publisher.install(ctx, step)
+        ctx = builder.extract(ctx)
+        step = 'building'
+        publisher.install(ctx, step)
+        ctx = builder.build(ctx)
+        step = 'packaging'
+        publisher.install(ctx, step)
+        ctx = builder.package(ctx)
+        ctx = builder.debianize(ctx)
+        step = 'installing'
+        publisher.install(ctx, step)
+        ctx = builder.install(ctx)
+        step = 'completed'
+        publisher.install(ctx, step)
+    except:
+        debug_enabled = ctx.config['debug']
+        ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
+        error_id = '{}_error'.format(step)
+        message = '{} Error'.format(step.capitalize())
+        publisher.install_error(ctx, error_id, message)
 
 
 def get_publisher(config):
