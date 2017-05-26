@@ -77,7 +77,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_when_uninstall_works(self):
-        self.install_plugin(url='/data/git/repo', method='git')
+        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
         msg_accumulator = self.new_message_accumulator('plugin.uninstall.#')
 
         result = self.uninstall_plugin(namespace='plugindtests', name='foobar')
