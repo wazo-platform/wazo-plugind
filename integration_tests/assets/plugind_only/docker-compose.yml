@@ -16,7 +16,6 @@ plugind:
   volumes:
     - "../../..:/usr/src/wazo-plugind"
     - "./git:/data/git"
-    - "./results:/tmp/results"
     - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
     - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"
     - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
