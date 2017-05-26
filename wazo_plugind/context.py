@@ -15,9 +15,9 @@ class Context(object):
         self.config = config
         self.with_fields(**kwargs)
 
-    def log(self, logger, msg, *args):
+    def log(self, logger, msg, *args, **kwargs):
         log_msg = '[{}] {}'.format(self.uuid, msg)
-        logger(log_msg, *args)
+        logger(log_msg, *args, **kwargs)
 
     def get_logger(self, logger):
         return partial(self.log, logger)
