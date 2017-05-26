@@ -7,7 +7,7 @@ WORKDIR /usr/src/wazo-plugind
 
 RUN true \
     && apt-get update \
-    && apt-get -yqq install gdebi-core \
+    && apt-get -yqq install gdebi-core apt-utils \
     && pip install pyparsing \
     && pip install appdirs \
     && pip install -r requirements.txt \
@@ -24,7 +24,8 @@ RUN true \
     && cp -r etc/* /etc \
     && mkdir -p /usr/lib/wazo-plugind \
     && cp -r templates /usr/lib/wazo-plugind \
-    && chown -R wazo-plugind:wazo-plugind /usr/lib/wazo-plugind
+    && chown -R wazo-plugind:wazo-plugind /usr/lib/wazo-plugind \
+    && apt-get -yqq autoremove
 
 EXPOSE 9503
 
