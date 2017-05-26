@@ -120,6 +120,8 @@ class _PackageBuilder(object):
         result = install.apply_async(args=(ctx.uuid, ctx.package_deb_file))
         while not result.ready():
             time.sleep(0.1)
+        if result.result is not True:
+            raise Exception('Installation failed')
         return ctx
 
     def package(self, ctx):
