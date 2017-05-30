@@ -126,7 +126,7 @@ class TestPluginInstallation(BaseIntegrationTest):
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 400))))
 
     def exists_in_container(self, path):
-        directory, filename = path.rsplit('/', 1)
+        directory, filename = os.path.split(path)
         output = self.docker_exec(['ls', directory])
         for current_filename in output.split('\n'):
             if current_filename == filename:
