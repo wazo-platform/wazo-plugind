@@ -33,7 +33,7 @@ def uninstall_and_publish(ctx):
         for step, fn in steps:
             publisher.uninstall(ctx, step)
             ctx = fn(ctx)
-    except:
+    except Exception:
         debug_enabled = ctx.config['debug']
         ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
         error_id = '{}_error'.format(step)
@@ -62,7 +62,7 @@ def package_and_install(ctx):
             publisher.install(ctx, step)
             ctx = fn(ctx)
 
-    except:
+    except Exception:
         debug_enabled = ctx.config['debug']
         ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
         error_id = '{}_error'.format(step)
