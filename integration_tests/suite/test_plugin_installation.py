@@ -14,7 +14,7 @@ from hamcrest import (
     has_entries,
     has_item,
     has_property,
-    not_,
+    is_,
 )
 from requests import HTTPError
 from unittest import skip
@@ -71,9 +71,9 @@ class TestPluginInstallation(BaseIntegrationTest):
         package_success_exists = self.exists_in_container('/tmp/results/package_success')
         install_success_exists = self.exists_in_container('/tmp/results/install_success')
 
-        assert_that(build_success_exists, 'build_success was not created or copied')
-        assert_that(install_success_exists, 'install_success was not created')
-        assert_that(package_success_exists, 'package_success was not created')
+        assert_that(build_success_exists, is_(True), 'build_success was not created or copied')
+        assert_that(install_success_exists, is_(True), 'install_success was not created')
+        assert_that(package_success_exists, is_(True), 'package_success was not created')
         assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_when_uninstall_works(self):
@@ -90,11 +90,9 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         build_success_exists = self.exists_in_container('/tmp/results/build_success')
         package_success_exists = self.exists_in_container('/tmp/results/package_success')
-        install_success_exists = self.exists_in_container('/tmp/results/install_success')
 
-        assert_that(not_(build_success_exists), 'build_success was not removed')
-        assert_that(not_(install_success_exists), 'install_success was not removed')
-        assert_that(not_(package_success_exists), 'package_success was not removed')
+        assert_that(build_success_exists, is_(False), 'build_success was not removed')
+        assert_that(package_success_exists, is_(False), 'package_success was not removed')
 
     def test_that_uninstalling_an_uninstalled_plugin_returns_404(self):
         assert_that(calling(self.uninstall_plugin).with_args(namespace='plugindtests',
