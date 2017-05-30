@@ -14,7 +14,7 @@ from hamcrest import (
     has_entries,
     has_item,
     has_property,
-    not_,
+    is_,
 )
 from requests import HTTPError
 from unittest import skip
@@ -67,32 +67,32 @@ class TestPluginInstallation(BaseIntegrationTest):
         for status in statuses:
             self.assert_status_received(msg_accumulator, 'install', result['uuid'], status)
 
-        build_success_exists = self.exists_in_asset('results/build_success')
-        package_success_exists = self.exists_in_asset('results/package_success')
-        install_success_exists = self.exists_in_asset('results/install_success')
+        build_success_exists = self.exists_in_container('/tmp/results/build_success')
+        package_success_exists = self.exists_in_container('/tmp/results/package_success')
+        install_success_exists = self.exists_in_container('/tmp/results/install_success')
 
-        assert_that(build_success_exists, 'build_success was not created or copied')
-        assert_that(install_success_exists, 'install_success was not created')
-        assert_that(package_success_exists, 'package_success was not created')
+        assert_that(build_success_exists, is_(True), 'build_success was not created or copied')
+        assert_that(install_success_exists, is_(True), 'install_success was not created')
+        assert_that(package_success_exists, is_(True), 'package_success was not created')
         assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_when_uninstall_works(self):
-        self.install_plugin(url='/data/git/repo', method='git')
+        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
         msg_accumulator = self.new_message_accumulator('plugin.uninstall.#')
 
         result = self.uninstall_plugin(namespace='plugindtests', name='foobar')
 
-        build_success_exists = self.exists_in_asset('results/build_success')
-        package_success_exists = self.exists_in_asset('results/package_success')
-        install_success_exists = self.exists_in_asset('results/install_success')
+        assert_that(result, has_entries(uuid=uuid_()))
 
         statuses = ['starting', 'removing', 'completed']
         for status in statuses:
             self.assert_status_received(msg_accumulator, 'uninstall', result['uuid'], status)
-        assert_that(result, has_entries(uuid=uuid_()))
-        assert_that(not_(build_success_exists), 'build_success was not removed')
-        assert_that(not_(install_success_exists), 'install_success was not removed')
-        assert_that(not_(package_success_exists), 'package_success was not removed')
+
+        build_success_exists = self.exists_in_container('/tmp/results/build_success')
+        package_success_exists = self.exists_in_container('/tmp/results/package_success')
+
+        assert_that(build_success_exists, is_(False), 'build_success was not removed')
+        assert_that(package_success_exists, is_(False), 'package_success was not removed')
 
     def test_that_uninstalling_an_uninstalled_plugin_returns_404(self):
         assert_that(calling(self.uninstall_plugin).with_args(namespace='plugindtests',
@@ -123,12 +123,13 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/repo', method='svn'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 400))))
 
-    def exists_in_asset(self, path):
-        complete_path = self.path_in_asset(path)
-        return os.path.exists(complete_path)
-
-    def path_in_asset(self, path):
-        return os.path.sep.join([self.assets_root, self.asset, path])
+    def exists_in_container(self, path):
+        directory, filename = os.path.split(path)
+        output = self.docker_exec(['ls', directory])
+        for current_filename in output.split('\n'):
+            if current_filename == filename:
+                return True
+        return False
 
     def _is_installed(self, search):
         installed_packages = self.docker_exec(['dpkg-query', '-W', '-f=${binary:Package}\n'])

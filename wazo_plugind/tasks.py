@@ -19,33 +19,55 @@ _publisher = None
 
 
 @worker.app.task
-def uninstall_and_publish(ctx, package_name):
-    from .root_tasks import uninstall
-    publisher = get_publisher(ctx.config)
-    publisher.uninstall(ctx, 'removing')
-    result = uninstall.apply_async(args=(ctx.uuid, package_name))
-    while not result.ready():
-        time.sleep(0.1)
-    publisher.uninstall(ctx, 'completed')
+def uninstall_and_publish(ctx):
+    try:
+        step = 'initializing'
+        publisher = get_publisher(ctx.config)
+        remover = _PackageRemover(ctx.config)
+
+        steps = [
+            ('starting', lambda ctx: ctx),
+            ('removing', remover.remove),
+            ('completed', lambda ctx: ctx),
+        ]
+        for step, fn in steps:
+            publisher.uninstall(ctx, step)
+            ctx = fn(ctx)
+    except Exception:
+        debug_enabled = ctx.config['debug']
+        ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
+        error_id = '{}_error'.format(step)
+        message = '{} Error'.format(step.capitalize())
+        publisher.uninstall_error(ctx, error_id, message)
 
 
 @worker.app.task
 def package_and_install(ctx):
-    builder = _PackageBuilder(ctx.config)
-    publisher = get_publisher(ctx.config)
-    publisher.install(ctx, 'starting')
-    publisher.install(ctx, 'downloading')
-    ctx = builder.download(ctx)
-    publisher.install(ctx, 'extracting')
-    ctx = builder.extract(ctx)
-    publisher.install(ctx, 'building')
-    ctx = builder.build(ctx)
-    publisher.install(ctx, 'packaging')
-    ctx = builder.package(ctx)
-    ctx = builder.debianize(ctx)
-    publisher.install(ctx, 'installing')
-    ctx = builder.install(ctx)
-    publisher.install(ctx, 'completed')
+    try:
+        step = 'initializing'
+        builder = _PackageBuilder(ctx.config)
+        publisher = get_publisher(ctx.config)
+
+        steps = [
+            ('starting', lambda ctx: ctx),
+            ('downloading', builder.download),
+            ('extracting', builder.extract),
+            ('building', builder.build),
+            ('packaging', builder.package),
+            ('installing', builder.install),
+            ('completed', lambda ctx: ctx),
+        ]
+
+        for step, fn in steps:
+            publisher.install(ctx, step)
+            ctx = fn(ctx)
+
+    except Exception:
+        debug_enabled = ctx.config['debug']
+        ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
+        error_id = '{}_error'.format(step)
+        message = '{} Error'.format(step.capitalize())
+        publisher.install_error(ctx, error_id, message)
 
 
 def get_publisher(config):
@@ -57,6 +79,21 @@ def get_publisher(config):
         publisher_thread.daemon = True
         publisher_thread.start()
     return _publisher
+
+
+class _PackageRemover(object):
+
+    def __init__(self, config):
+        self._config = config
+
+    def remove(self, ctx):
+        from .root_tasks import uninstall
+        result = uninstall.apply_async(args=(ctx.uuid, ctx.package_name))
+        while not result.ready():
+            time.sleep(0.1)
+        if result.result is not True:
+            raise Exception('Uninstallation failed')
+        return ctx
 
 
 class _PackageBuilder(object):
@@ -81,7 +118,7 @@ class _PackageBuilder(object):
         self._exec(ctx, cmd, cwd=ctx.extract_path)
         return ctx.with_fields(installer_path=installer_path, namespace=namespace, name=name)
 
-    def debianize(self, ctx):
+    def _debianize(self, ctx):
         ctx.log(logger.debug, 'debianizing %s/%s', ctx.namespace, ctx.name)
         ctx = self._debian_file_generator.generate(ctx)
         cmd = ['dpkg-deb', '--build', ctx.pkgdir]
@@ -110,6 +147,8 @@ class _PackageBuilder(object):
         result = install.apply_async(args=(ctx.uuid, ctx.package_deb_file))
         while not result.ready():
             time.sleep(0.1)
+        if result.result is not True:
+            raise Exception('Installation failed')
         return ctx
 
     def package(self, ctx):
@@ -124,7 +163,7 @@ class _PackageBuilder(object):
         plugin_data_path = os.path.join(ctx.extract_path, self._config['plugin_data_dir'])
         cmd = ['fakeroot', 'cp', '-R', plugin_data_path, installed_plugin_data_path]
         self._exec(ctx, cmd, cwd=ctx.extract_path)
-        return ctx.with_fields(pkgdir=pkgdir)
+        return self._debianize(ctx.with_fields(pkgdir=pkgdir))
 
     def _exec(self, ctx, *args, **kwargs):
         log_debug = ctx.get_logger(logger.debug)

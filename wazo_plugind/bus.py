@@ -19,16 +19,25 @@ class StatusPublisher(object):
         self._publisher = publisher
 
     def install(self, ctx, status):
-        ctx.log(logger.debug, 'publishing new install status: %s', status)
         return self._publish(PluginInstallProgressEvent, ctx, status)
 
+    def install_error(self, *args, **kwargs):
+        return self._publish_error(PluginInstallProgressEvent, *args, **kwargs)
+
     def uninstall(self, ctx, status):
-        ctx.log(logger.debug, 'publishing new uninstall status: %s', status)
         return self._publish(PluginUninstallProgressEvent, ctx, status)
 
-    def _publish(self, Event, ctx, status):
-        event = Event(ctx.uuid, status)
+    def uninstall_error(self, *args, **kwargs):
+        return self._publish_error(PluginUninstallProgressEvent, *args, **kwargs)
+
+    def _publish(self, Event, ctx, *args, **kwargs):
+        event = Event(ctx.uuid, *args, **kwargs)
+        ctx.log(logger.debug, 'publishing %s', event)
         self._publisher.publish(event)
+
+    def _publish_error(self, Event, ctx, error_id, message):
+        errors = {'error_id': error_id, 'message': message, 'resource': 'plugins', 'details': {}}
+        return self._publish(Event, ctx, 'error', errors=errors)
 
     def run(self):
         logger.info('status publisher starting')

@@ -14,11 +14,13 @@ _publisher = None
 def install(uuid_, deb):
     logger.debug('[%s] installing %s...', uuid_, deb)
     cmd = ['gdebi', '-n', deb]
-    exec_and_log(logger.debug, logger.error, cmd)
+    p = exec_and_log(logger.debug, logger.error, cmd)
+    return p.returncode == 0
 
 
 @root_worker.app.task
 def uninstall(uuid, package_name):
     logger.debug('[%s] uninstalling %s', uuid, package_name)
     cmd = ['apt-get', 'remove', '-y', package_name]
-    exec_and_log(logger.debug, logger.error, cmd)
+    p = exec_and_log(logger.debug, logger.error, cmd)
+    return p.returncode == 0

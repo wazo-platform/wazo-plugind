@@ -40,10 +40,10 @@ class PluginService(object):
     def delete(self, namespace, name):
         ctx = Context(self._config, namespace=namespace, name=name)
         ctx.log(logger.info, 'uninstalling %s/%s...', namespace, name)
-        self._status_publisher.uninstall(ctx, 'starting')
         plugin = self._plugin_db.get_plugin(namespace, name)
         if not plugin.is_installed():
             raise PluginNotFoundException(namespace, name)
         from .tasks import uninstall_and_publish
-        uninstall_and_publish.apply_async(args=(ctx, plugin.debian_package_name))
+        ctx = ctx.with_fields(package_name=plugin.debian_package_name)
+        uninstall_and_publish.apply_async(args=(ctx,))
         return ctx.uuid
