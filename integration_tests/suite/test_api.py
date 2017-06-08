@@ -34,7 +34,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         while True:
             messages = msg_accumulator.accumulate()
             for message in messages:
-                if message['data']['status'] == 'completed':
+                if message['data']['status'] in ['completed', 'error']:
                     return result
             time.sleep(0.25)
 
