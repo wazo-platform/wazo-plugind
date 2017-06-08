@@ -54,6 +54,7 @@ def package_and_install(ctx):
             ('extracting', builder.extract),
             ('building', builder.build),
             ('packaging', builder.package),
+            ('updating', builder.update),
             ('installing', builder.install),
             ('completed', lambda ctx: ctx),
         ]
@@ -149,6 +150,18 @@ class _PackageBuilder(object):
             time.sleep(0.1)
         if result.result is not True:
             raise Exception('Installation failed')
+        return ctx
+
+    def update(self, ctx):
+        if not ctx.metadata.get('debian_depends'):
+            return ctx
+
+        from .root_tasks import apt_get_update
+        result = apt_get_update.apply_async(args=(ctx.uuid,))
+        while not result.ready():
+            time.sleep(0.1)
+        if result.result is not True:
+            raise Exception('apt-get update failed')
         return ctx
 
     def package(self, ctx):
