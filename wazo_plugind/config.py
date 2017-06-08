@@ -6,7 +6,6 @@ import os
 
 from xivo.chain_map import ChainMap
 from xivo.config_helper import read_config_file_hierarchy
-from xivo.http_helpers import DEFAULT_CIPHERS
 from xivo.xivo_logging import get_log_level_by_name
 
 
@@ -54,7 +53,6 @@ _DEFAULT_CONFIG = dict(
             'port': _DEFAULT_HTTPS_PORT,
             'certificate': _DEFAULT_CERT_FILE,
             'private_key': '/usr/share/xivo-certs/server.key',
-            'ciphers': DEFAULT_CIPHERS,
         },
         'cors': {'enabled': True,
                  'allow_headers': ['Content-Type', 'X-Auth-Token']}

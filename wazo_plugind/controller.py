@@ -32,13 +32,12 @@ class Controller(object):
         self._consul_config = config['consul']
         self._service_discovery_config = config['service_discovery']
         self._bus_config = config['bus']
-        ssl_ciphers = config['rest_api']['https']['ciphers']
         bind_addr = (self._listen_addr, self._listen_port)
         self._publisher = bus.StatusPublisher.from_config(config)
         celery.worker = celery.Worker.from_config(config)
         plugin_service = service.PluginService(config, self._publisher)
         flask_app = http.new_app(config, plugin_service=plugin_service)
-        wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(ssl_cert_file, ssl_key_file, ssl_ciphers)
+        wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(ssl_cert_file, ssl_key_file)
         wsgi_app = wsgi.WSGIPathInfoDispatcher({'/': flask_app})
         self._server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         for route in http_helpers.list_routes(flask_app):
