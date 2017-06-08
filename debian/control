@@ -16,7 +16,7 @@ Depends:
  gdebi-core,
  git,
  python3-celery,
- python3-cherrypy3,
+ python3-cheroot,
  python3-consul,
  python3-flask,
  python3-flask-cors,
