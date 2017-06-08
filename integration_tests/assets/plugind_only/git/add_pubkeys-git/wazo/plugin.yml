@@ -1,0 +1,5 @@
+namespace: plugindtests
+name: wazo-pubkeys
+version: 0.0.1
+debian_depends:
+  - xivo-dev-ssh-pubkeys
