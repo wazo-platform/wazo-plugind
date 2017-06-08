@@ -1,0 +1,22 @@
+#!/bin/sh
+# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0+
+
+source_dir="etc/apt/sources.list.d"
+
+case "$1" in
+    build)
+        ;;
+    package)
+        mkdir -p "${pkgdir}/${source_dir}/"
+        cp wazo.list "${pkgdir}/${source_dir}/"
+        ;;
+    install)
+        ;;
+    uninstall)
+        ;;
+    *)
+        echo "$0 called with unknown argument '$1'" >&2
+        exit 1
+        ;;
+esac
