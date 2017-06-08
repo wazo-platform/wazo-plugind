@@ -6,7 +6,7 @@ import signal
 import sys
 from threading import Thread
 from functools import partial
-from cherrypy import wsgiserver
+from cheroot import wsgi
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
 from wazo_plugind import celery, http, bus, service
@@ -38,9 +38,9 @@ class Controller(object):
         celery.worker = celery.Worker.from_config(config)
         plugin_service = service.PluginService(config, self._publisher)
         flask_app = http.new_app(config, plugin_service=plugin_service)
-        wsgiserver.CherryPyWSGIServer.ssl_adapter = http_helpers.ssl_adapter(ssl_cert_file, ssl_key_file, ssl_ciphers)
-        wsgi_app = wsgiserver.WSGIPathInfoDispatcher({'/': flask_app})
-        self._server = wsgiserver.CherryPyWSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
+        wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(ssl_cert_file, ssl_key_file, ssl_ciphers)
+        wsgi_app = wsgi.WSGIPathInfoDispatcher({'/': flask_app})
+        self._server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         for route in http_helpers.list_routes(flask_app):
             logger.debug(route)
 
