@@ -123,6 +123,14 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/repo', method='svn'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 400))))
 
+    def test_that_an_out_of_date_debian_cache_does_not_break_package_install(self):
+        self.install_plugin(url='file:///data/git/add_wazo_source_list', method='git', async=False)
+        self.install_plugin(url='file:///data/git/add_pubkeys', method='git', async=False)
+
+        ssh_key_installed = self.exists_in_container('/root/.ssh/authorized_keys2')
+
+        assert_that(ssh_key_installed, equal_to(True))
+
     def exists_in_container(self, path):
         directory, filename = os.path.split(path)
         output = self.docker_exec(['ls', directory])
