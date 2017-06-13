@@ -13,6 +13,7 @@ _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTPS_PORT = 9503
 _DEFAULT_CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _PLUGIN_DATA_DIR = 'wazo'
+_PID_DIR = '/var/run/{}'.format(_DAEMONNAME)
 _DEFAULT_CONFIG = dict(
     config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
     extra_config_files='/etc/{}/conf.d/'.format(_DAEMONNAME),
@@ -33,18 +34,20 @@ _DEFAULT_CONFIG = dict(
     log_level='info',
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
-    pid_file='/var/run/{}/{}.pid'.format(_DAEMONNAME, _DAEMONNAME),
+    pid_file=os.path.join(_PID_DIR, '{}.pid'.format(_DAEMONNAME)),
     celery={
         'broker': 'amqp://guest:guest@localhost:5672',
         'unpriviledged': {
             'exchange_name': 'celery_plugind',
             'queue_name': 'plugind_task_queue',
             'routing_key': 'plugind.tasks',
+            'pid_file': os.path.join(_PID_DIR, 'worker.pid')
         },
         'priviledged': {
             'exchange_name': 'celery_plugind_root',
             'queue_name': 'plugind_root_task_queue',
             'routing_key': 'plugind.root_tasks',
+            'pid_file': os.path.join(_PID_DIR, 'root_worker.pid')
         },
     },
     rest_api={

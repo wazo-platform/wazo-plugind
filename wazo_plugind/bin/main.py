@@ -35,5 +35,5 @@ def main(args):
     with pidfile_context(conf['pid_file'], FOREGROUND):
         logger.debug('starting')
         controller.run()
-        logger.debug('%s', conf)
+        logger.debug('controller stopped')
     logger.debug('done')

@@ -14,8 +14,8 @@ root_worker = None
 
 class _Worker(object):
 
-    def __init__(self, app):
-        self._worker_args = ['-d', '-n', self._worker_name]
+    def __init__(self, app, worker_args):
+        self._worker_args = ['-d', '-n', self._worker_name] + worker_args
         self.app = app
 
     def run(self):
@@ -27,6 +27,7 @@ class _Worker(object):
     def from_config(cls, config):
         bus_config = config['celery'][cls._bus_config_section]
         broker_uri = config['celery']['broker']
+        pidfile = config['celery'][cls._bus_config_section]['pid_file']
         app = Celery('plugind_tasks', broker=broker_uri)
         app.conf.update(cls._worker_config)
         app.conf.update(config)
@@ -37,7 +38,7 @@ class _Worker(object):
             CELERY_DEFAULT_ROUTING_KEY=bus_config['routing_key'],
             CELERYD_HIJACK_ROOT_LOGGER=False,
         )
-        return cls(app)
+        return cls(app, ['--pidfile', pidfile])
 
 
 class RootWorker(_Worker):
