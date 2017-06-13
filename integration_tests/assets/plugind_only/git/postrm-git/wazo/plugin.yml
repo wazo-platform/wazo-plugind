@@ -1,0 +1,4 @@
+namespace: plugindtests
+name: postrm
+version: 0.0.1
+plugin_format_version: 1

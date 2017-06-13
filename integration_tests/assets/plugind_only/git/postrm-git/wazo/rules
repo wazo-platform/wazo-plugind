@@ -1,0 +1,34 @@
+#!/bin/sh
+# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0+
+
+RESULTS="/tmp/results"
+POSTINST_SENTINEL="${RESULTS}/postinst_success"
+POSTRM_SENTINEL="${RESULTS}/postrm_success"
+
+case "$1" in
+    build)
+        echo "Building..."
+        ;;
+    package)
+        echo "Packaging..."
+        ;;
+    install)
+        echo "Installing..."
+        mkdir -p "${RESULTS}"
+        echo '1' > "${POSTINST_SENTINEL}"
+        ;;
+    uninstall)
+        echo "Removing..."
+        ;;
+    postrm)
+        echo "removing ${POSTINST_SENTINEL}"
+        rm -f "${POSTINST_SENTINEL}"
+        echo "Creating ${POSTRM_SENTINEL}"
+        echo '1' > "${POSTRM_SENTINEL}"
+        ;;
+    *)
+        echo "$0 called with unknown argument '$1'" >&2
+        exit 1
+        ;;
+esac
