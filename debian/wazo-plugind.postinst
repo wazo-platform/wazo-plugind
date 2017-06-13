@@ -9,6 +9,7 @@ GROUP=$USER
 HOMEDIR="/var/lib/${DAEMONNAME}"
 DOWNLOAD_DIR="${HOMEDIR}/downloads"
 DATA_DIR="/usr/lib/${DAEMONNAME}"
+BACKUP_RULES_DIR="${HOMEDIR}/rules"
 
 case "$1" in
     configure)
@@ -28,6 +29,8 @@ case "$1" in
 
         mkdir -p "${DOWNLOAD_DIR}"
         chmod 755 "${DOWNLOAD_DIR}"
+        mkdir -p "${BACKUP_RULES_DIR}"
+        chmod 755 "${BACKUP_RULES_DIR}"
 
         if dpkg --compare-versions "$2" lt '17.08'; then
             rm -rf "${HOMEDIR}/plugins"
@@ -35,6 +38,7 @@ case "$1" in
 
         chown -R "$USER:$GROUP" "$HOMEDIR"
         chown -R "$USER:$GROUP" "$DATA_DIR"
+        chown -R "$USER:$GROUP" "${BACKUP_RULES_DIR}"
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
