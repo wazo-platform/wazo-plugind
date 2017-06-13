@@ -37,15 +37,17 @@ class PackageDB(object):
 class Generator(object):
 
     _debian_dir = 'DEBIAN'
-    _generated_files = ['control', 'postinst', 'prerm']
-    _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755}
+    _generated_files = ['control', 'postinst', 'prerm', 'postrm']
+    _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755, 'postrm': 0o755}
 
-    def __init__(self, jinja_env=None, template_files=None, section=None, metadata_dir=None, rules_path=None):
+    def __init__(self, jinja_env=None, template_files=None, section=None,
+                 metadata_dir=None, rules_path=None, backup_rules_dir=None):
         self._env = jinja_env
         self._template_files = template_files
         self._section = section
         self._metadata_dir = metadata_dir
         self._rules_path = rules_path
+        self._backup_rules_dir = backup_rules_dir
 
     def generate(self, ctx):
         ctx = self._make_template_ctx(ctx)
@@ -57,6 +59,7 @@ class Generator(object):
     def _make_template_ctx(self, ctx):
         template_context = dict(ctx.metadata,
                                 rules_path=self._generate_rules_path(ctx),
+                                backup_rules_path=self._generate_backup_rules_path(ctx),
                                 debian_package_section=self._section)
         return ctx.with_fields(template_context=template_context)
 
@@ -80,14 +83,23 @@ class Generator(object):
     def _generate_rules_path(self, ctx):
         return os.path.join(self._metadata_dir, ctx.namespace, ctx.name, self._rules_path)
 
+    def _generate_backup_rules_path(self, ctx):
+        filename = 'rules.{}.{}'.format(ctx.name, ctx.namespace)
+        return os.path.join(self._backup_rules_dir, filename)
+
+    def _generate_metadata_path(self, ctx):
+        return os.path.join(self._metadata_dir, ctx.namespace, ctx.name, self._metadata_path)
+
     @classmethod
     def from_config(cls, config):
         loader = jinja2.FileSystemLoader(config['template_dir'])
         env = jinja2.Environment(loader=loader)
         template_files = {'control': config['control_template'],
                           'postinst': config['postinst_template'],
+                          'postrm': config['postrm_template'],
                           'prerm': config['prerm_template']}
         debian_section = config['debian_package_section']
         metadata_dir = config['metadata_dir']
         rules_path = config['default_install_filename']
-        return cls(env, template_files, debian_section, metadata_dir, rules_path)
+        backup_rules_dir = config['backup_rules_dir']
+        return cls(env, template_files, debian_section, metadata_dir, rules_path, backup_rules_dir)

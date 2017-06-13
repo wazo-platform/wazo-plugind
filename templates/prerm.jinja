@@ -3,9 +3,11 @@
 set -e
 
 RULEFILE={{ rules_path }}
+BACKUP_RULES_FILE={{ backup_rules_path }}
 
 case "$1" in
     remove)
+        cp "${RULEFILE}" "${BACKUP_RULES_FILE}"
         "${RULEFILE}" uninstall
     ;;
 
