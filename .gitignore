@@ -10,3 +10,4 @@ pylint.txt
 integration_tests/assets/*/results/*
 integration_tests/assets/*/git/*
 !integration_tests/assets/*/git/*-git
+*.pyc
