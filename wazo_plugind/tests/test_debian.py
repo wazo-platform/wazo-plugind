@@ -78,13 +78,15 @@ class TestDebianGenerator(TestCase):
             metadata_dir='/usr/lib/wazo-plugind',
             rules_path='wazo/rules',
             section=s.section,
+            backup_rules_dir='/var/lib/wazo-plugind/rules',
         )
 
         ctx = generator._make_template_ctx(ctx)
 
         expected = {'foo': 'bar',
                     'rules_path': '/usr/lib/wazo-plugind/foobar/foo/wazo/rules',
-                    'debian_package_section': s.section}
+                    'debian_package_section': s.section,
+                    'backup_rules_path': '/var/lib/wazo-plugind/rules/rules.foo.foobar'}
         assert_that(ctx.template_context, equal_to(expected))
 
     def test_make_debian_dir(self):

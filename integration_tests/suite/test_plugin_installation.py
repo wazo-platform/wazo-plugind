@@ -76,6 +76,17 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(package_success_exists, is_(True), 'package_success was not created')
         assert_that(self._is_installed(dependency), equal_to(True))
 
+    def test_with_a_postrm(self):
+        self.install_plugin(url='file:///data/git/postrm', method='git', async=False)
+
+        self.uninstall_plugin(namespace='plugindtests', name='postrm', async=False)
+
+        postinst_success_exists = self.exists_in_container('/tmp/results/postinst_success')
+        postrm_success_exists = self.exists_in_container('/tmp/results/postrm_success')
+
+        assert_that(postinst_success_exists, equal_to(False))
+        assert_that(postrm_success_exists, equal_to(True))
+
     def test_when_uninstall_works(self):
         self.install_plugin(url='file:///data/git/repo', method='git', async=False)
         msg_accumulator = self.new_message_accumulator('plugin.uninstall.#')

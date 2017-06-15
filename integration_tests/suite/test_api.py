@@ -43,8 +43,19 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return client.plugins.list()
 
     def uninstall_plugin(self, namespace, name, **kwargs):
+        async = kwargs.pop('async', True)
         client = self.get_client(*kwargs)
-        return client.plugins.uninstall(namespace, name)
+        result = client.plugins.uninstall(namespace, name)
+        if async:
+            return result
+
+        msg_accumulator = self.new_message_accumulator('plugin.uninstall.{}.#'.format(result['uuid']))
+        while True:
+            messages = msg_accumulator.accumulate()
+            for message in messages:
+                if message['data']['status'] in ['completed', 'error']:
+                    return result
+            time.sleep(0.25)
 
     def new_message_accumulator(self, routing_key):
         port = self.service_port(5672, service_name='rabbitmq')
