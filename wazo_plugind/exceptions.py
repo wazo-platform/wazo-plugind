@@ -57,3 +57,11 @@ class PluginNotFoundException(APIException):
                          error_id='plugin_not_found',
                          resource='plugins',
                          details={'name': name, 'namespace': namespace})
+
+
+class PluginAlreadyInstalled(Exception):
+
+    _fmt = '{}/{} is already installed'
+
+    def __init__(self, namespace, name):
+        super().__init__(self._fmt.format(namespace, name))
