@@ -63,7 +63,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(result, has_entries(uuid=uuid_()))
 
         statuses = ['starting', 'downloading', 'extracting', 'building',
-                    'packaging', 'installing', 'completed']
+                    'packaging', 'updating', 'installing', 'completed']
         for status in statuses:
             self.assert_status_received(msg_accumulator, 'install', result['uuid'], status)
 
@@ -154,5 +154,5 @@ class TestPluginInstallation(BaseIntegrationTest):
                 has_entry('name', event_name),
                 has_entry('data', has_entries('status', status, 'uuid', uuid)))))
 
-        until.assert_(aux, tries=20, interval=0.5,
+        until.assert_(aux, tries=120, interval=0.5,
                       message='The bus message should have been received')
