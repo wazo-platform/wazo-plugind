@@ -87,6 +87,17 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(postinst_success_exists, equal_to(False))
         assert_that(postrm_success_exists, equal_to(True))
 
+    def test_that_installing_twice_completes_with_reinstalling(self):
+        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
+
+        msg_accumulator = self.new_message_accumulator('plugin.install.#')
+        result = self.install_plugin(url='file:///data/git/repo', method='git')
+
+        assert_that(result, has_entries(uuid=uuid_()))
+        statuses = ['starting', 'downloading', 'extracting', 'completed']
+        for status in statuses:
+            self.assert_status_received(msg_accumulator, 'install', result['uuid'], status, exclusive=True)
+
     def test_when_uninstall_works(self):
         self.install_plugin(url='file:///data/git/repo', method='git', async=False)
         msg_accumulator = self.new_message_accumulator('plugin.uninstall.#')
@@ -157,13 +168,30 @@ class TestPluginInstallation(BaseIntegrationTest):
                 return True
         return False
 
-    def assert_status_received(self, msg_accumulator, operation, uuid, status):
+    def assert_status_received(self, msg_accumulator, operation, uuid, status, exclusive=False):
         event_name = 'plugin_{}_progress'.format(operation)
 
-        def aux():
+        def match():
             assert_that(msg_accumulator.accumulate(), has_item(all_of(
                 has_entry('name', event_name),
                 has_entry('data', has_entries('status', status, 'uuid', uuid)))))
 
+        def exclusive_match():
+            while True:
+                first = msg_accumulator.pop()
+
+                # skip unrelated messages
+                if first.get('data', {}).get('uuid') != uuid:
+                    continue
+                if first.get('name') != event_name:
+                    continue
+
+                if first['data']['status'] == status:
+                    return
+
+                msg_accumulator.push_back(first)
+                self.fail('{} is not at the top of the accumulator, received {}'.format(status, first))
+
+        aux = exclusive_match if exclusive else match
         until.assert_(aux, tries=120, interval=0.5,
-                      message='The bus message should have been received')
+                      message='The bus message should have been received: {}'.format(status))
