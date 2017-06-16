@@ -38,7 +38,7 @@ class TestPluginList(BaseIntegrationTest):
         assert_that(response['total'], equal_to(0))
         assert_that(response['items'], empty())
 
-        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
 
         result = self.list_plugins()
 
@@ -75,9 +75,9 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_with_a_postrm(self):
-        self.install_plugin(url='file:///data/git/postrm', method='git', async=False)
+        self.install_plugin(url='file:///data/git/postrm', method='git', _async=False)
 
-        self.uninstall_plugin(namespace='plugindtests', name='postrm', async=False)
+        self.uninstall_plugin(namespace='plugindtests', name='postrm', _async=False)
 
         postinst_success_exists = self.exists_in_container('/tmp/results/postinst_success')
         postrm_success_exists = self.exists_in_container('/tmp/results/postrm_success')
@@ -86,7 +86,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(postrm_success_exists, equal_to(True))
 
     def test_that_installing_twice_completes_with_reinstalling(self):
-        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
 
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 
@@ -96,7 +96,7 @@ class TestPluginInstallation(BaseIntegrationTest):
             self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status, exclusive=True)
 
     def test_when_uninstall_works(self):
-        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
 
         result = self.uninstall_plugin(namespace='plugindtests', name='foobar')
 
@@ -142,8 +142,8 @@ class TestPluginInstallation(BaseIntegrationTest):
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 400))))
 
     def test_that_an_out_of_date_debian_cache_does_not_break_package_install(self):
-        self.install_plugin(url='file:///data/git/add_wazo_source_list', method='git', async=False)
-        self.install_plugin(url='file:///data/git/add_pubkeys', method='git', async=False)
+        self.install_plugin(url='file:///data/git/add_wazo_source_list', method='git', _async=False)
+        self.install_plugin(url='file:///data/git/add_pubkeys', method='git', _async=False)
 
         ssh_key_installed = self.exists_in_container('/root/.ssh/authorized_keys2')
 

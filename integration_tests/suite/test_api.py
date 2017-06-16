@@ -27,10 +27,10 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return Client('localhost', port=port, token=token, verify_certificate=False, timeout=20)
 
     def install_plugin(self, url, method, **kwargs):
-        async = kwargs.pop('async', True)
+        is_async = kwargs.pop('_async', True)
         client = self.get_client(**kwargs)
         result = client.plugins.install(url, method)
-        if async:
+        if is_async:
             return result
 
         while True:
@@ -47,10 +47,10 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return client.plugins.list()
 
     def uninstall_plugin(self, namespace, name, **kwargs):
-        async = kwargs.pop('async', True)
+        is_async = kwargs.pop('_async', True)
         client = self.get_client(*kwargs)
         result = client.plugins.uninstall(namespace, name)
-        if async:
+        if is_async:
             return result
 
         while True:
