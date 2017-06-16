@@ -9,6 +9,7 @@ from xivo.config_helper import read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
 
+_MAX_PLUGIN_FORMAT_VERSION = 1
 _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTPS_PORT = 9503
 _DEFAULT_CERT_FILE = '/usr/share/xivo-certs/server.crt'
