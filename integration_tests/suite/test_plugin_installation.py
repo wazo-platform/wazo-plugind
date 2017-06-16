@@ -114,7 +114,7 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     def test_that_uninstalling_an_uninstalled_plugin_returns_404(self):
         assert_that(calling(self.uninstall_plugin).with_args(namespace='plugindtests',
-                                                             name='foobar'),
+                                                             name='uninstalled'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
 
     @skip('to be enabled when async errors are implemented')
