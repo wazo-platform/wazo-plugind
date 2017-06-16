@@ -16,6 +16,9 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     service = 'plugind'
     bus_config = dict(username='guest', password='guest', host='localhost')
 
+    def setUp(self):
+        self.msg_accumulator = self.new_message_accumulator('plugin.#')
+
     def tearDown(self):
         self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
 
@@ -30,10 +33,11 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         if async:
             return result
 
-        msg_accumulator = self.new_message_accumulator('plugin.install.{}.#'.format(result['uuid']))
         while True:
-            messages = msg_accumulator.accumulate()
+            messages = self.msg_accumulator.accumulate()
             for message in messages:
+                if message['data']['uuid'] != result['uuid']:
+                    continue
                 if message['data']['status'] in ['completed', 'error']:
                     return result
             time.sleep(0.25)
@@ -49,10 +53,11 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         if async:
             return result
 
-        msg_accumulator = self.new_message_accumulator('plugin.uninstall.{}.#'.format(result['uuid']))
         while True:
-            messages = msg_accumulator.accumulate()
+            messages = self.msg_accumulator.accumulate()
             for message in messages:
+                if message['data']['uuid'] != result['uuid']:
+                    continue
                 if message['data']['status'] in ['completed', 'error']:
                     return result
             time.sleep(0.25)

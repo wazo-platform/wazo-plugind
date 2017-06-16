@@ -56,8 +56,6 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(self._is_installed(dependency), equal_to(False),
                     'Test precondition, {} should not be installed'.format(dependency))
 
-        msg_accumulator = self.new_message_accumulator('plugin.install.#')
-
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 
         assert_that(result, has_entries(uuid=uuid_()))
@@ -65,7 +63,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         statuses = ['starting', 'downloading', 'extracting', 'building',
                     'packaging', 'updating', 'installing', 'completed']
         for status in statuses:
-            self.assert_status_received(msg_accumulator, 'install', result['uuid'], status)
+            self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status)
 
         build_success_exists = self.exists_in_container('/tmp/results/build_success')
         package_success_exists = self.exists_in_container('/tmp/results/package_success')
@@ -90,17 +88,15 @@ class TestPluginInstallation(BaseIntegrationTest):
     def test_that_installing_twice_completes_with_reinstalling(self):
         self.install_plugin(url='file:///data/git/repo', method='git', async=False)
 
-        msg_accumulator = self.new_message_accumulator('plugin.install.#')
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 
         assert_that(result, has_entries(uuid=uuid_()))
         statuses = ['starting', 'downloading', 'extracting', 'completed']
         for status in statuses:
-            self.assert_status_received(msg_accumulator, 'install', result['uuid'], status, exclusive=True)
+            self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status, exclusive=True)
 
     def test_when_uninstall_works(self):
         self.install_plugin(url='file:///data/git/repo', method='git', async=False)
-        msg_accumulator = self.new_message_accumulator('plugin.uninstall.#')
 
         result = self.uninstall_plugin(namespace='plugindtests', name='foobar')
 
@@ -108,7 +104,7 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         statuses = ['starting', 'removing', 'completed']
         for status in statuses:
-            self.assert_status_received(msg_accumulator, 'uninstall', result['uuid'], status)
+            self.assert_status_received(self.msg_accumulator, 'uninstall', result['uuid'], status)
 
         build_success_exists = self.exists_in_container('/tmp/results/build_success')
         package_success_exists = self.exists_in_container('/tmp/results/package_success')
