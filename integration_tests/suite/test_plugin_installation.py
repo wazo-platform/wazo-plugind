@@ -86,9 +86,9 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(postrm_success_exists, equal_to(True))
 
     def test_that_installing_twice_completes_with_reinstalling(self):
-        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
+        self.install_plugin(url='file:///data/git/repo2', method='git', _async=False)
 
-        result = self.install_plugin(url='file:///data/git/repo', method='git')
+        result = self.install_plugin(url='file:///data/git/repo2', method='git')
 
         assert_that(result, has_entries(uuid=uuid_()))
         statuses = ['starting', 'downloading', 'extracting', 'completed']
