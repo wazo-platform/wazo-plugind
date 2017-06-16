@@ -112,6 +112,14 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(build_success_exists, is_(False), 'build_success was not removed')
         assert_that(package_success_exists, is_(False), 'package_success was not removed')
 
+    def test_when_with_an_unknown_plugin_format_version(self):
+        result = self.install_plugin(url='file:///data/git/futureversion', method='git')
+
+        assert_that(result, has_entries(uuid=uuid_()))
+        statuses = ['starting', 'error']
+        for status in statuses:
+            self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status)
+
     def test_that_uninstalling_an_uninstalled_plugin_returns_404(self):
         assert_that(calling(self.uninstall_plugin).with_args(namespace='plugindtests',
                                                              name='uninstalled'),
