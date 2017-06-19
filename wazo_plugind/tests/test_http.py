@@ -93,7 +93,7 @@ class TestPlugins(TestCase):
 
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
-        self.plugin_service.create.assert_called_once_with(url, method)
+        self.plugin_service.create.assert_called_once_with(url, method, branch='master')
 
     def post(self, body):
         result = self.app.post('/0.1/plugins',

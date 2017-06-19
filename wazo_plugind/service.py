@@ -27,9 +27,9 @@ class PluginService(object):
     def count(self):
         return self._plugin_db.count()
 
-    def create(self, url, method):
+    def create(self, url, method, **kwargs):
         from .tasks import package_and_install
-        ctx = Context(self._config, url=url, method=method)
+        ctx = Context(self._config, url=url, method=method, install_args=kwargs)
         ctx.log(logger.info, 'installing %s...', url)
         package_and_install.apply_async(args=(ctx,))
         return ctx.uuid

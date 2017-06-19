@@ -15,15 +15,17 @@ class _GitDownloader(object):
     def __init__(self, config):
         self._download_dir = config['download_dir']
 
-    def download(self, url):
+    def download(self, ctx):
+        url, branch = ctx.url, ctx.install_args['branch']
         filename = os.path.join(self._download_dir, str(uuid.uuid4()))
-        cmd = ['git', 'clone', '--depth', '1', url, filename]
+
+        cmd = ['git', 'clone', '--branch', branch, '--depth', '1', url, filename]
 
         proc = exec_and_log(logger.debug, logger.error, cmd)
         if proc.returncode:
             raise Exception('Download failed {}'.format(url))
 
-        return filename
+        return ctx.with_fields(download_path=filename)
 
 
 class _UndefinedDownloader(object):
@@ -45,5 +47,4 @@ class Downloader(object):
 
     def download(self, ctx):
         impl = self._downloaders.get(ctx.method, self._undefined_downloader)
-        download_path = impl.download(ctx.url)
-        return ctx.with_fields(download_path=download_path)
+        return impl.download(ctx)
