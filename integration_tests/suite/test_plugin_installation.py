@@ -91,7 +91,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         result = self.install_plugin(url='file:///data/git/repo2', method='git')
 
         assert_that(result, has_entries(uuid=uuid_()))
-        statuses = ['starting', 'downloading', 'extracting', 'completed']
+        statuses = ['starting', 'downloading', 'extracting', 'validating', 'completed']
         for status in statuses:
             self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status, exclusive=True)
 
