@@ -112,6 +112,13 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(build_success_exists, is_(False), 'build_success was not removed')
         assert_that(package_success_exists, is_(False), 'package_success was not removed')
 
+    def test_that_plugin_build_directory_is_removed_after_an_install(self):
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
+
+        directory_is_empty = self.directory_is_empty_in_container('/var/lib/wazo-plugind/tmp')
+
+        assert_that(directory_is_empty, is_(True))
+
     def test_when_with_an_unknown_plugin_format_version(self):
         result = self.install_plugin(url='file:///data/git/futureversion', method='git')
 
@@ -156,6 +163,14 @@ class TestPluginInstallation(BaseIntegrationTest):
         ssh_key_installed = self.exists_in_container('/root/.ssh/authorized_keys2')
 
         assert_that(ssh_key_installed, equal_to(True))
+
+    def directory_is_empty_in_container(self, path):
+        output = self.docker_exec(['ls', path])
+        for current_filename in output.split('\n'):
+            if not current_filename:
+                continue
+            return False
+        return True
 
     def exists_in_container(self, path):
         directory, filename = os.path.split(path)
