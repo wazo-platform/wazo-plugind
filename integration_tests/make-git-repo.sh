@@ -14,3 +14,12 @@ for dir in $(find . -name '*-git'); do
     git commit --no-gpg-sign -m 'initial commit'
     popd
 done
+
+pushd "assets/plugind_only/git/repo"
+git checkout -b "v2"
+sed -i 's/package_success/package_success_2/' wazo/rules
+sed -i 's/0.0.1/0.0.2/' wazo/plugin.yml
+sed -i '/debian_depends/,/tig/d' wazo/plugin.yml
+git add -u
+git commit --no-gpg-sign -m 'second commit'
+popd
