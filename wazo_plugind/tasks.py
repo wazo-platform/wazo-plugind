@@ -10,12 +10,20 @@ import time
 from threading import Thread
 from .celery import worker
 from . import bus, db, debian, download
-from .exceptions import InvalidNamespaceException, InvalidNameException, PluginAlreadyInstalled
+from .config import _MAX_PLUGIN_FORMAT_VERSION
+from .exceptions import (
+    InvalidNamespaceException,
+    InvalidNameException,
+    InvalidPluginFormatVersion,
+    PluginAlreadyInstalled,
+)
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
 
 _publisher = None
+
+_DEFAULT_PLUGIN_FORMAT_VERSION = 0
 
 
 @worker.app.task
@@ -52,7 +60,7 @@ def package_and_install(ctx):
             ('starting', lambda ctx: ctx),
             ('downloading', builder.download),
             ('extracting', builder.extract),
-            (None, builder.validate),
+            ('validating', builder.validate),
             ('building', builder.build),
             ('packaging', builder.package),
             ('updating', builder.update),
@@ -151,6 +159,8 @@ class _PackageBuilder(object):
             raise InvalidNamespaceException()
         if self.valid_name.match(name) is None:
             raise InvalidNameException()
+        if int(ctx.metadata.get('plugin_format_version', _DEFAULT_PLUGIN_FORMAT_VERSION)) > _MAX_PLUGIN_FORMAT_VERSION:
+            raise InvalidPluginFormatVersion()
         if self._db.is_installed(namespace, name):
             raise PluginAlreadyInstalled(namespace, name)
         return ctx

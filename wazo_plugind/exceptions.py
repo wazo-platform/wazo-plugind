@@ -33,6 +33,10 @@ class InvalidNameException(InvalidMetadata):
     pass
 
 
+class InvalidPluginFormatVersion(InvalidMetadata):
+    pass
+
+
 class InvalidInstallParamException(APIException):
 
     def __init__(self, errors):
