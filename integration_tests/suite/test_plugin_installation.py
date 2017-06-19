@@ -38,7 +38,7 @@ class TestPluginList(BaseIntegrationTest):
         assert_that(response['total'], equal_to(0))
         assert_that(response['items'], empty())
 
-        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
 
         result = self.list_plugins()
 
@@ -56,8 +56,6 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(self._is_installed(dependency), equal_to(False),
                     'Test precondition, {} should not be installed'.format(dependency))
 
-        msg_accumulator = self.new_message_accumulator('plugin.install.#')
-
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 
         assert_that(result, has_entries(uuid=uuid_()))
@@ -65,7 +63,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         statuses = ['starting', 'downloading', 'extracting', 'building',
                     'packaging', 'updating', 'installing', 'completed']
         for status in statuses:
-            self.assert_status_received(msg_accumulator, 'install', result['uuid'], status)
+            self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status)
 
         build_success_exists = self.exists_in_container('/tmp/results/build_success')
         package_success_exists = self.exists_in_container('/tmp/results/package_success')
@@ -77,9 +75,9 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_with_a_postrm(self):
-        self.install_plugin(url='file:///data/git/postrm', method='git', async=False)
+        self.install_plugin(url='file:///data/git/postrm', method='git', _async=False)
 
-        self.uninstall_plugin(namespace='plugindtests', name='postrm', async=False)
+        self.uninstall_plugin(namespace='plugindtests', name='postrm', _async=False)
 
         postinst_success_exists = self.exists_in_container('/tmp/results/postinst_success')
         postrm_success_exists = self.exists_in_container('/tmp/results/postrm_success')
@@ -87,9 +85,18 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(postinst_success_exists, equal_to(False))
         assert_that(postrm_success_exists, equal_to(True))
 
+    def test_that_installing_twice_completes_with_reinstalling(self):
+        self.install_plugin(url='file:///data/git/repo2', method='git', _async=False)
+
+        result = self.install_plugin(url='file:///data/git/repo2', method='git')
+
+        assert_that(result, has_entries(uuid=uuid_()))
+        statuses = ['starting', 'downloading', 'extracting', 'completed']
+        for status in statuses:
+            self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status, exclusive=True)
+
     def test_when_uninstall_works(self):
-        self.install_plugin(url='file:///data/git/repo', method='git', async=False)
-        msg_accumulator = self.new_message_accumulator('plugin.uninstall.#')
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
 
         result = self.uninstall_plugin(namespace='plugindtests', name='foobar')
 
@@ -97,7 +104,7 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         statuses = ['starting', 'removing', 'completed']
         for status in statuses:
-            self.assert_status_received(msg_accumulator, 'uninstall', result['uuid'], status)
+            self.assert_status_received(self.msg_accumulator, 'uninstall', result['uuid'], status)
 
         build_success_exists = self.exists_in_container('/tmp/results/build_success')
         package_success_exists = self.exists_in_container('/tmp/results/package_success')
@@ -107,7 +114,7 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     def test_that_uninstalling_an_uninstalled_plugin_returns_404(self):
         assert_that(calling(self.uninstall_plugin).with_args(namespace='plugindtests',
-                                                             name='foobar'),
+                                                             name='uninstalled'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
 
     @skip('to be enabled when async errors are implemented')
@@ -135,8 +142,8 @@ class TestPluginInstallation(BaseIntegrationTest):
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 400))))
 
     def test_that_an_out_of_date_debian_cache_does_not_break_package_install(self):
-        self.install_plugin(url='file:///data/git/add_wazo_source_list', method='git', async=False)
-        self.install_plugin(url='file:///data/git/add_pubkeys', method='git', async=False)
+        self.install_plugin(url='file:///data/git/add_wazo_source_list', method='git', _async=False)
+        self.install_plugin(url='file:///data/git/add_pubkeys', method='git', _async=False)
 
         ssh_key_installed = self.exists_in_container('/root/.ssh/authorized_keys2')
 
@@ -157,13 +164,30 @@ class TestPluginInstallation(BaseIntegrationTest):
                 return True
         return False
 
-    def assert_status_received(self, msg_accumulator, operation, uuid, status):
+    def assert_status_received(self, msg_accumulator, operation, uuid, status, exclusive=False):
         event_name = 'plugin_{}_progress'.format(operation)
 
-        def aux():
+        def match():
             assert_that(msg_accumulator.accumulate(), has_item(all_of(
                 has_entry('name', event_name),
                 has_entry('data', has_entries('status', status, 'uuid', uuid)))))
 
+        def exclusive_match():
+            while True:
+                first = msg_accumulator.pop()
+
+                # skip unrelated messages
+                if first.get('data', {}).get('uuid') != uuid:
+                    continue
+                if first.get('name') != event_name:
+                    continue
+
+                if first['data']['status'] == status:
+                    return
+
+                msg_accumulator.push_back(first)
+                self.fail('{} is not at the top of the accumulator, received {}'.format(status, first))
+
+        aux = exclusive_match if exclusive else match
         until.assert_(aux, tries=120, interval=0.5,
-                      message='The bus message should have been received')
+                      message='The bus message should have been received: {}'.format(status))

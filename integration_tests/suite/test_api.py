@@ -16,6 +16,9 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     service = 'plugind'
     bus_config = dict(username='guest', password='guest', host='localhost')
 
+    def setUp(self):
+        self.msg_accumulator = self.new_message_accumulator('plugin.#')
+
     def tearDown(self):
         self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
 
@@ -24,16 +27,17 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return Client('localhost', port=port, token=token, verify_certificate=False, timeout=20)
 
     def install_plugin(self, url, method, **kwargs):
-        async = kwargs.pop('async', True)
+        is_async = kwargs.pop('_async', True)
         client = self.get_client(**kwargs)
         result = client.plugins.install(url, method)
-        if async:
+        if is_async:
             return result
 
-        msg_accumulator = self.new_message_accumulator('plugin.install.{}.#'.format(result['uuid']))
         while True:
-            messages = msg_accumulator.accumulate()
+            messages = self.msg_accumulator.accumulate()
             for message in messages:
+                if message['data']['uuid'] != result['uuid']:
+                    continue
                 if message['data']['status'] in ['completed', 'error']:
                     return result
             time.sleep(0.25)
@@ -43,16 +47,17 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return client.plugins.list()
 
     def uninstall_plugin(self, namespace, name, **kwargs):
-        async = kwargs.pop('async', True)
+        is_async = kwargs.pop('_async', True)
         client = self.get_client(*kwargs)
         result = client.plugins.uninstall(namespace, name)
-        if async:
+        if is_async:
             return result
 
-        msg_accumulator = self.new_message_accumulator('plugin.uninstall.{}.#'.format(result['uuid']))
         while True:
-            messages = msg_accumulator.accumulate()
+            messages = self.msg_accumulator.accumulate()
             for message in messages:
+                if message['data']['uuid'] != result['uuid']:
+                    continue
                 if message['data']['status'] in ['completed', 'error']:
                     return result
             time.sleep(0.25)

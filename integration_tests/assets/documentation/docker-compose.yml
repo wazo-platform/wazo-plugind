@@ -3,11 +3,13 @@ sync:
   links:
     - plugind
     - swagger-validator
+    - rabbitmq
   environment:
-    PORTS: "9503 8080"
-
+    PORTS: "5672 9503 8080"
 plugind:
   image: "wazo-plugind-test"
+  links:
+    - rabbitmq
   environment:
     - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
   volumes:
@@ -15,7 +17,10 @@ plugind:
     - "./etc/wazo-plugind/conf.d/disable_service_discovery.yml:/etc/wazo-plugind/conf.d/disable_service_discovery.yml"
   ports:
     - "9503"
-
+rabbitmq:
+  image: "rabbitmq"
+  ports:
+    - 5672
 swagger-validator:
   image: swaggerapi/swagger-validator
   ports:

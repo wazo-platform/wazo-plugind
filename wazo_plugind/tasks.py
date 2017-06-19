@@ -9,8 +9,8 @@ import yaml
 import time
 from threading import Thread
 from .celery import worker
-from . import bus, debian, download
-from .exceptions import InvalidNamespaceException, InvalidNameException
+from . import bus, db, debian, download
+from .exceptions import InvalidNamespaceException, InvalidNameException, PluginAlreadyInstalled
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
@@ -52,6 +52,7 @@ def package_and_install(ctx):
             ('starting', lambda ctx: ctx),
             ('downloading', builder.download),
             ('extracting', builder.extract),
+            (None, builder.validate),
             ('building', builder.build),
             ('packaging', builder.package),
             ('updating', builder.update),
@@ -60,9 +61,13 @@ def package_and_install(ctx):
         ]
 
         for step, fn in steps:
-            publisher.install(ctx, step)
+            if step:
+                publisher.install(ctx, step)
             ctx = fn(ctx)
 
+    except PluginAlreadyInstalled:
+        ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
+        publisher.install(ctx, 'completed')
     except Exception:
         debug_enabled = ctx.config['debug']
         ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
@@ -106,13 +111,10 @@ class _PackageBuilder(object):
         self._config = config
         self._downloader = download.Downloader(config)
         self._debian_file_generator = debian.Generator.from_config(config)
+        self._db = db.PluginDB(config)
 
     def build(self, ctx):
         namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
-        if self.valid_namespace.match(namespace) is None:
-            raise InvalidNamespaceException()
-        if self.valid_name.match(name) is None:
-            raise InvalidNameException()
         installer_path = os.path.join(ctx.extract_path, self._config['default_install_filename'])
         ctx.log(logger.debug, 'building %s/%s', namespace, name)
         cmd = [installer_path, 'build']
@@ -142,6 +144,16 @@ class _PackageBuilder(object):
             metadata=metadata,
             extract_path=extract_path,
         )
+
+    def validate(self, ctx):
+        namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
+        if self.valid_namespace.match(namespace) is None:
+            raise InvalidNamespaceException()
+        if self.valid_name.match(name) is None:
+            raise InvalidNameException()
+        if self._db.is_installed(namespace, name):
+            raise PluginAlreadyInstalled(namespace, name)
+        return ctx
 
     def install(self, ctx):
         from .root_tasks import install
