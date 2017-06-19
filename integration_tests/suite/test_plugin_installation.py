@@ -80,6 +80,22 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         assert_that(self._is_installed(dependency), equal_to(True))
 
+    def test_install_from_git_branch(self):
+        msg_accumulator = self.new_message_accumulator('plugin.install.#')
+
+        result = self.install_plugin(url='file:///data/git/repo', method='git', branch='v2')
+
+        assert_that(result, has_entries(uuid=uuid_()))
+
+        statuses = ['starting', 'downloading', 'extracting', 'building',
+                    'packaging', 'updating', 'installing', 'completed']
+        for status in statuses:
+            self.assert_status_received(msg_accumulator, 'install', result['uuid'], status)
+
+        package_success_exists = self.exists_in_container('/tmp/results/package_success_2')
+
+        assert_that(package_success_exists, is_(True), 'package_success was not created')
+
     def test_with_a_postrm(self):
         self.install_plugin(url='file:///data/git/postrm', method='git', _async=False)
 

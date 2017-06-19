@@ -28,8 +28,10 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
 
     def install_plugin(self, url, method, **kwargs):
         is_async = kwargs.pop('_async', True)
+        branch = kwargs.pop('branch', None)
         client = self.get_client(**kwargs)
-        result = client.plugins.install(url, method)
+
+        result = client.plugins.install(url, method, branch)
         if is_async:
             return result
 
