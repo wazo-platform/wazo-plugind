@@ -49,6 +49,7 @@ class PluginInstallSchema(Schema):
 
     url = fields.String(validate=Length(min=1), required=True)
     method = fields.String(validate=OneOf(['git']), required=True)
+    branch = fields.String(missing='master', validate=Length(min=1), required=False)
 
     @pre_load
     def ensure_dict(self, data):

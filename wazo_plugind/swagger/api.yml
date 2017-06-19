@@ -61,13 +61,6 @@ paths:
         **Required ACL:** `plugind.plugins.create`
 
         Allow the administrator to install a plugin on the server.
-        ---
-
-        To install a plugin that is not registered on the market:
-
-        ```json
-        {"url": "<URL to the plugin>", "method": "git"}
-        ```
       parameters:
         - name: body
           required: True
@@ -167,6 +160,10 @@ definitions:
         type: string
         description: "The method used to fetch this plugin"
         enum: [git]
+      branch:
+        type: string
+        description: "The name of the branch or tag to download"
+        default: master
     required:
       - url
       - method
