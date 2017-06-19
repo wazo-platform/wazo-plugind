@@ -24,8 +24,8 @@ class PluginDB(object):
     def get_plugin(self, namespace, name):
         return Plugin(self._config, namespace, name)
 
-    def is_installed(self, namespace, name):
-        return Plugin(self._config, namespace, name).is_installed()
+    def is_installed(self, namespace, name, version=None):
+        return Plugin(self._config, namespace, name).is_installed(version)
 
     def list_(self):
         result = []
@@ -53,11 +53,18 @@ class Plugin(object):
         )
         self._metadata = None
 
-    def is_installed(self):
+    def is_installed(self, version=None):
         try:
-            return self.metadata() is not None
+            metadata = self.metadata()
         except IOError:
             return False
+
+        if metadata is None:
+            return False
+        if version is None:
+            return True
+
+        return version == metadata['version']
 
     def metadata(self):
         if not self._metadata:
