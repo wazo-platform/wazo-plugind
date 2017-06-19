@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
-import uuid
 import logging
 from .exceptions import UnsupportedDownloadMethod
 from .helpers import exec_and_log
@@ -17,7 +16,7 @@ class _GitDownloader(object):
 
     def download(self, ctx):
         url, branch = ctx.url, ctx.install_args['branch']
-        filename = os.path.join(self._download_dir, str(uuid.uuid4()))
+        filename = os.path.join(self._download_dir, ctx.uuid)
 
         cmd = ['git', 'clone', '--branch', branch, '--depth', '1', url, filename]
 
