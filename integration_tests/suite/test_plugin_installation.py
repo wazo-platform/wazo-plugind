@@ -83,7 +83,7 @@ class TestPluginInstallation(BaseIntegrationTest):
     def test_install_from_git_branch(self):
         msg_accumulator = self.new_message_accumulator('plugin.install.#')
 
-        result = self.install_plugin(url='file:///data/git/repo', method='git', branch='v2')
+        result = self.install_plugin(url='file:///data/git/repo', method='git', options=dict(ref='v2'))
 
         assert_that(result, has_entries(uuid=uuid_()))
 

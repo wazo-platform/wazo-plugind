@@ -15,10 +15,10 @@ class _GitDownloader(object):
         self._download_dir = config['download_dir']
 
     def download(self, ctx):
-        url, branch = ctx.url, ctx.install_args['branch']
+        url, ref = ctx.url, ctx.install_args.get('ref', 'master')
         filename = os.path.join(self._download_dir, ctx.uuid)
 
-        cmd = ['git', 'clone', '--branch', branch, '--depth', '1', url, filename]
+        cmd = ['git', 'clone', '--branch', ref, '--depth', '1', url, filename]
 
         proc = exec_and_log(logger.debug, logger.error, cmd)
         if proc.returncode:
