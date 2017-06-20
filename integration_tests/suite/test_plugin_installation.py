@@ -52,9 +52,7 @@ class TestPluginInstallation(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def test_when_it_works(self):
-        dependency = 'tig'
-        assert_that(self._is_installed(dependency), equal_to(False),
-                    'Test precondition, {} should not be installed'.format(dependency))
+        self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False)
 
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 
@@ -72,6 +70,14 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(build_success_exists, is_(True), 'build_success was not created or copied')
         assert_that(install_success_exists, is_(True), 'install_success was not created')
         assert_that(package_success_exists, is_(True), 'package_success was not created')
+
+    def test_plugin_debian_dependency(self):
+        dependency = 'tig'
+        if self._is_installed(dependency):
+            self.docker_exec(['apt-get' '-y', 'remove', dependency])
+
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
+
         assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_with_a_postrm(self):
