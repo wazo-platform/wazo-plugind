@@ -164,18 +164,21 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         assert_that(ssh_key_installed, equal_to(True))
 
-    def directory_is_empty_in_container(self, path):
-        output = self.docker_exec(['ls', path])
+    def list_file_in_container_dir(self, dir_path):
+        output = self.docker_exec(['ls', dir_path])
         for current_filename in output.split('\n'):
             if not current_filename:
                 continue
+            yield current_filename
+
+    def directory_is_empty_in_container(self, path):
+        for filename in self.list_file_in_container_dir(path):
             return False
         return True
 
     def exists_in_container(self, path):
         directory, filename = os.path.split(path)
-        output = self.docker_exec(['ls', directory])
-        for current_filename in output.split('\n'):
+        for current_filename in self.list_file_in_container_dir(directory):
             if current_filename == filename:
                 return True
         return False
