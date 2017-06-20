@@ -10,6 +10,7 @@ HOMEDIR="/var/lib/${DAEMONNAME}"
 DOWNLOAD_DIR="${HOMEDIR}/downloads"
 DATA_DIR="/usr/lib/${DAEMONNAME}"
 BACKUP_RULES_DIR="${HOMEDIR}/rules"
+TMP_DIR="${HOMEDIR}/tmp"
 
 case "$1" in
     configure)
@@ -34,6 +35,9 @@ case "$1" in
 
         if dpkg --compare-versions "$2" lt '17.08'; then
             rm -rf "${HOMEDIR}/plugins"
+        fi
+        if dpkg --compare-versions "$2" lt '17.09'; then
+            rm -rf "${TMP_DIR}"
         fi
 
         chown -R "$USER:$GROUP" "$HOMEDIR"
