@@ -93,7 +93,22 @@ class TestPlugins(TestCase):
 
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
-        self.plugin_service.create.assert_called_once_with(url, method)
+        self.plugin_service.create.assert_called_once_with(url, method, ref='master')
+
+    def test_on_succes_returns_result_from_service_with_options(self):
+        url, method, branch = 'url', 'git', 'foobar'
+        body = {
+            'url': url,
+            'method': method,
+            'options': {'ref': branch},
+        }
+        self.plugin_service.create.return_value = uuid = str(uuid4())
+
+        status_code, data = self.post(body)
+
+        assert_that(status_code, equal_to(200))
+        assert_that(data, equal_to({'uuid': uuid}))
+        self.plugin_service.create.assert_called_once_with(url, method, ref=branch)
 
     def post(self, body):
         result = self.app.post('/0.1/plugins',

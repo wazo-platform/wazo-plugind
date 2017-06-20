@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
-import uuid
 import logging
 from .exceptions import UnsupportedDownloadMethod
 from .helpers import exec_and_log
@@ -15,15 +14,17 @@ class _GitDownloader(object):
     def __init__(self, config):
         self._download_dir = config['download_dir']
 
-    def download(self, url):
-        filename = os.path.join(self._download_dir, str(uuid.uuid4()))
-        cmd = ['git', 'clone', '--depth', '1', url, filename]
+    def download(self, ctx):
+        url, ref = ctx.url, ctx.install_args['ref']
+        filename = os.path.join(self._download_dir, ctx.uuid)
+
+        cmd = ['git', 'clone', '--branch', ref, '--depth', '1', url, filename]
 
         proc = exec_and_log(logger.debug, logger.error, cmd)
         if proc.returncode:
             raise Exception('Download failed {}'.format(url))
 
-        return filename
+        return ctx.with_fields(download_path=filename)
 
 
 class _UndefinedDownloader(object):
@@ -45,5 +46,4 @@ class Downloader(object):
 
     def download(self, ctx):
         impl = self._downloaders.get(ctx.method, self._undefined_downloader)
-        download_path = impl.download(ctx.url)
-        return ctx.with_fields(download_path=download_path)
+        return impl.download(ctx)

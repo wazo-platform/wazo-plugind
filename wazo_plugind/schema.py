@@ -45,10 +45,16 @@ class OneOf(validate.OneOf):
         }
 
 
+class GitInstallOptionsSchema(Schema):
+
+    ref = fields.String(missing='master', validate=Length(min=1), required=False)
+
+
 class PluginInstallSchema(Schema):
 
     url = fields.String(validate=Length(min=1), required=True)
     method = fields.String(validate=OneOf(['git']), required=True)
+    options = fields.Nested(GitInstallOptionsSchema, missing=dict, required=False)
 
     @pre_load
     def ensure_dict(self, data):

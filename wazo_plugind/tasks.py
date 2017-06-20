@@ -166,13 +166,14 @@ class _PackageBuilder(object):
 
     def validate(self, ctx):
         namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
+        version = ctx.metadata['version']
         if self.valid_namespace.match(namespace) is None:
             raise InvalidNamespaceException()
         if self.valid_name.match(name) is None:
             raise InvalidNameException()
         if int(ctx.metadata.get('plugin_format_version', _DEFAULT_PLUGIN_FORMAT_VERSION)) > _MAX_PLUGIN_FORMAT_VERSION:
             raise InvalidPluginFormatVersion()
-        if self._db.is_installed(namespace, name):
+        if self._db.is_installed(namespace, name, version):
             raise PluginAlreadyInstalled(namespace, name)
         return ctx
 

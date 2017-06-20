@@ -63,7 +63,8 @@ class Plugins(_AuthentificatedResource):
         if errors:
             raise InvalidInstallParamException(errors)
 
-        uuid = self.plugin_service.create(body['url'], body['method'])
+        url, method, options = body['url'], body['method'], body['options']
+        uuid = self.plugin_service.create(url, method, **options)
 
         return {'uuid': uuid}
 
