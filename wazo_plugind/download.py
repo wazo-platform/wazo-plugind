@@ -15,7 +15,7 @@ class _GitDownloader(object):
         self._download_dir = config['download_dir']
 
     def download(self, ctx):
-        url, ref = ctx.url, ctx.install_args.get('ref', 'master')
+        url, ref = ctx.url, ctx.install_args['ref']
         filename = os.path.join(self._download_dir, ctx.uuid)
 
         cmd = ['git', 'clone', '--branch', ref, '--depth', '1', url, filename]
