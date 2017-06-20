@@ -65,6 +65,7 @@ def package_and_install(ctx):
             ('packaging', builder.package),
             ('updating', builder.update),
             ('installing', builder.install),
+            ('cleaning', builder.clean),
             ('completed', lambda ctx: ctx),
         ]
 
@@ -75,6 +76,7 @@ def package_and_install(ctx):
 
     except PluginAlreadyInstalled:
         ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
+        builder.clean(ctx)
         publisher.install(ctx, 'completed')
     except Exception:
         debug_enabled = ctx.config['debug']
@@ -82,6 +84,7 @@ def package_and_install(ctx):
         error_id = '{}_error'.format(step)
         message = '{} Error'.format(step.capitalize())
         publisher.install_error(ctx, error_id, message)
+        builder.clean(ctx)
 
 
 def get_publisher(config):
@@ -128,6 +131,14 @@ class _PackageBuilder(object):
         cmd = [installer_path, 'build']
         self._exec(ctx, cmd, cwd=ctx.extract_path)
         return ctx.with_fields(installer_path=installer_path, namespace=namespace, name=name)
+
+    def clean(self, ctx):
+        extract_path = getattr(ctx, 'extract_path', None)
+        if not extract_path:
+            return
+        ctx.log(logger.debug, 'removing build directory %s', extract_path)
+        shutil.rmtree(extract_path)
+        return ctx
 
     def _debianize(self, ctx):
         ctx.log(logger.debug, 'debianizing %s/%s', ctx.namespace, ctx.name)

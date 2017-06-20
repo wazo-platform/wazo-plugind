@@ -52,9 +52,7 @@ class TestPluginInstallation(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def test_when_it_works(self):
-        dependency = 'tig'
-        assert_that(self._is_installed(dependency), equal_to(False),
-                    'Test precondition, {} should not be installed'.format(dependency))
+        self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False)
 
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 
@@ -72,6 +70,14 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(build_success_exists, is_(True), 'build_success was not created or copied')
         assert_that(install_success_exists, is_(True), 'install_success was not created')
         assert_that(package_success_exists, is_(True), 'package_success was not created')
+
+    def test_plugin_debian_dependency(self):
+        dependency = 'tig'
+        if self._is_installed(dependency):
+            self.docker_exec(['apt-get' '-y', 'remove', dependency])
+
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
+
         assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_with_a_postrm(self):
@@ -111,6 +117,13 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         assert_that(build_success_exists, is_(False), 'build_success was not removed')
         assert_that(package_success_exists, is_(False), 'package_success was not removed')
+
+    def test_that_plugin_build_directory_is_removed_after_an_install(self):
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
+
+        directory_is_empty = self.directory_is_empty_in_container('/var/lib/wazo-plugind/tmp')
+
+        assert_that(directory_is_empty, is_(True))
 
     def test_when_with_an_unknown_plugin_format_version(self):
         result = self.install_plugin(url='file:///data/git/futureversion', method='git')
@@ -157,10 +170,21 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         assert_that(ssh_key_installed, equal_to(True))
 
+    def list_file_in_container_dir(self, dir_path):
+        output = self.docker_exec(['ls', dir_path])
+        for current_filename in output.split('\n'):
+            if not current_filename:
+                continue
+            yield current_filename
+
+    def directory_is_empty_in_container(self, path):
+        for filename in self.list_file_in_container_dir(path):
+            return False
+        return True
+
     def exists_in_container(self, path):
         directory, filename = os.path.split(path)
-        output = self.docker_exec(['ls', directory])
-        for current_filename in output.split('\n'):
+        for current_filename in self.list_file_in_container_dir(directory):
             if current_filename == filename:
                 return True
         return False
