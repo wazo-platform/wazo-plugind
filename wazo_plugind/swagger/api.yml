@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
   version: "0.1"
-  title: Wazo Plugind
+  title: wazo-plugind
   description: "Wazo's plugin management service"
   contact:
     name: Wazo dev team
