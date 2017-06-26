@@ -81,8 +81,7 @@ def package_and_install(ctx):
         builder.clean(ctx)
         publisher.install(ctx, 'completed')
     except InvalidMetadata as e:
-        debug_enabled = ctx.config['debug']
-        ctx.log(logger.error, 'Plugin validation exception', step, exc_info=debug_enabled)
+        ctx.log(logger.info, 'Plugin validation exception')
         error_id = 'validation_error'
         message = 'Validation error'
         publisher.install_error(ctx, error_id, message, details=e.details)
