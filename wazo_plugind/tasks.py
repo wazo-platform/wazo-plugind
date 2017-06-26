@@ -12,6 +12,7 @@ from .celery import worker
 from . import bus, db, debian, download
 from .config import _MAX_PLUGIN_FORMAT_VERSION
 from .exceptions import (
+    InvalidMetadata,
     InvalidNamespaceException,
     InvalidNameException,
     InvalidPluginFormatVersion,
@@ -78,6 +79,12 @@ def package_and_install(ctx):
         ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
         builder.clean(ctx)
         publisher.install(ctx, 'completed')
+    except InvalidMetadata as e:
+        debug_enabled = ctx.config['debug']
+        ctx.log(logger.error, 'Plugin validation exception', step, exc_info=debug_enabled)
+        error_id = 'validation_error'
+        message = 'Validation error'
+        publisher.install_error(ctx, error_id, message, details=e.details)
     except Exception:
         debug_enabled = ctx.config['debug']
         ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
@@ -172,7 +179,7 @@ class _PackageBuilder(object):
         if self.valid_name.match(name) is None:
             raise InvalidNameException()
         if int(ctx.metadata.get('plugin_format_version', _DEFAULT_PLUGIN_FORMAT_VERSION)) > _MAX_PLUGIN_FORMAT_VERSION:
-            raise InvalidPluginFormatVersion()
+            raise InvalidPluginFormatVersion(_MAX_PLUGIN_FORMAT_VERSION)
         if self._db.is_installed(namespace, name, version):
             raise PluginAlreadyInstalled(namespace, name)
         return ctx
