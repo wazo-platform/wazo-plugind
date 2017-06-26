@@ -16,6 +16,7 @@ from .exceptions import (
     InvalidNamespaceException,
     InvalidNameException,
     InvalidPluginFormatVersion,
+    MissingFieldException,
     PluginAlreadyInstalled,
 )
 from .helpers import exec_and_log
@@ -124,6 +125,7 @@ class _PackageBuilder(object):
 
     valid_namespace = re.compile(r'^[a-z0-9]+$')
     valid_name = re.compile(r'^[a-z0-9-]+$')
+    required_fields = ['name', 'namespace', 'version']
 
     def __init__(self, config):
         self._config = config
@@ -172,6 +174,9 @@ class _PackageBuilder(object):
         )
 
     def validate(self, ctx):
+        for field in self.required_fields:
+            if field not in ctx.metadata:
+                raise MissingFieldException(field)
         namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
         version = ctx.metadata['version']
         if self.valid_namespace.match(namespace) is None:

@@ -57,6 +57,19 @@ class InvalidNameException(InvalidMetadata):
         super().__init__(self._details)
 
 
+class MissingFieldException(InvalidMetadata):
+
+    def __init__(self, field):
+        details = {
+            field: {
+                'constraint_id': 'required',
+                'constraint': {'required': True},
+                'message': '"{}" is a required field'.format(field),
+            },
+        }
+        super().__init__(details)
+
+
 class InvalidPluginFormatVersion(InvalidMetadata):
 
     msg_fmt = 'The plugin_format_version field should be between 0 and {}'
