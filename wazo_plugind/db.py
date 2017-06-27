@@ -12,6 +12,18 @@ from . import debian
 logger = logging.getLogger(__name__)
 
 
+class AlwaysLast(object):
+
+    def __lt__(self, other):
+        return False
+
+    def __gt__(self, other):
+        return True
+
+
+LAST_ITEM = AlwaysLast()
+
+
 class MarketProxy(object):
     """The MarketProxy is an interface to the plugin market
 
@@ -50,7 +62,18 @@ class MarketDB(object):
         return len(self._market_proxy.get_content())
 
     def list_(self, *args, **kwargs):
-        return self._market_proxy.get_content()
+        raw_content = self._market_proxy.get_content()
+        sorted_content = self._sort(raw_content, **kwargs)
+        return sorted_content
+
+    @staticmethod
+    def _sort(content, order=None, direction=None):
+        reverse = direction == 'desc'
+
+        def key(element):
+            return element.get(order, LAST_ITEM)
+
+        return sorted(content, key=key, reverse=reverse)
 
 
 class PluginDB(object):
