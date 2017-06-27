@@ -9,7 +9,7 @@ from pkg_resources import resource_string
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
 from .schema import MarketListRequestSchema, PluginInstallSchema
-from .exceptions import InvalidInstallParamException
+from .exceptions import InvalidInstallParamException, InvalidListParamException
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,10 @@ class Market(_AuthentificatedResource):
 
     @required_acl('plugind.market.read')
     def get(self):
-        list_params = MarketListRequestSchema().load(request.args).data
+        list_params, errors = MarketListRequestSchema().load(request.args)
+        if errors:
+            raise InvalidListParamException(errors)
+
         market_proxy = self.plugin_service.new_market_proxy()
         return {
             'items': self.plugin_service.list_from_market(market_proxy, **list_params),
