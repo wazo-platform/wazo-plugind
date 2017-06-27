@@ -4,7 +4,6 @@
 
 import os
 from hamcrest import (
-    all_of,
     assert_that,
     calling,
     contains,
@@ -12,7 +11,7 @@ from hamcrest import (
     empty,
     has_entry,
     has_entries,
-    has_item,
+    has_items,
     has_property,
     is_,
 )
@@ -240,9 +239,9 @@ class TestPluginInstallation(BaseIntegrationTest):
                 expected_data.append(value)
 
             received_msg = msg_accumulator.accumulate()
-            assert_that(received_msg, has_item(all_of(
+            assert_that(received_msg, has_items(
                 has_entry('name', event_name),
-                has_entry('data', has_entries(*expected_data)))))
+                has_entry('data', has_entries(*expected_data))))
 
         def exclusive_match():
             while True:
