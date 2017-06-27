@@ -27,8 +27,9 @@ class PluginService(object):
     def count(self):
         return self._plugin_db.count()
 
-    def count_from_market(self):
-        return 0
+    def count_from_market(self, market_proxy):
+        market_db = db.MarketDB(market_proxy)
+        return market_db.count()
 
     def create(self, url, method, **kwargs):
         from .tasks import package_and_install
@@ -37,11 +38,15 @@ class PluginService(object):
         package_and_install.apply_async(args=(ctx,))
         return ctx.uuid
 
+    def new_market_proxy(self):
+        return db.MarketProxy(self._config['market'])
+
     def list_(self):
         return self._plugin_db.list_()
 
-    def list_from_market(self):
-        []
+    def list_from_market(self, market_proxy):
+        market_db = db.MarketDB(market_proxy)
+        return market_db.list_()
 
     def delete(self, namespace, name):
         ctx = Context(self._config, namespace=namespace, name=name)

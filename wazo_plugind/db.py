@@ -5,10 +5,52 @@ import logging
 import os
 import re
 import yaml
+import requests
 from .exceptions import InvalidPackageNameException
 from . import debian
 
 logger = logging.getLogger(__name__)
+
+
+class MarketProxy(object):
+    """The MarketProxy is an interface to the plugin market
+
+    The proxy should be used during the execution of an HTTP request. It will fetch the content
+    of the market and store it to allow multiple "queries" without having to do multiple HTTP
+    requests on the "real" market.
+
+    The proxy will only fetch the content of the market once, it is meant to be instanciated at
+    each received HTTP request.
+    """
+
+    def __init__(self, market_config):
+        self._market_url = market_config['url']
+        self._verify = market_config['verify_certificate']
+        self._content = {}
+
+    def get_content(self):
+        if not self._content:
+            self._fetch_plugin_list()
+        return self._content
+
+    def _fetch_plugin_list(self):
+        response = requests.get(self._market_url, verify=self._verify)
+        if response.status_code != 200:
+            logger.info('Failed to fetch plugins from the market %s', response.status_code)
+            return
+        self._content = response.json()['items']
+
+
+class MarketDB(object):
+
+    def __init__(self, market_proxy):
+        self._market_proxy = market_proxy
+
+    def count(self):
+        return len(self._market_proxy.get_content())
+
+    def list_(self):
+        return self._market_proxy.get_content()
 
 
 class PluginDB(object):

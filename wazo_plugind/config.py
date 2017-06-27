@@ -37,6 +37,10 @@ _DEFAULT_CONFIG = dict(
     log_level='info',
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
+    market={
+        'url': 'https://apps.wazo.community/index.json',
+        'verify_certificate': False,
+    },
     pid_file=os.path.join(_PID_DIR, '{}.pid'.format(_DAEMONNAME)),
     celery={
         'broker': 'amqp://guest:guest@localhost:5672',

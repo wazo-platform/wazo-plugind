@@ -52,9 +52,10 @@ class Market(_AuthentificatedResource):
 
     @required_acl('plugind.market.read')
     def get(self):
+        market_proxy = self.plugin_service.new_market_proxy()
         return {
-            'items': self.plugin_service.list_from_market(),
-            'total': self.plugin_service.count_from_market(),
+            'items': self.plugin_service.list_from_market(market_proxy),
+            'total': self.plugin_service.count_from_market(market_proxy),
         }
 
     @classmethod
