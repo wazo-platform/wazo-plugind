@@ -49,6 +49,9 @@ paths:
         **Required ACL:** `plugind.market.read`
 
         Allow the administrator to get a list of available plugins
+      parameters:
+      - $ref: '#/parameters/order'
+      - $ref: '#/parameters/direction'
       responses:
         '200':
           description: "The plugin list"
@@ -112,18 +115,33 @@ paths:
           $ref: '#/responses/NotFoundError'
 
 parameters:
-  namespace:
-    required: true
+  direction:
+    required: false
+    name: direction
+    in: query
     type: string
-    name: namespace
-    in: path
-    description: namespace's plugin
+    enum:
+    - asc
+    - desc
+    description: Sort list of items in 'asc' (ascending) or 'desc' (descending) order
   name:
     required: true
     type: string
     name: name
     in: path
-    description: name's plugin
+    description: "The plugin's name"
+  namespace:
+    required: true
+    type: string
+    name: namespace
+    in: path
+    description: "The plugin's namespace"
+  order:
+    required: false
+    name: order
+    in: query
+    type: string
+    description: 'Name of the field to use for sorting the list of items returned. Unsupported values: ``end``.'
 
 definitions:
   Error:

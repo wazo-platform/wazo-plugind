@@ -46,10 +46,10 @@ class MarketDB(object):
     def __init__(self, market_proxy):
         self._market_proxy = market_proxy
 
-    def count(self):
+    def count(self, *args, **kwargs):
         return len(self._market_proxy.get_content())
 
-    def list_(self):
+    def list_(self, *args, **kwargs):
         return self._market_proxy.get_content()
 
 

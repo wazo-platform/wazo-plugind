@@ -50,6 +50,16 @@ class GitInstallOptionsSchema(Schema):
     ref = fields.String(missing='master', validate=Length(min=1), required=False)
 
 
+class MarketListRequestSchema(Schema):
+
+    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
+    order = fields.String(validate=Length(1), missing='name')
+
+    @pre_load
+    def ensure_dict(self, data):
+        return data or {}
+
+
 class PluginInstallSchema(Schema):
 
     url = fields.String(validate=Length(min=1), required=True)

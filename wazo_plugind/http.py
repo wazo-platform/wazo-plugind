@@ -8,7 +8,7 @@ from flask_restful import Api, Resource
 from pkg_resources import resource_string
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
-from .schema import PluginInstallSchema
+from .schema import MarketListRequestSchema, PluginInstallSchema
 from .exceptions import InvalidInstallParamException
 
 logger = logging.getLogger(__name__)
@@ -52,10 +52,11 @@ class Market(_AuthentificatedResource):
 
     @required_acl('plugind.market.read')
     def get(self):
+        list_params = MarketListRequestSchema().load(request.args).data
         market_proxy = self.plugin_service.new_market_proxy()
         return {
-            'items': self.plugin_service.list_from_market(market_proxy),
-            'total': self.plugin_service.count_from_market(market_proxy),
+            'items': self.plugin_service.list_from_market(market_proxy, **list_params),
+            'total': self.plugin_service.count_from_market(market_proxy, **list_params),
         }
 
     @classmethod
