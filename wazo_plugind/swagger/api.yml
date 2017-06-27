@@ -50,6 +50,8 @@ paths:
 
         Allow the administrator to get a list of available plugins
       parameters:
+      - $ref: '#/parameters/limit'
+      - $ref: '#/parameters/offset'
       - $ref: '#/parameters/order'
       - $ref: '#/parameters/direction'
       responses:
@@ -124,6 +126,12 @@ parameters:
     - asc
     - desc
     description: Sort list of items in 'asc' (ascending) or 'desc' (descending) order
+  limit:
+    required: false
+    name: limit
+    in: query
+    type: integer
+    description: Maximum number of items to return in the list
   name:
     required: true
     type: string
@@ -136,6 +144,12 @@ parameters:
     name: namespace
     in: path
     description: "The plugin's namespace"
+  offset:
+    required: false
+    name: offset
+    in: query
+    type: integer
+    description: Number of items to skip over in the list. Useful for pagination.
   order:
     required: false
     name: order

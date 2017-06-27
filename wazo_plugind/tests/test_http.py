@@ -49,8 +49,17 @@ class TestMarket(HTTPAppTestCase):
         assert_that(body, equal_to(expected))
         assert_that(status_code, equal_to(200))
 
-    def get(self):
+    def test_errors_on_invalid_limit(self):
+        self.plugin_service.count_from_market.return_value = 0
+        self.plugin_service.list_from_market.return_value = []
+
+        status_code, body = self.get(limit=-1)
+
+        assert_that(status_code, equal_to(400))
+
+    def get(self, **kwargs):
         result = self.app.get('/0.1/market',
+                              query_string=kwargs,
                               headers={'content-type': 'application/json'})
         return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
 

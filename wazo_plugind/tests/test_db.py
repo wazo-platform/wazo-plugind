@@ -52,25 +52,46 @@ class TestMarketDB(TestCase):
         ]
         self.market_proxy = Mock(MarketProxy)
         self.market_proxy.get_content.return_value = self.content
+        self.db = MarketDB(self.market_proxy)
 
     def test_sort_direction(self):
         a, b, c = self.content
 
-        db = MarketDB(self.market_proxy)
-
-        results = db.list_(order='name', direction='asc')
+        results = self.db.list_(order='name', direction='asc')
         assert_that(results, contains(a, b, c))
 
-        results = db.list_(order='name', direction='desc')
+        results = self.db.list_(order='name', direction='desc')
         assert_that(results, contains(c, b, a))
 
     def test_sort_order(self):
         a, b, c = self.content
 
-        db = MarketDB(self.market_proxy)
-
-        results = db.list_(order='name', direction='asc')
+        results = self.db.list_(order='name', direction='asc')
         assert_that(results, contains(a, b, c))
 
-        results = db.list_(order='namespace', direction='asc')
+        results = self.db.list_(order='namespace', direction='asc')
         assert_that(results, contains(c, a, b))
+
+    def test_limit(self):
+        a, b, c = self.content
+
+        results = self.db.list_(limit=2)
+        assert_that(results, contains(a, b))
+
+        results = self.db.list_(limit=1)
+        assert_that(results, contains(a))
+
+    def test_offset(self):
+        a, b, c = self.content
+
+        results = self.db.list_(offset=1)
+        assert_that(results, contains(b, c))
+
+        results = self.db.list_(offset=2)
+        assert_that(results, contains(c))
+
+    def test_limit_and_offset(self):
+        a, b, c = self.content
+
+        results = self.db.list_(limit=1, offset=1)
+        assert_that(results, contains(b))

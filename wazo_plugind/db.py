@@ -62,12 +62,18 @@ class MarketDB(object):
         return len(self._market_proxy.get_content())
 
     def list_(self, *args, **kwargs):
-        raw_content = self._market_proxy.get_content()
-        sorted_content = self._sort(raw_content, **kwargs)
-        return sorted_content
+        content = self._market_proxy.get_content()
+        content = self._sort(content, **kwargs)
+        content = self._paginate(content, **kwargs)
+        return content
 
     @staticmethod
-    def _sort(content, order=None, direction=None):
+    def _paginate(content, limit=None, offset=0, **kwargs):
+        end = limit + offset if limit else None
+        return content[offset:end]
+
+    @staticmethod
+    def _sort(content, order=None, direction=None, **kwargs):
         reverse = direction == 'desc'
 
         def key(element):
