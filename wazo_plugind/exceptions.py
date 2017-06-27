@@ -22,19 +22,67 @@ class InvalidPackageNameException(Exception):
 
 
 class InvalidMetadata(Exception):
-    pass
+
+    details = None
+
+    def __init__(self, details):
+        self.details = details
 
 
 class InvalidNamespaceException(InvalidMetadata):
-    pass
+
+    _details = {
+        'namespace': {
+            'constraint_id': 'regex',
+            'constaint': r'^[a-z0-9]+$',
+            'message': 'namespace must be lowercase with letters and numbers only',
+        },
+    }
+
+    def __init__(self):
+        super().__init__(self._details)
 
 
 class InvalidNameException(InvalidMetadata):
-    pass
+
+    _details = {
+        'name': {
+            'constraint_id': 'regex',
+            'constaint': r'^[a-z0-9-]+$',
+            'message': 'name must be lowercase with letters, numbers and dashes only',
+        },
+    }
+
+    def __init__(self):
+        super().__init__(self._details)
+
+
+class MissingFieldException(InvalidMetadata):
+
+    def __init__(self, field):
+        details = {
+            field: {
+                'constraint_id': 'required',
+                'constraint': {'required': True},
+                'message': '"{}" is a required field'.format(field),
+            },
+        }
+        super().__init__(details)
 
 
 class InvalidPluginFormatVersion(InvalidMetadata):
-    pass
+
+    msg_fmt = 'The plugin_format_version field should be between 0 and {}'
+
+    def __init__(self, max_plugin_format_version):
+        details = {
+            'plugin_format_version': {
+                'constraint_id': 'limits',
+                'constraint': [0, max_plugin_format_version],
+                'message': self.msg_fmt.format(max_plugin_format_version),
+            },
+        }
+        super().__init__(details)
 
 
 class InvalidInstallParamException(APIException):

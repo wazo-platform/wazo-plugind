@@ -4,7 +4,6 @@
 
 import os
 from hamcrest import (
-    all_of,
     assert_that,
     calling,
     contains,
@@ -12,12 +11,12 @@ from hamcrest import (
     empty,
     has_entry,
     has_entries,
-    has_item,
+    has_items,
     has_property,
     is_,
 )
 from requests import HTTPError
-from unittest import skip
+from mock import ANY
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from xivo_test_helpers import until
@@ -154,15 +153,33 @@ class TestPluginInstallation(BaseIntegrationTest):
                                                              name='uninstalled'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
 
-    @skip('to be enabled when async errors are implemented')
     def test_with_invalid_namespace(self):
-        assert_that(calling(self.install_plugin).with_args(url='/data/git/fail_namespace', method='git'),
-                    raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
+        result = self.install_plugin(url='/data/git/fail_namespace', method='git')
 
-    @skip('to be enabled when async errors are implemented')
+        errors = {
+            u'error_id': u'validation_error',
+            u'message': u'Validation error',
+            u'resource': u'plugins',
+            u'details': {
+                u'namespace': {
+                    u'message': ANY,
+                    u'constaint': u'^[a-z0-9]+$',
+                    u'constraint_id': u'regex'}}}
+        self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
+
     def test_with_invalid_name(self):
-        assert_that(calling(self.install_plugin).with_args(url='/data/git/fail_name', method='git'),
-                    raises(HTTPError).matching(has_property('response', has_property('status_code', 500))))
+        result = self.install_plugin(url='/data/git/fail_name', method='git')
+
+        errors = {
+            u'error_id': u'validation_error',
+            u'message': u'Validation error',
+            u'resource': u'plugins',
+            u'details': {
+                u'name': {
+                    u'message': ANY,
+                    u'constaint': u'^[a-z0-9-]+$',
+                    u'constraint_id': u'regex'}}}
+        self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
     def test_that_an_unauthorized_token_return_401(self):
         assert_that(calling(self.install_plugin).with_args(url='/data/git/repo', method='git', token='expired'),
@@ -212,13 +229,19 @@ class TestPluginInstallation(BaseIntegrationTest):
                 return True
         return False
 
-    def assert_status_received(self, msg_accumulator, operation, uuid, status, exclusive=False):
+    def assert_status_received(self, msg_accumulator, operation, uuid, status, exclusive=False, **kwargs):
         event_name = 'plugin_{}_progress'.format(operation)
 
         def match():
-            assert_that(msg_accumulator.accumulate(), has_item(all_of(
+            expected_data = ['status', status, 'uuid', uuid]
+            for key, value in kwargs.iteritems():
+                expected_data.append(key)
+                expected_data.append(value)
+
+            received_msg = msg_accumulator.accumulate()
+            assert_that(received_msg, has_items(
                 has_entry('name', event_name),
-                has_entry('data', has_entries('status', status, 'uuid', uuid)))))
+                has_entry('data', has_entries(*expected_data))))
 
         def exclusive_match():
             while True:

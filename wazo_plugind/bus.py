@@ -35,8 +35,9 @@ class StatusPublisher(object):
         ctx.log(logger.debug, 'publishing %s', event)
         self._publisher.publish(event)
 
-    def _publish_error(self, Event, ctx, error_id, message):
-        errors = {'error_id': error_id, 'message': message, 'resource': 'plugins', 'details': {}}
+    def _publish_error(self, Event, ctx, error_id, message, details=None):
+        details = details or {}
+        errors = {'error_id': error_id, 'message': message, 'resource': 'plugins', 'details': details}
         return self._publish(Event, ctx, 'error', errors=errors)
 
     def run(self):
