@@ -27,6 +27,9 @@ class PluginService(object):
     def count(self):
         return self._plugin_db.count()
 
+    def count_from_market(self):
+        return 0
+
     def create(self, url, method, **kwargs):
         from .tasks import package_and_install
         ctx = Context(self._config, url=url, method=method, install_args=kwargs)
@@ -36,6 +39,9 @@ class PluginService(object):
 
     def list_(self):
         return self._plugin_db.list_()
+
+    def list_from_market(self):
+        []
 
     def delete(self, namespace, name):
         ctx = Context(self._config, namespace=namespace, name=name)

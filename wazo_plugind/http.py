@@ -46,6 +46,23 @@ class Config(_AuthentificatedResource):
         super().add_resource(api, *args, **kwargs)
 
 
+class Market(_AuthentificatedResource):
+
+    api_path = '/market'
+
+    @required_acl('plugind.market.read')
+    def get(self):
+        return {
+            'items': self.plugin_service.list_from_market(),
+            'total': self.plugin_service.count_from_market(),
+        }
+
+    @classmethod
+    def add_resource(cls, api, *args, **kwargs):
+        cls.plugin_service = kwargs['plugin_service']
+        super().add_resource(api, *args, **kwargs)
+
+
 class Plugins(_AuthentificatedResource):
 
     api_path = '/plugins'
@@ -112,6 +129,7 @@ def new_app(config, *args, **kwargs):
     api = Api(app, prefix='/0.1')
     Swagger.add_resource(api, *args, **kwargs)
     Config.add_resource(api, config, *args, **kwargs)
+    Market.add_resource(api, config, *args, **kwargs)
     Plugins.add_resource(api, config, *args, **kwargs)
     PluginsItem.add_resource(api, config, *args, **kwargs)
     if cors_config.pop('enabled', False):
