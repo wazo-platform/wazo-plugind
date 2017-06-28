@@ -153,6 +153,20 @@ class TestPluginInstallation(BaseIntegrationTest):
                                                              name='uninstalled'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
 
+    def test_with_a_max_version_too_small(self):
+        result = self.install_plugin(url='/data/git/max_version', method='git')
+
+        errors = {
+            u'error_id': u'validation_error',
+            u'message': u'Validation error',
+            u'resource': u'plugins',
+            u'details': {
+                u'max_wazo_version': {
+                    u'message': ANY,
+                    u'constaint': ANY,
+                    u'constraint_id': u'range'}}}
+        self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
+
     def test_with_invalid_namespace(self):
         result = self.install_plugin(url='/data/git/fail_namespace', method='git')
 
