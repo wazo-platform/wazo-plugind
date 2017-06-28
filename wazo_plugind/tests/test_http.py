@@ -45,6 +45,7 @@ class TestMarket(HTTPAppTestCase):
         status_code, body = self.get()
 
         expected = {'total': self.plugin_service.count_from_market.return_value,
+                    'filtered': self.plugin_service.count_from_market.return_value,
                     'items': self.plugin_service.list_from_market.return_value}
         assert_that(body, equal_to(expected))
         assert_that(status_code, equal_to(200))

@@ -193,6 +193,9 @@ definitions:
       total:
         type: integer
         description: The number of plugins available on the market
+      filtered:
+        type: integer
+        description: The number of plugins matching the given search
       items:
         type: array
         items:

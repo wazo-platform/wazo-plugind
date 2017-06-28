@@ -60,6 +60,7 @@ class Market(_AuthentificatedResource):
         return {
             'items': self.plugin_service.list_from_market(market_proxy, **list_params),
             'total': self.plugin_service.count_from_market(market_proxy, **list_params),
+            'filtered': self.plugin_service.count_from_market(market_proxy, filtered=True, **list_params)
         }
 
     @classmethod

@@ -72,7 +72,10 @@ class MarketDB(object):
         self._market_proxy = market_proxy
 
     def count(self, *args, **kwargs):
-        return len(self._market_proxy.get_content())
+        content = self._market_proxy.get_content()
+        if kwargs.get('filtered', False):
+            content = list(self._filter(content, **kwargs))
+        return len(content)
 
     def list_(self, *args, **kwargs):
         content = self._market_proxy.get_content()
