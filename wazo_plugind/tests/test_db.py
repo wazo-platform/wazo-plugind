@@ -6,7 +6,7 @@ from hamcrest import assert_that, contains, equal_to
 from mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
-from ..db import MarketDB, MarketProxy, Plugin
+from ..db import iin, normalize_caseless, MarketDB, MarketProxy, Plugin
 
 
 class TestPlugin(TestCase):
@@ -42,17 +42,56 @@ class TestPlugin(TestCase):
             assert_that(plugin.is_installed(version), equal_to(True))
 
 
+class TestIIn(TestCase):
+
+    def test_iin(self):
+        truth = [
+            ('ç', 'François'),
+            ('franc', 'François'),
+        ]
+        for left, right in truth:
+            result = iin(left, right)
+            assert_that(result, equal_to(True))
+
+
+class TestNormalizeCaseless(TestCase):
+
+    def test_normalize_caseless(self):
+        data = [
+            ('abc', 'abc'),
+            ('pépé', 'pepe'),
+            ('PÉPÉ', 'pepe'),
+            ('François', 'francois'),
+        ]
+
+        for data, expected in data:
+            result = normalize_caseless(data)
+            assert_that(result, equal_to(expected))
+
+
 class TestMarketDB(TestCase):
 
     def setUp(self):
         self.content = [
-            {'name': 'a', 'namespace': 'c'},
-            {'name': 'b'},
+            {'name': 'a', 'namespace': 'c', 'tags': ['foobar']},
+            {'name': 'b', 'tags': ['pépé']},
             {'namespace': 'a'},
         ]
         self.market_proxy = Mock(MarketProxy)
         self.market_proxy.get_content.return_value = self.content
         self.db = MarketDB(self.market_proxy)
+
+    def test_search(self):
+        a, b, c = self.content
+
+        results = self.db.list_(search='a')
+        assert_that(results, contains(a, c))
+
+        results = self.db.list_(search='foo')
+        assert_that(results, contains(a))
+
+        results = self.db.list_(search='pe')
+        assert_that(results, contains(b))
 
     def test_sort_direction(self):
         a, b, c = self.content

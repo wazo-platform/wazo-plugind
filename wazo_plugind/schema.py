@@ -70,6 +70,7 @@ class MarketListRequestSchema(Schema):
     order = fields.String(validate=Length(1), missing='name')
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=0)
+    search = fields.String(missing=None)
 
     @pre_load
     def ensure_dict(self, data):

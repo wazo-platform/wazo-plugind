@@ -5,6 +5,7 @@ import logging
 import os
 import re
 import yaml
+from unidecode import unidecode
 import requests
 from .exceptions import InvalidPackageNameException
 from . import debian
@@ -22,6 +23,18 @@ class AlwaysLast(object):
 
 
 LAST_ITEM = AlwaysLast()
+
+
+def normalize_caseless(s):
+    return unidecode(s).casefold()
+
+
+def iin(left, right):
+    """same as in for string but case incensitive"""
+    if not isinstance(left, (str)) or not isinstance(right, (str)):
+        return left in right
+
+    return normalize_caseless(left) in normalize_caseless(right)
 
 
 class MarketProxy(object):
@@ -63,9 +76,28 @@ class MarketDB(object):
 
     def list_(self, *args, **kwargs):
         content = self._market_proxy.get_content()
+        content = self._filter(content, **kwargs)
         content = self._sort(content, **kwargs)
         content = self._paginate(content, **kwargs)
         return content
+
+    @staticmethod
+    def _filter(content, search=None, **kwargs):
+        if not search:
+            return content
+
+        def f(item):
+            for v in item.values():
+                if iin(search, v):
+                    return True
+                if not isinstance(v, (list, tuple)):
+                    continue
+                for element in v:
+                    if iin(search, element):
+                        return True
+            return False
+
+        return filter(f, content)
 
     @staticmethod
     def _paginate(content, limit=None, offset=0, **kwargs):
