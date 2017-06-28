@@ -32,7 +32,10 @@ def normalize_caseless(s):
 def iin(left, right):
     """same as in for string but case incensitive"""
     if not isinstance(left, (str)) or not isinstance(right, (str)):
-        return left in right
+        try:
+            return left in right
+        except TypeError:
+            return False
 
     return normalize_caseless(left) in normalize_caseless(right)
 

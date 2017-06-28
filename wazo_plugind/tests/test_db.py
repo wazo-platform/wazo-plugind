@@ -53,6 +53,13 @@ class TestIIn(TestCase):
             result = iin(left, right)
             assert_that(result, equal_to(True))
 
+        falsy = [
+            ('a', 42),
+        ]
+        for left, right in falsy:
+            result = iin(left, right)
+            assert_that(result, equal_to(False))
+
 
 class TestNormalizeCaseless(TestCase):
 
