@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from marshmallow import fields, Schema, validate, pre_load
+from .config import _MAX_PLUGIN_FORMAT_VERSION
+
+_DEFAULT_PLUGIN_FORMAT_VERSION = 0
 
 
 fields.String.default_error_messages = {
@@ -85,6 +88,16 @@ class Regexp(validate.Regexp):
             'constraint': self.regex.pattern,
             'message': msg,
         }
+
+
+class PluginMetadataSchema(Schema):
+
+    name = fields.String(validate=Regexp(r'^[a-z0-9-]+$'), required=True)
+    namespace = fields.String(validate=Regexp(r'^[a-z0-9]+$'), required=True)
+    version = fields.String(required=True)
+    plugin_format_version = fields.Integer(validate=Range(min=0,
+                                                          max=_MAX_PLUGIN_FORMAT_VERSION),
+                                           missing=_DEFAULT_PLUGIN_FORMAT_VERSION)
 
 
 class GitInstallOptionsSchema(Schema):
