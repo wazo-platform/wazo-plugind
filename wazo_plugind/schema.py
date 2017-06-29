@@ -73,6 +73,20 @@ class Range(validate.Range):
         }
 
 
+class Regexp(validate.Regexp):
+
+    constraint_id = 'regex'
+
+    def _format_error(self, value):
+        msg = super()._format_error(value)
+
+        return {
+            'constraint_id': self.constraint_id,
+            'constraint': self.regex.pattern,
+            'message': msg,
+        }
+
+
 class GitInstallOptionsSchema(Schema):
 
     ref = fields.String(missing='master', validate=Length(min=1), required=False)
