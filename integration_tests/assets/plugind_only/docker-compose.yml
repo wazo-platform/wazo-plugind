@@ -13,10 +13,11 @@ plugind:
     - rabbitmq
   environment:
     - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
-    - WAZO_VERSION="17.10"
+    - WAZO_VERSION=17.10
   volumes:
     - "../../..:/usr/src/wazo-plugind"
     - "./git:/data/git"
+    - "./etc/wazo-plugind/key.yml:/etc/wazo-plugind/key.yml"
     - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
     - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"
     - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
