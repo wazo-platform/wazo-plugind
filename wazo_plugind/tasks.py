@@ -155,7 +155,7 @@ class _PackageBuilder(object):
         )
 
     def validate(self, ctx):
-        validator = helpers.Validator(ctx.config)
+        validator = helpers.Validator.new_from_config(ctx.config)
         validator.validate(ctx.metadata)
         return ctx
 

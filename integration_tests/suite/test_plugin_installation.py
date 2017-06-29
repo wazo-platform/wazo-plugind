@@ -167,6 +167,20 @@ class TestPluginInstallation(BaseIntegrationTest):
                     u'constraint_id': u'range'}}}
         self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
+    def test_with_a_min_version_too_high(self):
+        result = self.install_plugin(url='/data/git/min_version', method='git')
+
+        errors = {
+            u'error_id': u'validation_error',
+            u'message': u'Validation error',
+            u'resource': u'plugins',
+            u'details': {
+                u'min_wazo_version': {
+                    u'message': ANY,
+                    u'constraint': ANY,
+                    u'constraint_id': u'range'}}}
+        self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
+
     def test_with_invalid_namespace(self):
         result = self.install_plugin(url='/data/git/fail_namespace', method='git')
 

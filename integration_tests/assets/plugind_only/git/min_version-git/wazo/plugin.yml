@@ -1,0 +1,4 @@
+namespace: plugindtests
+name: max-version
+version: 0.0.1
+min_wazo_version: 17.11
