@@ -4,14 +4,12 @@
 import re
 import subprocess
 from . import db
-from .config import _MAX_PLUGIN_FORMAT_VERSION
 from .exceptions import (
-    InvalidNamespaceException,
-    InvalidNameException,
-    InvalidPluginFormatVersion,
-    MissingFieldException,
     PluginAlreadyInstalled,
+    PluginValidationException,
 )
+from .schema import PluginMetadataSchema
+
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
 
 
@@ -36,16 +34,9 @@ class Validator(object):
         self._db = db.PluginDB(config)
 
     def validate(self, metadata):
-        for field in self.required_fields:
-            if field not in metadata:
-                raise MissingFieldException(field)
-        namespace, name = metadata['namespace'], metadata['name']
-        version = metadata['version']
-        if self.valid_namespace.match(namespace) is None:
-            raise InvalidNamespaceException()
-        if self.valid_name.match(name) is None:
-            raise InvalidNameException()
-        if int(metadata.get('plugin_format_version', _DEFAULT_PLUGIN_FORMAT_VERSION)) > _MAX_PLUGIN_FORMAT_VERSION:
-            raise InvalidPluginFormatVersion(_MAX_PLUGIN_FORMAT_VERSION)
-        if self._db.is_installed(namespace, name, version):
-            raise PluginAlreadyInstalled(namespace, name)
+        body, errors = PluginMetadataSchema().load(metadata)
+        if errors:
+            raise PluginValidationException(errors)
+
+        if self._db.is_installed(metadata['namespace'], metadata['name'], metadata['version']):
+            raise PluginAlreadyInstalled(metadata['namespace'], metadata['name'])

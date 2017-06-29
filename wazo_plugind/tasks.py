@@ -8,8 +8,8 @@ import yaml
 import time
 from threading import Thread
 from .celery import worker
-from . import bus, db, debian, download, helpers
-from .exceptions import InvalidMetadata, PluginAlreadyInstalled
+from . import bus, debian, download, helpers
+from .exceptions import PluginAlreadyInstalled, PluginValidationException
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
@@ -69,11 +69,9 @@ def package_and_install(ctx):
         ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
         builder.clean(ctx)
         publisher.install(ctx, 'completed')
-    except InvalidMetadata as e:
-        ctx.log(logger.info, 'Plugin validation exception')
-        error_id = 'validation_error'
-        message = 'Validation error'
-        publisher.install_error(ctx, error_id, message, details=e.details)
+    except PluginValidationException as e:
+        ctx.log(logger.info, 'Plugin validation exception %s', e.details)
+        publisher.install_error(ctx, e.error_id, e.message, details=e.details)
     except Exception:
         debug_enabled = ctx.config['debug']
         ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)

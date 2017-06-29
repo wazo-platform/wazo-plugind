@@ -2,8 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
-from hamcrest import assert_that, calling, raises
-from mock import patch
+from hamcrest import assert_that, calling, has_properties
+from mock import ANY, patch
+from xivo_test_helpers.hamcrest.raises import raises
 from ..helpers import Validator
 from ..config import _DEFAULT_CONFIG, _MAX_PLUGIN_FORMAT_VERSION
 from .. import exceptions
@@ -18,26 +19,69 @@ class TestValidator(TestCase):
         metadata = self.new_metadata()
         metadata.pop('version', None)
 
-        assert_that(calling(self.validator.validate).with_args(metadata),
-                    raises(exceptions.MissingFieldException))
+        expected_details = {
+            'version': {'constraint_id': 'required',
+                        'constraint': 'required',
+                        'message': ANY}
+        }
+        assert_that(
+            calling(self.validator.validate).with_args(metadata),
+            raises(exceptions.PluginValidationException).matching(
+                has_properties('error_id', 'validation_error',
+                               'message', 'Validation error',
+                               'details', expected_details)
+            ),
+        )
 
     def test_that_invalid_name_raises(self):
         metadata = self.new_metadata(name='no_underscore_allowed')
 
-        assert_that(calling(self.validator.validate).with_args(metadata),
-                    raises(exceptions.InvalidNameException))
+        expected_details = {
+            'name': {'constraint_id': 'regex',
+                     'constraint': ANY,
+                     'message': ANY}
+        }
+        assert_that(
+            calling(self.validator.validate).with_args(metadata),
+            raises(exceptions.PluginValidationException).matching(
+                has_properties('error_id', 'validation_error',
+                               'message', 'Validation error',
+                               'details', expected_details)
+            ),
+        )
 
     def test_that_invalid_namespace_raises(self):
         metadata = self.new_metadata(namespace='no-dash-allowed')
 
-        assert_that(calling(self.validator.validate).with_args(metadata),
-                    raises(exceptions.InvalidNamespaceException))
+        expected_details = {
+            'namespace': {'constraint_id': 'regex',
+                          'constraint': ANY,
+                          'message': ANY}
+        }
+        assert_that(
+            calling(self.validator.validate).with_args(metadata),
+            raises(exceptions.PluginValidationException).matching(
+                has_properties('error_id', 'validation_error',
+                               'message', 'Validation error',
+                               'details', expected_details)
+            ),
+        )
 
     def test_plugin_format_version_from_the_future(self):
         metadata = self.new_metadata(plugin_format_version=_MAX_PLUGIN_FORMAT_VERSION + 1)
 
-        assert_that(calling(self.validator.validate).with_args(metadata),
-                    raises(exceptions.InvalidPluginFormatVersion))
+        expected_details = {
+            'plugin_format_version': {'constraint_id': 'range',
+                                      'constraint': [0, _MAX_PLUGIN_FORMAT_VERSION],
+                                      'message': ANY}}
+        assert_that(
+            calling(self.validator.validate).with_args(metadata),
+            raises(exceptions.PluginValidationException).matching(
+                has_properties('error_id', 'validation_error',
+                               'message', 'Validation error',
+                               'details', expected_details)
+            ),
+        )
 
     def test_plugin_already_installed(self):
         metadata = self.new_metadata()
