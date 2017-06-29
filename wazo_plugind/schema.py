@@ -59,6 +59,20 @@ class Range(validate.Range):
         }
 
 
+class Range(validate.Range):
+
+    constraint_id = 'range'
+
+    def _format_error(self, value, *args):
+        msg = super()._format_error(value, *args)
+
+        return {
+            'constraint_id': self.constraint_id,
+            'constraint': [self.min, self.max],
+            'message': msg,
+        }
+
+
 class GitInstallOptionsSchema(Schema):
 
     ref = fields.String(missing='master', validate=Length(min=1), required=False)
