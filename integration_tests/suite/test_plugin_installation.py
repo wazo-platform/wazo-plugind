@@ -163,7 +163,7 @@ class TestPluginInstallation(BaseIntegrationTest):
             u'details': {
                 u'max_wazo_version': {
                     u'message': ANY,
-                    u'constaint': ANY,
+                    u'constraint': ANY,
                     u'constraint_id': u'range'}}}
         self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
@@ -177,7 +177,7 @@ class TestPluginInstallation(BaseIntegrationTest):
             u'details': {
                 u'namespace': {
                     u'message': ANY,
-                    u'constaint': u'^[a-z0-9]+$',
+                    u'constraint': u'^[a-z0-9]+$',
                     u'constraint_id': u'regex'}}}
         self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
@@ -191,7 +191,7 @@ class TestPluginInstallation(BaseIntegrationTest):
             u'details': {
                 u'name': {
                     u'message': ANY,
-                    u'constaint': u'^[a-z0-9-]+$',
+                    u'constraint': u'^[a-z0-9-]+$',
                     u'constraint_id': u'regex'}}}
         self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
