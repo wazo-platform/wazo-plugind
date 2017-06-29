@@ -8,7 +8,7 @@ from .exceptions import (
     PluginAlreadyInstalled,
     PluginValidationException,
 )
-from .schema import PluginMetadataSchema
+from .schema import new_plugin_metadata_schema
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
 
@@ -34,7 +34,7 @@ class Validator(object):
         self._db = db.PluginDB(config)
 
     def validate(self, metadata):
-        body, errors = PluginMetadataSchema().load(metadata)
+        body, errors = new_plugin_metadata_schema().load(metadata)
         if errors:
             raise PluginValidationException(errors)
 

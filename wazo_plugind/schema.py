@@ -90,14 +90,17 @@ class Regexp(validate.Regexp):
         }
 
 
-class PluginMetadataSchema(Schema):
+def new_plugin_metadata_schema():
+    class PluginMetadataSchema(Schema):
 
-    name = fields.String(validate=Regexp(r'^[a-z0-9-]+$'), required=True)
-    namespace = fields.String(validate=Regexp(r'^[a-z0-9]+$'), required=True)
-    version = fields.String(required=True)
-    plugin_format_version = fields.Integer(validate=Range(min=0,
-                                                          max=_MAX_PLUGIN_FORMAT_VERSION),
-                                           missing=_DEFAULT_PLUGIN_FORMAT_VERSION)
+        name = fields.String(validate=Regexp(r'^[a-z0-9-]+$'), required=True)
+        namespace = fields.String(validate=Regexp(r'^[a-z0-9]+$'), required=True)
+        version = fields.String(required=True)
+        plugin_format_version = fields.Integer(validate=Range(min=0,
+                                                              max=_MAX_PLUGIN_FORMAT_VERSION),
+                                               missing=_DEFAULT_PLUGIN_FORMAT_VERSION)
+
+    return PluginMetadataSchema()
 
 
 class GitInstallOptionsSchema(Schema):
