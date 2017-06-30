@@ -67,7 +67,7 @@ class GitInstallOptionsSchema(Schema):
 class MarketListRequestSchema(Schema):
 
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
-    order = fields.String(validate=Length(1), missing='name')
+    order = fields.String(validate=Length(min=1), missing='name')
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=0)
     search = fields.String(missing=None)
