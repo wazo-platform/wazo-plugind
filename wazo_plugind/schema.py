@@ -67,20 +67,6 @@ class Range(validate.Range):
         }
 
 
-class Range(validate.Range):
-
-    constraint_id = 'range'
-
-    def _format_error(self, value, *args):
-        msg = super()._format_error(value, *args)
-
-        return {
-            'constraint_id': self.constraint_id,
-            'constraint': [self.min, self.max],
-            'message': msg,
-        }
-
-
 class Regexp(validate.Regexp):
 
     constraint_id = 'regex'
