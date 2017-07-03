@@ -1,0 +1,2 @@
+market:
+  url: "http://market:8000/index.json"
