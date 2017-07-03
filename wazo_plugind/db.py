@@ -5,10 +5,119 @@ import logging
 import os
 import re
 import yaml
+from unidecode import unidecode
+import requests
 from .exceptions import InvalidPackageNameException
 from . import debian
 
 logger = logging.getLogger(__name__)
+
+
+class AlwaysLast(object):
+
+    def __lt__(self, other):
+        return False
+
+    def __gt__(self, other):
+        return True
+
+
+LAST_ITEM = AlwaysLast()
+
+
+def normalize_caseless(s):
+    return unidecode(s).casefold()
+
+
+def iin(left, right):
+    """same as in for string but case incensitive"""
+    if not isinstance(left, (str)) or not isinstance(right, (str)):
+        try:
+            return left in right
+        except TypeError:
+            return False
+
+    return normalize_caseless(left) in normalize_caseless(right)
+
+
+class MarketProxy(object):
+    """The MarketProxy is an interface to the plugin market
+
+    The proxy should be used during the execution of an HTTP request. It will fetch the content
+    of the market and store it to allow multiple "queries" without having to do multiple HTTP
+    requests on the "real" market.
+
+    The proxy will only fetch the content of the market once, it is meant to be instanciated at
+    each received HTTP request.
+    """
+
+    def __init__(self, market_config):
+        self._market_url = market_config['url']
+        self._verify = market_config['verify_certificate']
+        self._content = {}
+
+    def get_content(self):
+        if not self._content:
+            self._fetch_plugin_list()
+        return self._content
+
+    def _fetch_plugin_list(self):
+        response = requests.get(self._market_url, verify=self._verify)
+        if response.status_code != 200:
+            logger.info('Failed to fetch plugins from the market %s', response.status_code)
+            return
+        self._content = response.json()['items']
+
+
+class MarketDB(object):
+
+    def __init__(self, market_proxy):
+        self._market_proxy = market_proxy
+
+    def count(self, *args, **kwargs):
+        content = self._market_proxy.get_content()
+        if kwargs.get('filtered', False):
+            content = list(self._filter(content, **kwargs))
+        return len(content)
+
+    def list_(self, *args, **kwargs):
+        content = self._market_proxy.get_content()
+        content = self._filter(content, **kwargs)
+        content = self._sort(content, **kwargs)
+        content = self._paginate(content, **kwargs)
+        return content
+
+    @staticmethod
+    def _filter(content, search=None, **kwargs):
+        if not search:
+            return content
+
+        def f(item):
+            for v in item.values():
+                if iin(search, v):
+                    return True
+                if not isinstance(v, (list, tuple)):
+                    continue
+                for element in v:
+                    if iin(search, element):
+                        return True
+            return False
+
+        return filter(f, content)
+
+    @staticmethod
+    def _paginate(content, limit=None, offset=0, **kwargs):
+        end = limit + offset if limit else None
+        return content[offset:end]
+
+    @staticmethod
+    def _sort(content, order=None, direction=None, **kwargs):
+        reverse = direction == 'desc'
+
+        def key(element):
+            return element.get(order, LAST_ITEM)
+
+        return sorted(content, key=key, reverse=reverse)
 
 
 class PluginDB(object):

@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
-from hamcrest import assert_that, equal_to
-from mock import patch
+from hamcrest import assert_that, contains, equal_to
+from mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
-from ..db import Plugin
+from ..db import iin, normalize_caseless, MarketDB, MarketProxy, Plugin
 
 
 class TestPlugin(TestCase):
@@ -40,3 +40,104 @@ class TestPlugin(TestCase):
 
         with patch.object(plugin, 'metadata', return_value={'version': version}):
             assert_that(plugin.is_installed(version), equal_to(True))
+
+
+class TestIIn(TestCase):
+
+    def test_iin(self):
+        truth = [
+            ('ç', 'François'),
+            ('franc', 'François'),
+        ]
+        for left, right in truth:
+            result = iin(left, right)
+            assert_that(result, equal_to(True))
+
+        falsy = [
+            ('a', 42),
+        ]
+        for left, right in falsy:
+            result = iin(left, right)
+            assert_that(result, equal_to(False))
+
+
+class TestNormalizeCaseless(TestCase):
+
+    def test_normalize_caseless(self):
+        data = [
+            ('abc', 'abc'),
+            ('pépé', 'pepe'),
+            ('PÉPÉ', 'pepe'),
+            ('François', 'francois'),
+        ]
+
+        for data, expected in data:
+            result = normalize_caseless(data)
+            assert_that(result, equal_to(expected))
+
+
+class TestMarketDB(TestCase):
+
+    def setUp(self):
+        self.content = [
+            {'name': 'a', 'namespace': 'c', 'tags': ['foobar']},
+            {'name': 'b', 'tags': ['pépé']},
+            {'namespace': 'a'},
+        ]
+        self.market_proxy = Mock(MarketProxy)
+        self.market_proxy.get_content.return_value = self.content
+        self.db = MarketDB(self.market_proxy)
+
+    def test_search(self):
+        a, b, c = self.content
+
+        results = self.db.list_(search='a')
+        assert_that(results, contains(a, c))
+
+        results = self.db.list_(search='foo')
+        assert_that(results, contains(a))
+
+        results = self.db.list_(search='pe')
+        assert_that(results, contains(b))
+
+    def test_sort_direction(self):
+        a, b, c = self.content
+
+        results = self.db.list_(order='name', direction='asc')
+        assert_that(results, contains(a, b, c))
+
+        results = self.db.list_(order='name', direction='desc')
+        assert_that(results, contains(c, b, a))
+
+    def test_sort_order(self):
+        a, b, c = self.content
+
+        results = self.db.list_(order='name', direction='asc')
+        assert_that(results, contains(a, b, c))
+
+        results = self.db.list_(order='namespace', direction='asc')
+        assert_that(results, contains(c, a, b))
+
+    def test_limit(self):
+        a, b, c = self.content
+
+        results = self.db.list_(limit=2)
+        assert_that(results, contains(a, b))
+
+        results = self.db.list_(limit=1)
+        assert_that(results, contains(a))
+
+    def test_offset(self):
+        a, b, c = self.content
+
+        results = self.db.list_(offset=1)
+        assert_that(results, contains(b, c))
+
+        results = self.db.list_(offset=2)
+        assert_that(results, contains(c))
+
+    def test_limit_and_offset(self):
+        a, b, c = self.content
+
+        results = self.db.list_(limit=1, offset=1)
+        assert_that(results, contains(b))

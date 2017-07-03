@@ -8,8 +8,8 @@ from flask_restful import Api, Resource
 from pkg_resources import resource_string
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
-from .schema import PluginInstallSchema
-from .exceptions import InvalidInstallParamException
+from .schema import MarketListRequestSchema, PluginInstallSchema
+from .exceptions import InvalidInstallParamException, InvalidListParamException
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +43,29 @@ class Config(_AuthentificatedResource):
     @classmethod
     def add_resource(cls, api, config, *args, **kwargs):
         cls._config = config
+        super().add_resource(api, *args, **kwargs)
+
+
+class Market(_AuthentificatedResource):
+
+    api_path = '/market'
+
+    @required_acl('plugind.market.read')
+    def get(self):
+        list_params, errors = MarketListRequestSchema().load(request.args)
+        if errors:
+            raise InvalidListParamException(errors)
+
+        market_proxy = self.plugin_service.new_market_proxy()
+        return {
+            'items': self.plugin_service.list_from_market(market_proxy, **list_params),
+            'total': self.plugin_service.count_from_market(market_proxy, **list_params),
+            'filtered': self.plugin_service.count_from_market(market_proxy, filtered=True, **list_params)
+        }
+
+    @classmethod
+    def add_resource(cls, api, *args, **kwargs):
+        cls.plugin_service = kwargs['plugin_service']
         super().add_resource(api, *args, **kwargs)
 
 
@@ -112,6 +135,7 @@ def new_app(config, *args, **kwargs):
     api = Api(app, prefix='/0.1')
     Swagger.add_resource(api, *args, **kwargs)
     Config.add_resource(api, config, *args, **kwargs)
+    Market.add_resource(api, config, *args, **kwargs)
     Plugins.add_resource(api, config, *args, **kwargs)
     PluginsItem.add_resource(api, config, *args, **kwargs)
     if cors_config.pop('enabled', False):

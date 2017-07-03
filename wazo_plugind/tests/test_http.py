@@ -27,7 +27,45 @@ with patch('xivo.auth_verifier.AuthVerifier', AuthVerifierMock):
     from ..http import new_app
 
 
-class TestPlugins(TestCase):
+class HTTPAppTestCase(TestCase):
+
+    def setUp(self):
+        config = {'rest_api': {'cors': {'enabled': False}},
+                  'auth': {'host': 'foobar'}}
+        self.plugin_service = Mock(PluginService)
+        self.app = new_app(config, plugin_service=self.plugin_service).test_client()
+
+
+class TestMarket(HTTPAppTestCase):
+
+    def test_that_get_returns_results_from_the_service(self):
+        self.plugin_service.count_from_market.return_value = 0
+        self.plugin_service.list_from_market.return_value = []
+
+        status_code, body = self.get()
+
+        expected = {'total': self.plugin_service.count_from_market.return_value,
+                    'filtered': self.plugin_service.count_from_market.return_value,
+                    'items': self.plugin_service.list_from_market.return_value}
+        assert_that(body, equal_to(expected))
+        assert_that(status_code, equal_to(200))
+
+    def test_errors_on_invalid_limit(self):
+        self.plugin_service.count_from_market.return_value = 0
+        self.plugin_service.list_from_market.return_value = []
+
+        status_code, body = self.get(limit=-1)
+
+        assert_that(status_code, equal_to(400))
+
+    def get(self, **kwargs):
+        result = self.app.get('/0.1/market',
+                              query_string=kwargs,
+                              headers={'content-type': 'application/json'})
+        return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
+
+
+class TestPlugins(HTTPAppTestCase):
 
     def setUp(self):
         config = {'rest_api': {'cors': {'enabled': False}},

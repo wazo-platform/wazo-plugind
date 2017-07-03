@@ -1,0 +1,233 @@
+{
+  "items": [{
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-user",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-user",
+	"display_name": "Users",
+	"tags": ["beta", "users"],
+	"author": "Wazo Team",
+	"name": "admin-ui-user",
+	"namespace": "official",
+	"icon": "user",
+	"color": "aqua"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-group",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-group",
+	"display_name": "Groups",
+	"tags": ["beta", "users"],
+	"author": "Wazo Team",
+	"name": "admin-ui-group",
+	"namespace": "official",
+	"icon": "users",
+	"color": "aqua"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-conference",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-conference",
+	"display_name": "Conferences",
+	"tags": ["beta", "application"],
+	"author": "Wazo Team",
+	"name": "admin-ui-conference",
+	"namespace": "official",
+	"icon": "compress",
+	"color": "yellow"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-parking-lot",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-parking-lot",
+	"display_name": "Parking",
+	"tags": ["beta", "application"],
+	"author": "Wazo Team",
+	"name": "admin-ui-parking-lot",
+	"namespace": "official",
+	"icon": "automobile",
+	"color": "yellow"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-switchboard",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-switchboard",
+	"display_name": "Switchboard",
+	"tags": ["beta", "application"],
+	"author": "Wazo Team",
+	"name": "admin-ui-switchboard",
+	"namespace": "official",
+	"icon": "desktop",
+	"color": "yellow"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-voicemail",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-voicemail",
+	"display_name": "Voicemail",
+	"tags": ["beta", "application"],
+	"author": "Wazo Team",
+	"name": "admin-ui-voicemail",
+	"namespace": "official",
+	"icon": "envelope",
+	"color": "yellow"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-cdr",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-cdr",
+	"display_name": "CDR",
+	"tags": ["beta", "application"],
+	"color": "yellow",
+	"author": "Wazo Team",
+	"name": "admin-ui-cdr",
+	"namespace": "official",
+	"icon": "newspaper-o"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-incall",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-incall",
+	"display_name": "Incalls",
+	"tags": ["beta", "routing"],
+	"color": "green",
+	"author": "Wazo Team",
+	"name": "admin-ui-incall",
+	"namespace": "official",
+	"icon": "long-arrow-right"
+	}, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-outcall",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-outcall",
+	"display_name": "Outcalls",
+	"tags": ["beta", "routing"],
+	"color": "green",
+	"author": "Wazo Team",
+	"name": "admin-ui-outcall",
+	"namespace": "official",
+	"icon": "long-arrow-left"
+	}, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-paging",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-paging",
+	"display_name": "Paging",
+	"tags": ["beta", "application"],
+	"color": "yellow",
+	"author": "Wazo Team",
+	"name": "admin-ui-paging",
+	"namespace": "official",
+	"icon": "bullhorn"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-moh",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-moh",
+	"display_name": "Music On Hold",
+	"tags": ["beta", "application"],
+	"color": "yellow",
+	"author": "Wazo Team",
+	"name": "admin-ui-moh",
+	"namespace": "official",
+	"icon": "music"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-trunk",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-trunk",
+	"display_name": "Trunks",
+	"tags": ["beta", "routing"],
+	"color": "green",
+	"author": "Wazo Team",
+	"name": "admin-ui-trunk",
+	"namespace": "official",
+	"icon": "server"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-extension",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-extension",
+	"display_name": "Extensions",
+	"tags": ["beta", "internal"],
+	"color": "red",
+	"author": "Wazo Team",
+	"name": "admin-ui-extension",
+	"namespace": "official",
+	"icon": "gears"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-context",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-context",
+	"display_name": "Context",
+	"tags": ["beta", "internal"],
+	"color": "red",
+	"author": "Wazo Team",
+	"name": "admin-ui-context",
+	"namespace": "official",
+	"icon": "gears"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-ivr",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-ivr",
+	"display_name": "IVR",
+	"tags": ["beta", "application"],
+	"color": "yellow",
+	"author": "Wazo Team",
+	"name": "admin-ui-ivr",
+	"namespace": "official",
+	"icon": "navicon"
+  }, {
+	"url": "https://github.com/wazo-pbx/wazo-admin-ui-device",
+	"homepage": "https://github.com/wazo-pbx/wazo-admin-ui-device",
+	"display_name": "Devices",
+	"tags": ["beta", "internal"],
+	"color": "red",
+	"author": "Wazo Team",
+	"name": "admin-ui-device",
+	"namespace": "official",
+	"icon": "gear"
+  }, {
+	"url": "https://github.com/sboily/incrediblepbx-firewall",
+	"homepage": "https://github.com/sboily/incrediblepbx-firewall",
+	"display_name": "Travelin' Man 3",
+	"tags": ["beta", "incrediblepbx", "application"],
+	"color": "yellow",
+	"author": "Ward Mundy",
+	"name": "firewall",
+	"namespace": "incrediblepbx",
+	"icon": "fire"
+  }, {
+	"url": "https://github.com/sboily/incrediblepbx-pbxstatus",
+	"homepage": "https://github.com/sboily/incrediblepbx-pbxstatus",
+	"display_name": "PBX Status",
+	"tags": ["beta", "incrediblepbx", "application"],
+	"color": "yellow",
+	"author": "Ward Mundy",
+	"name": "pbxstatus",
+	"namespace": "incrediblepbx",
+	"icon": "info"
+  }, {
+	"url": "https://github.com/sboily/incrediblepbx-moh",
+	"homepage": "https://github.com/sboily/incrediblepbx-moh",
+	"display_name": "Moh sounds",
+	"tags": ["beta", "incrediblepbx", "sounds"],
+	"color": "orange",
+	"author": "Ward Mundy",
+	"name": "moh",
+	"namespace": "incrediblepbx",
+	"icon": "music"
+  }, {
+	"url": "https://github.com/sboily/wazo-confgend-driver-followme",
+	"homepage": "https://github.com/sboily/wazo-confgend-driver-followme",
+	"display_name": "Follow Me",
+	"tags": ["beta", "application"],
+	"color": "yellow",
+	"author": "Sylvain Boily",
+	"name": "confgend-driver-followme",
+	"namespace": "sboily",
+	"icon": "mobile"
+  }, {
+	"url": "https://github.com/sboily/wazo-confgend-driver-pjsip",
+	"homepage": "https://github.com/sboily/wazo-confgend-driver-pjsip",
+	"display_name": "PJSIP driver",
+	"tags": ["experimental", "internal"],
+	"color": "red",
+	"author": "Sylvain Boily",
+	"name": "confgend-driver-pjsip",
+	"namespace": "sboily",
+	"icon": "gears"
+  }, {
+	"url": "https://github.com/sboily/wazo-plugind-queuemetrics-loway",
+	"homepage": "http://www.queuemetrics.com",
+	"display_name": "Queue Metrics",
+	"tags": ["loway", "connector", "callcenter"],
+	"color": "orange",
+	"author": "Loway",
+	"name": "queuemetrics",
+	"namespace": "loway",
+	"icon": "bar-chart"
+  }, {
+	"url": "https://github.com/sboily/wazo-plugind-ngrok",
+	"homepage": "http://www.ngrok.com",
+	"display_name": "Ngrok tunnel",
+	"tags": ["beta", "application"],
+	"color": "orange",
+	"author": "Sylvain Boily",
+	"name": "ngrok",
+	"namespace": "official",
+	"icon": "plane"
+  }]
+}

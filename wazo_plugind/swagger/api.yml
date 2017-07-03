@@ -39,6 +39,27 @@ paths:
       responses:
         '200':
           'description': The configuration of the service
+  /market:
+    get:
+      tags:
+        - plugin
+        - market
+      summary: List plugins available on the configured market
+      description: |
+        **Required ACL:** `plugind.market.read`
+
+        Allow the administrator to get a list of available plugins
+      parameters:
+      - $ref: '#/parameters/limit'
+      - $ref: '#/parameters/offset'
+      - $ref: '#/parameters/order'
+      - $ref: '#/parameters/direction'
+      - $ref: '#/parameters/search'
+      responses:
+        '200':
+          description: "The plugin list"
+          schema:
+            $ref: '#/definitions/GetMarketResult'
   /plugins:
     get:
       tags:
@@ -97,18 +118,51 @@ paths:
           $ref: '#/responses/NotFoundError'
 
 parameters:
-  namespace:
-    required: true
+  direction:
+    required: false
+    name: direction
+    in: query
     type: string
-    name: namespace
-    in: path
-    description: namespace's plugin
+    enum:
+    - asc
+    - desc
+    description: Sort list of items in 'asc' (ascending) or 'desc' (descending) order
+  limit:
+    required: false
+    name: limit
+    in: query
+    type: integer
+    description: Maximum number of items to return in the list
   name:
     required: true
     type: string
     name: name
     in: path
-    description: name's plugin
+    description: "The plugin's name"
+  namespace:
+    required: true
+    type: string
+    name: namespace
+    in: path
+    description: "The plugin's namespace"
+  offset:
+    required: false
+    name: offset
+    in: query
+    type: integer
+    description: Number of items to skip over in the list. Useful for pagination.
+  order:
+    required: false
+    name: order
+    in: query
+    type: string
+    description: Name of the field to use for sorting the list of items returned.
+  search:
+    required: false
+    name: search
+    in: query
+    type: string
+    description: Filter list of items
 
 definitions:
   Error:
@@ -133,6 +187,20 @@ definitions:
         description: Time when the error occured
         type: number
         format: timestamp
+  GetMarketResult:
+    type: object
+    properties:
+      total:
+        type: integer
+        description: The number of plugins available on the market
+      filtered:
+        type: integer
+        description: The number of plugins matching the given search
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/PluginMetadata'
+        description: A list of plugins
   GetPluginsResult:
     type: object
     properties:

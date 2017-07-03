@@ -68,3 +68,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         port = self.service_port(5672, service_name='rabbitmq')
         bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(port=port, **self.bus_config)
         return BusClient(bus_url).accumulator(routing_key)
+
+    def search(self, *args, **kwargs):
+        client = self.get_client()
+        return client.market.list(*args, **kwargs)

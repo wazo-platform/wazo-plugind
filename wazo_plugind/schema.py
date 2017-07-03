@@ -45,9 +45,36 @@ class OneOf(validate.OneOf):
         }
 
 
+class Range(validate.Range):
+
+    constraint_id = 'range'
+
+    def _format_error(self, value, *args):
+        msg = super()._format_error(value, *args)
+
+        return {
+            'constraint_id': self.constraint_id,
+            'constraint': [self.min, self.max],
+            'message': msg,
+        }
+
+
 class GitInstallOptionsSchema(Schema):
 
     ref = fields.String(missing='master', validate=Length(min=1), required=False)
+
+
+class MarketListRequestSchema(Schema):
+
+    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
+    order = fields.String(validate=Length(min=1), missing='name')
+    limit = fields.Integer(validate=Range(min=0), missing=None)
+    offset = fields.Integer(validate=Range(min=0), missing=0)
+    search = fields.String(missing=None)
+
+    @pre_load
+    def ensure_dict(self, data):
+        return data or {}
 
 
 class PluginInstallSchema(Schema):
