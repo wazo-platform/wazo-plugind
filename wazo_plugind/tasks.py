@@ -3,29 +3,18 @@
 
 import logging
 import os
-import re
 import shutil
 import yaml
 import time
 from threading import Thread
 from .celery import worker
-from . import bus, db, debian, download
-from .config import _MAX_PLUGIN_FORMAT_VERSION
-from .exceptions import (
-    InvalidMetadata,
-    InvalidNamespaceException,
-    InvalidNameException,
-    InvalidPluginFormatVersion,
-    MissingFieldException,
-    PluginAlreadyInstalled,
-)
+from . import bus, debian, download, helpers
+from .exceptions import PluginAlreadyInstalled, PluginValidationException
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
 
 _publisher = None
-
-_DEFAULT_PLUGIN_FORMAT_VERSION = 0
 
 
 @worker.app.task
@@ -80,11 +69,9 @@ def package_and_install(ctx):
         ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
         builder.clean(ctx)
         publisher.install(ctx, 'completed')
-    except InvalidMetadata as e:
-        ctx.log(logger.info, 'Plugin validation exception')
-        error_id = 'validation_error'
-        message = 'Validation error'
-        publisher.install_error(ctx, error_id, message, details=e.details)
+    except PluginValidationException as e:
+        ctx.log(logger.info, 'Plugin validation exception %s', e.details)
+        publisher.install_error(ctx, e.error_id, e.message, details=e.details)
     except Exception:
         debug_enabled = ctx.config['debug']
         ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
@@ -122,15 +109,10 @@ class _PackageRemover(object):
 
 class _PackageBuilder(object):
 
-    valid_namespace = re.compile(r'^[a-z0-9]+$')
-    valid_name = re.compile(r'^[a-z0-9-]+$')
-    required_fields = ['name', 'namespace', 'version']
-
     def __init__(self, config):
         self._config = config
         self._downloader = download.Downloader(config)
         self._debian_file_generator = debian.Generator.from_config(config)
-        self._db = db.PluginDB(config)
 
     def build(self, ctx):
         namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
@@ -173,19 +155,8 @@ class _PackageBuilder(object):
         )
 
     def validate(self, ctx):
-        for field in self.required_fields:
-            if field not in ctx.metadata:
-                raise MissingFieldException(field)
-        namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
-        version = ctx.metadata['version']
-        if self.valid_namespace.match(namespace) is None:
-            raise InvalidNamespaceException()
-        if self.valid_name.match(name) is None:
-            raise InvalidNameException()
-        if int(ctx.metadata.get('plugin_format_version', _DEFAULT_PLUGIN_FORMAT_VERSION)) > _MAX_PLUGIN_FORMAT_VERSION:
-            raise InvalidPluginFormatVersion(_MAX_PLUGIN_FORMAT_VERSION)
-        if self._db.is_installed(namespace, name, version):
-            raise PluginAlreadyInstalled(namespace, name)
+        validator = helpers.Validator.new_from_config(ctx.config)
+        validator.validate(ctx.metadata)
         return ctx
 
     def install(self, ctx):
