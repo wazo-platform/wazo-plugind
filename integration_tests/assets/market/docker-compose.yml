@@ -17,6 +17,7 @@ plugind:
     - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
   volumes:
     - "../../..:/usr/src/wazo-plugind"
+    - "./etc/wazo-plugind/key.yml:/etc/wazo-plugind/key.yml"
     - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
     - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"
     - "./etc/wazo-plugind/conf.d/market.yml:/etc/wazo-plugind/conf.d/market.yml"
