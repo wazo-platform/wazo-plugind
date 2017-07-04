@@ -87,7 +87,7 @@ class TestPlugins(HTTPAppTestCase):
                      'constraint': {'min': 1, 'max': None},
                      'message': ANY}},
             {'method': {'constraint_id': 'enum',
-                        'constraint': {'choices': ['git']},
+                        'constraint': {'choices': ['git', 'market']},
                         'message': ANY}},
             {'url': {'constraint_id': 'required',
                      'constraint': 'required',
