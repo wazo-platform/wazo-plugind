@@ -89,6 +89,33 @@ class TestMarketDB(TestCase):
         self.market_proxy.get_content.return_value = self.content
         self.db = MarketDB(self.market_proxy)
 
+    def test_get(self):
+        self.market_proxy.get_content.return_value = a, b, c = [
+            {'namespace': 'foo', 'name': 'bar', 'version': '0.1.1'},
+            {'namespace': 'foo', 'name': 'bar', 'version': '0.0.1'},
+            {'namespace': 'foo', 'name': 'bar', 'version': '0.2.0'},
+        ]
+
+        # Latest version
+        result = self.db.get('foo', 'bar')
+        assert_that(result, equal_to(c))
+
+        # Specified version
+        result = self.db.get('foo', 'bar', '0.0.1')
+        assert_that(result, equal_to(b))
+
+        # Unknown version
+        assert_that(
+            calling(self.db.get).with_args('foo', 'bar', '0.0.42'),
+            raises(Exception)
+        )
+
+        # Unknown name
+        assert_that(
+            calling(self.db.get).with_args('foo', 'BAZ'),
+            raises(Exception)
+        )
+
     def test_search(self):
         a, b, c = self.content
 
