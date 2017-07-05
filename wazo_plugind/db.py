@@ -7,7 +7,7 @@ import re
 import yaml
 from unidecode import unidecode
 import requests
-from .exceptions import InvalidPackageNameException
+from .exceptions import InvalidSortParamException, InvalidPackageNameException
 from . import debian
 
 logger = logging.getLogger(__name__)
@@ -117,7 +117,10 @@ class MarketDB(object):
         def key(element):
             return element.get(order, LAST_ITEM)
 
-        return sorted(content, key=key, reverse=reverse)
+        try:
+            return sorted(content, key=key, reverse=reverse)
+        except TypeError:
+            raise InvalidSortParamException(order)
 
 
 class PluginDB(object):
