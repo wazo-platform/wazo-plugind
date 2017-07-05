@@ -21,6 +21,19 @@ class InvalidPackageNameException(Exception):
         super().__init__(self._fmt.format(name))
 
 
+class InvalidSortParamException(APIException):
+
+    _fmt = '"{}" values are not orderable'
+
+    def __init__(self, column):
+        super().__init__(status_code=400,
+                         message='Invalid sort parameters',
+                         error_id='invalid_sort_params',
+                         resource='market',
+                         details={column: {'constraint_id': 'orderable',
+                                           'message': self._fmt.format(column)}})
+
+
 class InvalidListParamException(APIException):
 
     def __init__(self, errors):
