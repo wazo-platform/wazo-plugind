@@ -3,6 +3,7 @@
 
 import os
 import logging
+from . import db
 from .exceptions import UnsupportedDownloadMethod
 from .helpers import exec_and_log
 
@@ -27,6 +28,36 @@ class _GitDownloader(object):
         return ctx.with_fields(download_path=filename)
 
 
+class _MarketDownloader(object):
+
+    def __init__(self, config, downloader):
+        self._market_config = config['market']
+        self._downloader = downloader
+
+    def download(self, ctx):
+        metadata = self._find_matching_plugin(ctx)
+
+        # TODO: maybe use the install schema to validate here
+        ctx = ctx.with_fields(
+            url=metadata['url'],
+            # Default to git since only git and market are available at this time
+            method=metadata.get('method', 'git'))
+        options = metadata.get('options')
+        if options:
+            ctx = ctx.with_fields(install_args=options)
+
+        return self._downloader.download(ctx)
+
+    def _find_matching_plugin(self, ctx):
+        market_config = dict(self._market_config)
+        if ctx.url:
+            market_config['url'] = ctx.url
+
+        market_proxy = db.MarketProxy(market_config)
+        market_db = db.MarketDB(market_proxy)
+        return market_db.get(**ctx.install_args)
+
+
 class _UndefinedDownloader(object):
 
     def __init__(self, config):
@@ -41,6 +72,7 @@ class Downloader(object):
     def __init__(self, config):
         self._downloaders = {
             'git': _GitDownloader(config),
+            'market': _MarketDownloader(config, self),
         }
         self._undefined_downloader = _UndefinedDownloader(config)
 
