@@ -78,7 +78,6 @@ class TestPlugins(HTTPAppTestCase):
             {'method': 'git', 'url': ''},
             {'method': '', 'url': 'http://...'},
             {'method': 'git'},
-            {'url': 'u'},
             None,
             {'url': 42, 'method': None}
         ]

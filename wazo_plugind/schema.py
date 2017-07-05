@@ -1,7 +1,7 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from marshmallow import fields, Schema, validate, pre_load
+from marshmallow import fields, pre_load, Schema, validate
 from .config import _MAX_PLUGIN_FORMAT_VERSION
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
@@ -151,9 +151,19 @@ class OptionField(fields.Nested):
         return concrete_options._deserialize(value, attr, method)
 
 
+class URL(fields.String):
+
+    _method_requiring_url = ['git']
+
+    def _deserialize(self, value, attr, data):
+        if data.get('method') in self._method_requiring_url:
+            self.required = True
+        return super()._deserialize(value, attr, data)
+
+
 class PluginInstallSchema(Schema):
 
-    url = fields.String(validate=Length(min=1), required=True)
+    url = URL(validate=Length(min=1), required=False, missing=None)
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
     options = OptionField(missing=dict, required=True)
 
