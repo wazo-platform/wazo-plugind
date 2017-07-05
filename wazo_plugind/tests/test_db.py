@@ -2,11 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
-from hamcrest import assert_that, contains, equal_to
+from hamcrest import assert_that, calling, contains, equal_to, raises
 from mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
 from ..db import iin, normalize_caseless, MarketDB, MarketProxy, Plugin
+from ..exceptions import InvalidSortParamException
 
 
 class TestPlugin(TestCase):
@@ -80,8 +81,8 @@ class TestMarketDB(TestCase):
 
     def setUp(self):
         self.content = [
-            {'name': 'a', 'namespace': 'c', 'tags': ['foobar']},
-            {'name': 'b', 'tags': ['pépé']},
+            {'name': 'a', 'namespace': 'c', 'tags': ['foobar'], 'd': {}},
+            {'name': 'b', 'tags': ['pépé'], 'd': {42: 'bar'}},
             {'namespace': 'a'},
         ]
         self.market_proxy = Mock(MarketProxy)
@@ -117,6 +118,9 @@ class TestMarketDB(TestCase):
 
         results = self.db.list_(order='namespace', direction='asc')
         assert_that(results, contains(c, a, b))
+
+        assert_that(calling(self.db.list_).with_args(order='d'),
+                    raises(InvalidSortParamException))
 
     def test_limit(self):
         a, b, c = self.content
