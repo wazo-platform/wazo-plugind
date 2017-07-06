@@ -3,6 +3,8 @@
 
 import os
 import time
+from hamcrest import assert_that, has_entry, has_entries, has_items
+from xivo_test_helpers import until
 from xivo_test_helpers.bus import BusClient
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_plugind_client import Client
@@ -72,3 +74,63 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     def search(self, *args, **kwargs):
         client = self.get_client()
         return client.market.list(*args, **kwargs)
+
+    def list_file_in_container_dir(self, dir_path):
+        output = self.docker_exec(['ls', dir_path])
+        for current_filename in output.split('\n'):
+            if not current_filename:
+                continue
+            yield current_filename
+
+    def directory_is_empty_in_container(self, path):
+        for filename in self.list_file_in_container_dir(path):
+            return False
+        return True
+
+    def exists_in_container(self, path):
+        directory, filename = os.path.split(path)
+        for current_filename in self.list_file_in_container_dir(directory):
+            if current_filename == filename:
+                return True
+        return False
+
+    def _is_installed(self, search):
+        installed_packages = self.docker_exec(['dpkg-query', '-W', '-f=${binary:Package}\n'])
+        for debian_package in installed_packages.split('\n'):
+            if debian_package == search:
+                return True
+        return False
+
+    def assert_status_received(self, msg_accumulator, operation, uuid, status, exclusive=False, **kwargs):
+        event_name = 'plugin_{}_progress'.format(operation)
+
+        def match():
+            expected_data = ['status', status, 'uuid', uuid]
+            for key, value in kwargs.iteritems():
+                expected_data.append(key)
+                expected_data.append(value)
+
+            received_msg = msg_accumulator.accumulate()
+            assert_that(received_msg, has_items(
+                has_entry('name', event_name),
+                has_entry('data', has_entries(*expected_data))))
+
+        def exclusive_match():
+            while True:
+                first = msg_accumulator.pop()
+
+                # skip unrelated messages
+                if first.get('data', {}).get('uuid') != uuid:
+                    continue
+                if first.get('name') != event_name:
+                    continue
+
+                if first['data']['status'] == status:
+                    return
+
+                msg_accumulator.push_back(first)
+                self.fail('{} is not at the top of the accumulator, received {}'.format(status, first))
+
+        aux = exclusive_match if exclusive else match
+        until.assert_(aux, tries=120, interval=0.5,
+                      message='The bus message should have been received: {}'.format(status))
