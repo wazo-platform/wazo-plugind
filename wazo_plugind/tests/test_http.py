@@ -74,6 +74,7 @@ class TestPlugins(HTTPAppTestCase):
         self.app = new_app(config, plugin_service=self.plugin_service).test_client()
 
     def test_that_invalid_values_in_fields_return_a_400(self):
+        self.plugin_service.create.return_value = None
         bodies = [
             {'method': 'git', 'url': ''},
             {'method': '', 'url': 'http://...'},
@@ -109,9 +110,9 @@ class TestPlugins(HTTPAppTestCase):
         ]
 
         for body, detail in zip(bodies, details):
-            status_code, body = self.post(body)
-            assert_that(status_code, equal_to(400))
-            assert_that(body, has_entries(
+            status_code, result = self.post(body)
+            assert_that(status_code, equal_to(400), 'body was {}'.format(body))
+            assert_that(result, has_entries(
                 'error_id', 'invalid_data',
                 'message', 'Invalid data',
                 'resource', 'plugins',
