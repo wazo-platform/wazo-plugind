@@ -30,7 +30,7 @@ class TestMarketList(BaseIntegrationTest):
         response = self.search('official', limit=5, offset=5, order='name', direction='asc')
 
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
-        assert_that(response['filtered'], equal_to(17))
+        assert_that(response['filtered'], equal_to(16))
         assert_that(response['items'], contains(
             has_entries('name', 'admin-ui-group'),
             has_entries('name', 'admin-ui-incall'),
