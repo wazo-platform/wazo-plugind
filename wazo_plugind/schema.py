@@ -153,17 +153,18 @@ class OptionField(fields.Nested):
 
 class URL(fields.String):
 
-    _method_requiring_url = ['git']
+    _method_optional_url = ['market']
 
-    def _deserialize(self, value, attr, data):
-        if data.get('method') in self._method_requiring_url:
-            self.required = True
-        return super()._deserialize(value, attr, data)
+    def deserialize(self, value, attr, data):
+        if data.get('method') in self._method_optional_url:
+            self.required = False
+            self.allow_none = True
+        return super().deserialize(value, attr, data)
 
 
 class PluginInstallSchema(Schema):
 
-    url = URL(validate=Length(min=1), required=False, missing=None)
+    url = URL(validate=Length(min=1), required=True, allow_none=False)
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
     options = OptionField(missing=dict, required=True)
 
