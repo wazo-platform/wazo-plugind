@@ -28,7 +28,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         port = self.service_port(9503)
         return Client('localhost', port=port, token=token, verify_certificate=False, timeout=20)
 
-    def install_plugin(self, url, method, **kwargs):
+    def install_plugin(self, url=None, method=None, **kwargs):
         is_async = kwargs.pop('_async', True)
         options = kwargs.pop('options', None)
         client = self.get_client(**kwargs)
