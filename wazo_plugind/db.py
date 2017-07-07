@@ -6,11 +6,18 @@ import os
 import re
 import yaml
 from unidecode import unidecode
+from distutils.version import StrictVersion
 import requests
 from .exceptions import InvalidSortParamException, InvalidPackageNameException
 from . import debian
 
 logger = logging.getLogger(__name__)
+
+_VERSION_COLUMNS = [
+    'version',
+    'min_wazo_version',
+    'max_wazo_version',
+]
 
 
 class AlwaysLast(object):
@@ -115,7 +122,14 @@ class MarketDB(object):
         reverse = direction == 'desc'
 
         def key(element):
-            return element.get(order, LAST_ITEM)
+            value = element.get(order, LAST_ITEM)
+            if order in _VERSION_COLUMNS:
+                try:
+                    value = StrictVersion(value)
+                except ValueError:
+                    # Not a valid version number fallback to alphabetic ordering
+                    pass
+            return value
 
         try:
             return sorted(content, key=key, reverse=reverse)

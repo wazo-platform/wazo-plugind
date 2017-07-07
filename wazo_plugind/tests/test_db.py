@@ -81,9 +81,9 @@ class TestMarketDB(TestCase):
 
     def setUp(self):
         self.content = [
-            {'name': 'a', 'namespace': 'c', 'tags': ['foobar'], 'd': {}},
-            {'name': 'b', 'tags': ['pépé'], 'd': {42: 'bar'}},
-            {'namespace': 'a'},
+            {'name': 'a', 'namespace': 'c', 'tags': ['foobar'], 'd': {}, 'version': '0.1.1', 'min_wazo_version': '1'},
+            {'name': 'b', 'tags': ['pépé'], 'd': {42: 'bar'}, 'version': '0.2.0', 'min_wazo_version': '3'},
+            {'namespace': 'a', 'version': '0.12.0', 'min_wazo_version': '2'},
         ]
         self.market_proxy = Mock(MarketProxy)
         self.market_proxy.get_content.return_value = self.content
@@ -121,6 +121,15 @@ class TestMarketDB(TestCase):
 
         assert_that(calling(self.db.list_).with_args(order='d'),
                     raises(InvalidSortParamException))
+
+    def test_version_sort_order(self):
+        a, b, c = self.content
+
+        results = self.db.list_(order='version', direction='asc')
+        assert_that(results, contains(a, b, c))
+
+        results = self.db.list_(order='min_wazo_version', direction='asc')
+        assert_that(results, contains(a, c, b))
 
     def test_limit(self):
         a, b, c = self.content
