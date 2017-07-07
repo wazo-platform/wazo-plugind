@@ -4,8 +4,9 @@
 import os
 import logging
 from . import db
-from .exceptions import UnsupportedDownloadMethod
+from .exceptions import InvalidInstallParamException, UnsupportedDownloadMethod
 from .helpers import exec_and_log
+from .schema import PluginInstallSchema
 
 logger = logging.getLogger(__name__)
 
@@ -36,13 +37,15 @@ class _MarketDownloader(object):
 
     def download(self, ctx):
         metadata = self._find_matching_plugin(ctx)
+        body, errors = PluginInstallSchema().load(metadata)
+        if errors:
+            raise InvalidInstallParamException(errors)
 
-        # TODO: maybe use the install schema to validate here
         ctx = ctx.with_fields(
-            url=metadata['url'],
-            # Default to git since only git and market are available at this time
-            method=metadata.get('method', 'git'))
-        options = metadata.get('options')
+            url=body['url'],
+            method=body.get('method'))
+
+        options = body['options']
         if options:
             ctx = ctx.with_fields(install_args=options)
 
