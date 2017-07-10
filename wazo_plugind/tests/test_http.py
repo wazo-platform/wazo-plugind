@@ -80,7 +80,7 @@ class TestPlugins(HTTPAppTestCase):
             {'method': '', 'url': 'http://...'},
             {'method': 'git'},
             None,
-            {'url': 42, 'method': None}
+            {'url': 42, 'method': None},
         ]
         details = [
             {'url': {'constraint_id': 'length',
@@ -115,6 +115,12 @@ class TestPlugins(HTTPAppTestCase):
                 'resource', 'plugins',
                 'details', detail,
             ))
+
+    def test_that_market_can_be_used_without_an_url(self):
+        options = {'namespace': 'foo', 'name': 'bar'}
+        self.post({'method': 'market', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with(None, 'market', **options)
 
     def test_on_succes_returns_result_from_service(self):
         url, method = 'url', 'git'
