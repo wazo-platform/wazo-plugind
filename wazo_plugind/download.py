@@ -31,12 +31,18 @@ class _GitDownloader(object):
 
 class _MarketDownloader(object):
 
+    _defaults = {'method': 'git'}
+
     def __init__(self, config, downloader):
         self._market_config = config['market']
         self._downloader = downloader
 
     def download(self, ctx):
         metadata = self._find_matching_plugin(ctx)
+        for key, value in self._defaults.items():
+            if key not in metadata:
+                metadata[key] = value
+
         body, errors = PluginInstallSchema().load(metadata)
         if errors:
             raise InvalidInstallParamException(errors)
