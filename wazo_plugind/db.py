@@ -78,8 +78,9 @@ class MarketProxy(object):
 
 class MarketDB(object):
 
-    def __init__(self, market_proxy):
+    def __init__(self, market_proxy, plugin_db=None):
         self._market_proxy = market_proxy
+        self._plugin_db = plugin_db
 
     def count(self, *args, **kwargs):
         content = self._market_proxy.get_content()
@@ -109,6 +110,19 @@ class MarketDB(object):
         content = self._filter(content, **kwargs)
         content = self._sort(content, **kwargs)
         content = self._paginate(content, **kwargs)
+        content = self._add_local_values(content)
+        return content
+
+    def _add_local_values(self, content):
+        if not self._plugin_db:
+            return content
+
+        for metadata in content:
+            plugin = self._plugin_db.get_plugin(metadata['namespace'], metadata['name'])
+            if plugin.is_installed():
+                metadata['installed_version'] = plugin.metadata()['version']
+            else:
+                metadata['installed_version'] = None
         return content
 
     @staticmethod
