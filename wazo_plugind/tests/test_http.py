@@ -103,7 +103,8 @@ class TestPlugins(HTTPAppTestCase):
                         'message': ANY},
              'url': {'constraint_id': 'type',
                      'constraint': 'string',
-                     'message': ANY}},
+                     'message': ANY,
+                     '_schema': ANY}},
         ]
 
         for body, detail in zip(bodies, details):

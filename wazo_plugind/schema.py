@@ -1,7 +1,7 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from marshmallow import fields, pre_load, Schema, validate
+from marshmallow import fields, pre_load, Schema, validate, validates_schema, ValidationError
 from .config import _MAX_PLUGIN_FORMAT_VERSION
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
@@ -151,23 +151,24 @@ class OptionField(fields.Nested):
         return concrete_options._deserialize(value, attr, method)
 
 
-class URL(fields.String):
+class PluginInstallSchema(Schema):
 
     _method_optional_url = ['market']
 
-    def deserialize(self, value, attr, data):
-        if data.get('method') in self._method_optional_url:
-            self.required = False
-            self.allow_none = True
-        return super().deserialize(value, attr, data)
-
-
-class PluginInstallSchema(Schema):
-
-    url = URL(validate=Length(min=1), required=True, allow_none=False)
+    url = fields.String(validate=Length(min=1))
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
     options = OptionField(missing=dict, required=True)
 
     @pre_load
     def ensure_dict(self, data):
         return data or {}
+
+    @validates_schema
+    def validate_url(self, data):
+        method = data.get('method')
+        if method in self._method_optional_url:
+            return
+
+        url = data.get('url')
+        if not url:
+            raise ValidationError([self.fields['url'].default_error_messages['required']], ['url'])
