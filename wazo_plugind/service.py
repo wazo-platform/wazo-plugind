@@ -45,7 +45,7 @@ class PluginService(object):
         return self._plugin_db.list_()
 
     def list_from_market(self, market_proxy, *args, **kwargs):
-        market_db = db.MarketDB(market_proxy)
+        market_db = db.MarketDB(market_proxy, self._plugin_db)
         return market_db.list_(*args, **kwargs)
 
     def delete(self, namespace, name):

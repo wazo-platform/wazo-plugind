@@ -8,7 +8,7 @@ from .test_api import BaseIntegrationTest
 PLUGIN_COUNT = 23
 
 
-class TestMarketList(BaseIntegrationTest):
+class TestMarket(BaseIntegrationTest):
 
     asset = 'market'
 
@@ -50,3 +50,22 @@ class TestMarketList(BaseIntegrationTest):
         assert_that(build_success_exists, is_(True), 'build_success was not created or copied')
         assert_that(install_success_exists, is_(True), 'install_success was not created')
         assert_that(package_success_exists, is_(True), 'package_success was not created')
+
+    def test_installed_version_field(self):
+        ns, name = 'markettests', 'foobar'
+
+        self.install_plugin(method='market', options={'namespace': ns, 'name': name}, _async=False)
+
+        response = self.search(name)
+        assert_that(response['items'], contains(
+            has_entries('installed_version', '0.0.1',
+                        'namespace', ns,
+                        'name', name)))
+
+        self.uninstall_plugin(ns, name, _async=False)
+
+        response = self.search(name)
+        assert_that(response['items'], contains(
+            has_entries('installed_version', None,
+                        'namespace', ns,
+                        'name', name)))
