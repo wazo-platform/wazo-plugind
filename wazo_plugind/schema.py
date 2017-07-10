@@ -148,7 +148,7 @@ class OptionField(fields.Nested):
         concrete_options = self._options.get(method)
         if not concrete_options:
             return {}
-        return concrete_options._deserialize(value, attr, method)
+        return concrete_options._deserialize(value, attr, data)
 
 
 class PluginInstallSchema(Schema):
