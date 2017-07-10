@@ -220,14 +220,10 @@
 	"namespace": "loway",
 	"icon": "bar-chart"
   }, {
-	"url": "https://github.com/sboily/wazo-plugind-ngrok",
-	"homepage": "http://www.ngrok.com",
-	"display_name": "Ngrok tunnel",
-	"tags": ["beta", "application"],
-	"color": "orange",
-	"author": "Sylvain Boily",
-	"name": "ngrok",
-	"namespace": "official",
-	"icon": "plane"
+	"url": "file:///data/git/repo",
+	"name": "foobar",
+	"namespace": "markettests",
+	"version": "0.0.1",
+	"method": "git"
   }]
 }

@@ -2,7 +2,7 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from hamcrest import assert_that, contains, equal_to, has_entries
+from hamcrest import assert_that, contains, equal_to, has_entries, is_
 from .test_api import BaseIntegrationTest
 
 PLUGIN_COUNT = 23
@@ -30,7 +30,7 @@ class TestMarketList(BaseIntegrationTest):
         response = self.search('official', limit=5, offset=5, order='name', direction='asc')
 
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
-        assert_that(response['filtered'], equal_to(17))
+        assert_that(response['filtered'], equal_to(16))
         assert_that(response['items'], contains(
             has_entries('name', 'admin-ui-group'),
             has_entries('name', 'admin-ui-incall'),
@@ -38,3 +38,15 @@ class TestMarketList(BaseIntegrationTest):
             has_entries('name', 'admin-ui-moh'),
             has_entries('name', 'admin-ui-outcall'),
         ))
+
+    def test_market_installation(self):
+        self.install_plugin(method='market', options={'namespace': 'markettests',
+                                                      'name': 'foobar'}, _async=False)
+
+        build_success_exists = self.exists_in_container('/tmp/results/build_success')
+        package_success_exists = self.exists_in_container('/tmp/results/package_success')
+        install_success_exists = self.exists_in_container('/tmp/results/install_success')
+
+        assert_that(build_success_exists, is_(True), 'build_success was not created or copied')
+        assert_that(install_success_exists, is_(True), 'install_success was not created')
+        assert_that(package_success_exists, is_(True), 'package_success was not created')

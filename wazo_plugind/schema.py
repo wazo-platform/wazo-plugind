@@ -1,7 +1,7 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from marshmallow import fields, Schema, validate, pre_load
+from marshmallow import fields, pre_load, Schema, validate, validates_schema, ValidationError
 from .config import _MAX_PLUGIN_FORMAT_VERSION
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
@@ -113,6 +113,13 @@ class GitInstallOptionsSchema(Schema):
     ref = fields.String(missing='master', validate=Length(min=1), required=False)
 
 
+class MarketInstallOptionsSchema(Schema):
+
+    namespace = fields.String(validate=Length(min=1), required=True)
+    name = fields.String(validate=Length(min=1), required=True)
+    version = fields.String(required=False)
+
+
 class MarketListRequestSchema(Schema):
 
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
@@ -126,12 +133,42 @@ class MarketListRequestSchema(Schema):
         return data or {}
 
 
+class OptionField(fields.Nested):
+
+    _options = {
+        'git': fields.Nested(GitInstallOptionsSchema, missing=dict, required=False),
+        'market': fields.Nested(MarketInstallOptionsSchema, required=True),
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(Schema, *args, **kwargs)
+
+    def _deserialize(self, value, attr, data):
+        method = data.get('method')
+        concrete_options = self._options.get(method)
+        if not concrete_options:
+            return {}
+        return concrete_options._deserialize(value, attr, data)
+
+
 class PluginInstallSchema(Schema):
 
-    url = fields.String(validate=Length(min=1), required=True)
-    method = fields.String(validate=OneOf(['git']), required=True)
-    options = fields.Nested(GitInstallOptionsSchema, missing=dict, required=False)
+    _method_optional_url = ['market']
+
+    url = fields.String(validate=Length(min=1))
+    method = fields.String(validate=OneOf(['git', 'market']), required=True)
+    options = OptionField(missing=dict, required=True)
 
     @pre_load
     def ensure_dict(self, data):
         return data or {}
+
+    @validates_schema
+    def validate_url(self, data):
+        method = data.get('method')
+        if method in self._method_optional_url:
+            return
+
+        url = data.get('url')
+        if not url:
+            raise ValidationError([self.fields['url'].default_error_messages['required']], ['url'])

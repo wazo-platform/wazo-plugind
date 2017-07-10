@@ -87,6 +87,23 @@ class MarketDB(object):
             content = list(self._filter(content, **kwargs))
         return len(content)
 
+    def get(self, namespace, name, version=None):
+        filters = dict(
+            namespace=namespace,
+            name=name,
+        )
+        if version:
+            filters['version'] = version
+
+        content = self._market_proxy.get_content()
+        content = self._strict_filter(content, **filters)
+        content = self._sort(content, order='version', direction='desc')
+
+        if not content:
+            raise LookupError('No such plugin {}'.format(filters))
+
+        return content[0]
+
     def list_(self, *args, **kwargs):
         content = self._market_proxy.get_content()
         content = self._filter(content, **kwargs)
@@ -135,6 +152,16 @@ class MarketDB(object):
             return sorted(content, key=key, reverse=reverse)
         except TypeError:
             raise InvalidSortParamException(order)
+
+    @staticmethod
+    def _strict_filter(content, **kwargs):
+        def match(metadata):
+            for key, value in kwargs.items():
+                if metadata.get(key) != value:
+                    return False
+            return True
+
+        return [metadata for metadata in content if match(metadata)]
 
 
 class PluginDB(object):

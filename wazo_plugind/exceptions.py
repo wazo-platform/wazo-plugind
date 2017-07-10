@@ -34,7 +34,28 @@ class InvalidSortParamException(APIException):
                                            'message': self._fmt.format(column)}})
 
 
-class InvalidListParamException(APIException):
+class _MarshmallowDetailFormatter(object):
+
+    def format_details(self, errors):
+        return {
+            field: self._format_errors(errors)
+            for field, errors in errors.items()
+        }
+
+    def _format_errors(self, errors):
+        if isinstance(errors, (list, tuple)):
+            return self._format_first(errors)
+        return self._format_one(errors)
+
+    def _format_first(self, errors):
+        return self._format_one(errors[0])
+
+    def _format_one(self, error):
+        error.pop('_schema', None)
+        return error
+
+
+class InvalidListParamException(APIException, _MarshmallowDetailFormatter):
 
     def __init__(self, errors):
         super().__init__(status_code=400,
@@ -43,14 +64,8 @@ class InvalidListParamException(APIException):
                          resource='plugins',
                          details=self.format_details(errors))
 
-    def format_details(self, errors):
-        return {
-            field: info[0] if isinstance(info, list) else info
-            for field, info in errors.items()
-        }
 
-
-class InvalidInstallParamException(APIException):
+class InvalidInstallParamException(APIException, _MarshmallowDetailFormatter):
 
     def __init__(self, errors):
         super().__init__(status_code=400,
@@ -59,14 +74,8 @@ class InvalidInstallParamException(APIException):
                          resource='plugins',
                          details=self.format_details(errors))
 
-    def format_details(self, errors):
-        return {
-            field: info[0] if isinstance(info, list) else info
-            for field, info in errors.items()
-        }
 
-
-class PluginValidationException(Exception):
+class PluginValidationException(Exception, _MarshmallowDetailFormatter):
 
     error_id = 'validation_error'
     message = 'Validation error'
@@ -74,12 +83,6 @@ class PluginValidationException(Exception):
 
     def __init__(self, errors):
         self.details = self.format_details(errors)
-
-    def format_details(self, errors):
-        return {
-            field: info[0] if isinstance(info, list) else info
-            for field, info in errors.items()
-        }
 
 
 class PluginNotFoundException(APIException):
