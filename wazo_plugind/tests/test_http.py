@@ -58,6 +58,15 @@ class TestMarket(HTTPAppTestCase):
 
         assert_that(status_code, equal_to(400))
 
+    def test_that_extra_fields_are_used(self):
+        self.plugin_service.list_from_market.return_value = []
+        self.plugin_service.count_from_market.return_value = 0
+
+        status_code, body = self.get(namespace='foobar')
+
+        self.plugin_service.list_from_market.assert_called_once_with(
+            ANY, namespace='foobar', direction=ANY, limit=ANY, offset=ANY, order=ANY, search=ANY)
+
     def get(self, **kwargs):
         result = self.app.get('/0.1/market',
                               query_string=kwargs,
