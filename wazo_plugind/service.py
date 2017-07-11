@@ -28,7 +28,7 @@ class PluginService(object):
         return self._plugin_db.count()
 
     def count_from_market(self, market_proxy, *args, **kwargs):
-        market_db = db.MarketDB(market_proxy)
+        market_db = db.MarketDB(market_proxy, self._plugin_db)
         return market_db.count(*args, **kwargs)
 
     def create(self, url, method, **kwargs):

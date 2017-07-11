@@ -85,6 +85,8 @@ class MarketDB(object):
     def count(self, *args, **kwargs):
         content = self._market_proxy.get_content()
         if kwargs.get('filtered', False):
+            filters = self._extract_strict_filters(**kwargs)
+            content = self._strict_filter(content, **filters)
             content = list(self._filter(content, **kwargs))
         return len(content)
 
@@ -106,11 +108,15 @@ class MarketDB(object):
         return content[0]
 
     def list_(self, *args, **kwargs):
+        filters = self._extract_strict_filters(**kwargs)
+
         content = self._market_proxy.get_content()
+        content = self._strict_filter(content, **filters)
         content = self._filter(content, **kwargs)
         content = self._sort(content, **kwargs)
         content = self._paginate(content, **kwargs)
         content = self._add_local_values(content)
+
         return content
 
     def _add_local_values(self, content):
@@ -124,6 +130,11 @@ class MarketDB(object):
             else:
                 metadata['installed_version'] = None
         return content
+
+    @staticmethod
+    def _extract_strict_filters(filtered=None, search=None, limit=None, offset=None, order=None,
+                                direction=None, **kwargs):
+        return kwargs
 
     @staticmethod
     def _filter(content, search=None, **kwargs):

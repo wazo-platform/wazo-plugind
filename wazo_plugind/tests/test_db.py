@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
-from hamcrest import assert_that, calling, contains, equal_to, raises
+from hamcrest import assert_that, calling, contains, empty, equal_to, raises
 from mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
@@ -88,6 +88,18 @@ class TestMarketDB(TestCase):
         self.market_proxy = Mock(MarketProxy)
         self.market_proxy.get_content.return_value = self.content
         self.db = MarketDB(self.market_proxy)
+
+    def test_list_with_strict_filter(self):
+        a, b, c = self.content
+
+        results = self.db.list_(namespace='a')
+        assert_that(results, contains(c))
+
+        results = self.db.list_(name='a', namespace='c', version='0.1.1')
+        assert_that(results, contains(a))
+
+        results = self.db.list_(name='a', namespace='c', version='0.1')  # Not full match on version
+        assert_that(results, empty())
 
     def test_get(self):
         self.market_proxy.get_content.return_value = a, b, c = [

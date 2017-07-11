@@ -56,6 +56,11 @@ class Market(_AuthentificatedResource):
         if errors:
             raise InvalidListParamException(errors)
 
+        for key, value in request.args.items():
+            if key in list_params:
+                continue
+            list_params[key] = value
+
         market_proxy = self.plugin_service.new_market_proxy()
         return {
             'items': self.plugin_service.list_from_market(market_proxy, **list_params),

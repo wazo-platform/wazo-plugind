@@ -225,5 +225,9 @@
 	"namespace": "markettests",
 	"version": "0.0.1",
 	"method": "git"
+  }, {
+	"namespace": "markettests",
+	"name": "foobar2",
+	"version": "0.0.1"
   }]
 }
