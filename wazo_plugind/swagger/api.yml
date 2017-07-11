@@ -55,6 +55,9 @@ paths:
       - $ref: '#/parameters/order'
       - $ref: '#/parameters/direction'
       - $ref: '#/parameters/search'
+      - $ref: '#/parameters/namespace_filter'
+      - $ref: '#/parameters/name_filter'
+      - $ref: '#/parameters/version_filter'
       responses:
         '200':
           description: "The plugin list"
@@ -162,7 +165,25 @@ parameters:
     name: search
     in: query
     type: string
-    description: Filter list of items
+    description: Filter list of items, this search is applied to all fields and is not strict (eba matches Sébastien)
+  namespace_filter:
+    required: false
+    name: namespace
+    in: query
+    type: string
+    description: Search by namespace
+  name_filter:
+    required: false
+    name: name
+    in: query
+    type: string
+    description: Search by name
+  version_filter:
+    required: false
+    name: version
+    in: query
+    type: string
+    description: Search by version
 
 definitions:
   Error:
