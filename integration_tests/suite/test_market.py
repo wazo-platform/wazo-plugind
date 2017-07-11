@@ -5,7 +5,7 @@
 from hamcrest import assert_that, contains, equal_to, has_entries, is_
 from .test_api import BaseIntegrationTest
 
-PLUGIN_COUNT = 23
+PLUGIN_COUNT = 24
 
 
 class TestMarket(BaseIntegrationTest):
@@ -56,7 +56,7 @@ class TestMarket(BaseIntegrationTest):
 
         self.install_plugin(method='market', options={'namespace': ns, 'name': name}, _async=False)
 
-        response = self.search(name)
+        response = self.search(name=name)
         assert_that(response['items'], contains(
             has_entries('installed_version', '0.0.1',
                         'namespace', ns,
@@ -64,7 +64,7 @@ class TestMarket(BaseIntegrationTest):
 
         self.uninstall_plugin(ns, name, _async=False)
 
-        response = self.search(name)
+        response = self.search(name=name)
         assert_that(response['items'], contains(
             has_entries('installed_version', None,
                         'namespace', ns,
