@@ -111,11 +111,11 @@ class MarketDB(object):
         filters = self._extract_strict_filters(**kwargs)
 
         content = self._market_proxy.get_content()
+        content = self._add_local_values(content)
         content = self._strict_filter(content, **filters)
         content = self._filter(content, **kwargs)
         content = self._sort(content, **kwargs)
         content = self._paginate(content, **kwargs)
-        content = self._add_local_values(content)
 
         return content
 
