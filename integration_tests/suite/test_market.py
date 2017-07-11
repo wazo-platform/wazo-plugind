@@ -57,6 +57,8 @@ class TestMarket(BaseIntegrationTest):
         self.install_plugin(method='market', options={'namespace': ns, 'name': name}, _async=False)
 
         response = self.search(name=name)
+        assert_that(response['total'], equal_to(PLUGIN_COUNT))
+        assert_that(response['filtered'], equal_to(1))
         assert_that(response['items'], contains(
             has_entries('installed_version', '0.0.1',
                         'namespace', ns,
@@ -65,6 +67,8 @@ class TestMarket(BaseIntegrationTest):
         self.uninstall_plugin(ns, name, _async=False)
 
         response = self.search(name=name)
+        assert_that(response['total'], equal_to(PLUGIN_COUNT))
+        assert_that(response['filtered'], equal_to(1))
         assert_that(response['items'], contains(
             has_entries('installed_version', None,
                         'namespace', ns,

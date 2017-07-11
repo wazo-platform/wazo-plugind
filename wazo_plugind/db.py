@@ -85,6 +85,8 @@ class MarketDB(object):
     def count(self, *args, **kwargs):
         content = self._market_proxy.get_content()
         if kwargs.get('filtered', False):
+            filters = self._extract_strict_filters(**kwargs)
+            content = self._strict_filter(content, **filters)
             content = list(self._filter(content, **kwargs))
         return len(content)
 
@@ -130,7 +132,8 @@ class MarketDB(object):
         return content
 
     @staticmethod
-    def _extract_strict_filters(search=None, limit=None, offset=None, order=None, direction=None, **kwargs):
+    def _extract_strict_filters(filtered=None, search=None, limit=None, offset=None, order=None,
+                                direction=None, **kwargs):
         return kwargs
 
     @staticmethod
