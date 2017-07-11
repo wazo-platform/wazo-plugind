@@ -58,6 +58,7 @@ paths:
       - $ref: '#/parameters/namespace_filter'
       - $ref: '#/parameters/name_filter'
       - $ref: '#/parameters/version_filter'
+      - $ref: '#/parameters/installed_filter'
       responses:
         '200':
           description: "The plugin list"
@@ -184,6 +185,12 @@ parameters:
     in: query
     type: string
     description: Search by version
+  installed_filter:
+    required: false
+    name: installed
+    in: query
+    type: boolean
+    description: Filter installed plugins
 
 definitions:
   Error:
