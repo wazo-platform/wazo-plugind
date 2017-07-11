@@ -2,7 +2,7 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from hamcrest import assert_that, contains, equal_to, has_entries, is_
+from hamcrest import assert_that, contains, empty, equal_to, has_entries, is_
 from .test_api import BaseIntegrationTest
 
 PLUGIN_COUNT = 24
@@ -73,3 +73,34 @@ class TestMarket(BaseIntegrationTest):
             has_entries('installed_version', None,
                         'namespace', ns,
                         'name', name)))
+
+    def test_installed_query_filter(self):
+        ns, name = 'markettests', 'foobar'
+
+        self.install_plugin(method='market', options={'namespace': ns, 'name': name}, _async=False)
+
+        response = self.search(name=name, installed=True)
+        assert_that(response['total'], equal_to(PLUGIN_COUNT))
+        assert_that(response['filtered'], equal_to(1))
+        assert_that(response['items'], contains(
+            has_entries('namespace', ns,
+                        'name', name)))
+
+        response = self.search(name=name, installed=False)
+        assert_that(response['total'], equal_to(PLUGIN_COUNT))
+        assert_that(response['filtered'], equal_to(0))
+        assert_that(response['items'], empty())
+
+        self.uninstall_plugin(ns, name, _async=False)
+
+        response = self.search(name=name, installed=False)
+        assert_that(response['total'], equal_to(PLUGIN_COUNT))
+        assert_that(response['filtered'], equal_to(1))
+        assert_that(response['items'], contains(
+            has_entries('namespace', ns,
+                        'name', name)))
+
+        response = self.search(name=name, installed=True)
+        assert_that(response['total'], equal_to(PLUGIN_COUNT))
+        assert_that(response['filtered'], equal_to(0))
+        assert_that(response['items'], empty())

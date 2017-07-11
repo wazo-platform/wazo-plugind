@@ -127,6 +127,7 @@ class MarketListRequestSchema(Schema):
     limit = fields.Integer(validate=Range(min=0), missing=None)
     offset = fields.Integer(validate=Range(min=0), missing=0)
     search = fields.String(missing=None)
+    installed = fields.Boolean()
 
     @pre_load
     def ensure_dict(self, data):

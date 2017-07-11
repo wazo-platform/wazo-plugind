@@ -81,13 +81,19 @@ class TestMarketDB(TestCase):
 
     def setUp(self):
         self.content = [
-            {'name': 'a', 'namespace': 'c', 'tags': ['foobar'], 'd': {}, 'version': '0.1.1', 'min_wazo_version': '1'},
-            {'name': 'b', 'tags': ['pépé'], 'd': {42: 'bar'}, 'version': '0.2.0', 'min_wazo_version': '3'},
-            {'namespace': 'a', 'version': '0.12.0', 'min_wazo_version': '2'},
+            {'name': 'a', 'namespace': 'c', 'tags': ['foobar'], 'd': {}, 'version': '0.1.1', 'min_wazo_version': '1', 'installed_version': '0.0.1'},
+            {'name': 'b', 'tags': ['pépé'], 'd': {42: 'bar'}, 'version': '0.2.0', 'min_wazo_version': '3', 'installed_version': None},
+            {'namespace': 'a', 'version': '0.12.0', 'min_wazo_version': '2', 'installed_version': '0.10.0'},
         ]
         self.market_proxy = Mock(MarketProxy)
         self.market_proxy.get_content.return_value = self.content
         self.db = MarketDB(self.market_proxy)
+
+    def test_the_installed_param(self):
+        a, b, c = self.content
+
+        results = self.db.list_(installed=True)
+        assert_that(results, contains(a, c))
 
     def test_list_with_strict_filter(self):
         a, b, c = self.content

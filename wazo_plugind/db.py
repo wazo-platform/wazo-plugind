@@ -111,11 +111,11 @@ class MarketDB(object):
         filters = self._extract_strict_filters(**kwargs)
 
         content = self._market_proxy.get_content()
+        content = self._add_local_values(content)
         content = self._strict_filter(content, **filters)
         content = self._filter(content, **kwargs)
         content = self._sort(content, **kwargs)
         content = self._paginate(content, **kwargs)
-        content = self._add_local_values(content)
 
         return content
 
@@ -133,7 +133,9 @@ class MarketDB(object):
 
     @staticmethod
     def _extract_strict_filters(filtered=None, search=None, limit=None, offset=None, order=None,
-                                direction=None, **kwargs):
+                                direction=None, installed=None, **kwargs):
+        if installed is not None and 'installed_version' not in kwargs:
+            kwargs['installed_version'] = InstalledVersionMatcher(installed)
         return kwargs
 
     @staticmethod
@@ -264,3 +266,16 @@ class Plugin(object):
         package_name_prefix = config['default_debian_package_prefix']
         namespace, name = cls._extract_namespace_and_name(package_name_prefix, debian_package_name)
         return cls(config, namespace, name)
+
+
+class InstalledVersionMatcher(object):
+
+    def __init__(self, installed):
+        self._installed = installed
+
+    def __eq__(self, other):
+        is_installed = other is not None
+        return is_installed == self._installed
+
+    def __ne__(self, other):
+        return not self == other
