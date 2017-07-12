@@ -169,10 +169,14 @@ class MarketDB(object):
             value = element.get(order, LAST_ITEM)
             if order in _VERSION_COLUMNS:
                 try:
-                    value = StrictVersion(value)
-                except ValueError:
+                    value_tmp = StrictVersion(value)
+                    value_tmp.version  # raise AttributeError if value is None
+                    value = value_tmp
+                except (ValueError, TypeError, AttributeError):
+                    # Integer raise TypeError
+                    # Unsupported version raise ValueError
                     # Not a valid version number fallback to alphabetic ordering
-                    pass
+                    value = str(value)
             return value
 
         try:

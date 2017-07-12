@@ -168,7 +168,11 @@ class TestMarketDB(TestCase):
                     raises(InvalidSortParamException))
 
     def test_version_sort_order(self):
-        a, b, c = self.content
+        self.market_proxy.get_content.return_value = a, b, c = [
+            {'version': '0.1.1', 'min_wazo_version': '1', 'installed_version': '0.0.1'},
+            {'version': '0.2.0', 'min_wazo_version': None, 'installed_version': None},
+            {'version': '0.12.0', 'min_wazo_version': 3, 'installed_version': '0.10.0'},
+        ]
 
         results = self.db.list_(order='version', direction='asc')
         assert_that(results, contains(a, b, c))
