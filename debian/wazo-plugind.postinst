@@ -39,6 +39,10 @@ case "$1" in
         if dpkg --compare-versions "$2" lt '17.09'; then
             rm -rf "${TMP_DIR}"
         fi
+        if dpkg --compare-versions "$2" lt '17.11'; then
+            ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
+                    /etc/nginx/locations/https-enabled/$DAEMONNAME
+        fi
 
         chown -R "$USER:$GROUP" "$HOMEDIR"
         chown -R "$USER:$GROUP" "$DATA_DIR"
