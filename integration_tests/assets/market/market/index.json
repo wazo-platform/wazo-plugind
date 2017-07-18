@@ -1,7 +1,9 @@
 {
   "items": [
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-user",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-user"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-user",
       "display_name": "Users",
       "tags": [
@@ -15,7 +17,9 @@
       "color": "aqua"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-group",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-group"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-group",
       "display_name": "Groups",
       "tags": [
@@ -29,7 +33,9 @@
       "color": "aqua"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-conference",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-conference"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-conference",
       "display_name": "Conferences",
       "tags": [
@@ -43,7 +49,9 @@
       "color": "yellow"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-parking-lot",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-parking-lot"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-parking-lot",
       "display_name": "Parking",
       "tags": [
@@ -57,7 +65,9 @@
       "color": "yellow"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-switchboard",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-switchboard"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-switchboard",
       "display_name": "Switchboard",
       "tags": [
@@ -71,7 +81,9 @@
       "color": "yellow"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-voicemail",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-voicemail"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-voicemail",
       "display_name": "Voicemail",
       "tags": [
@@ -85,7 +97,9 @@
       "color": "yellow"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-cdr",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-cdr"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-cdr",
       "display_name": "CDR",
       "tags": [
@@ -99,7 +113,9 @@
       "icon": "newspaper-o"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-incall",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-incall"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-incall",
       "display_name": "Incalls",
       "tags": [
@@ -113,7 +129,9 @@
       "icon": "long-arrow-right"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-outcall",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-outcall"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-outcall",
       "display_name": "Outcalls",
       "tags": [
@@ -127,7 +145,9 @@
       "icon": "long-arrow-left"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-paging",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-paging"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-paging",
       "display_name": "Paging",
       "tags": [
@@ -141,7 +161,9 @@
       "icon": "bullhorn"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-moh",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-moh"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-moh",
       "display_name": "Music On Hold",
       "tags": [
@@ -155,7 +177,9 @@
       "icon": "music"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-trunk",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-trunk"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-trunk",
       "display_name": "Trunks",
       "tags": [
@@ -169,7 +193,9 @@
       "icon": "server"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-extension",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-extension"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-extension",
       "display_name": "Extensions",
       "tags": [
@@ -183,7 +209,9 @@
       "icon": "gears"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-context",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-context"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-context",
       "display_name": "Context",
       "tags": [
@@ -197,7 +225,9 @@
       "icon": "gears"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-ivr",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-ivr"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-ivr",
       "display_name": "IVR",
       "tags": [
@@ -211,7 +241,9 @@
       "icon": "navicon"
     },
     {
-      "url": "https://github.com/wazo-pbx/wazo-admin-ui-device",
+      "options": {
+        "url": "https://github.com/wazo-pbx/wazo-admin-ui-device"
+      },
       "homepage": "https://github.com/wazo-pbx/wazo-admin-ui-device",
       "display_name": "Devices",
       "tags": [
@@ -225,7 +257,9 @@
       "icon": "gear"
     },
     {
-      "url": "https://github.com/sboily/incrediblepbx-firewall",
+      "options": {
+        "url": "https://github.com/sboily/incrediblepbx-firewall"
+      },
       "homepage": "https://github.com/sboily/incrediblepbx-firewall",
       "display_name": "Travelin' Man 3",
       "tags": [
@@ -240,7 +274,9 @@
       "icon": "fire"
     },
     {
-      "url": "https://github.com/sboily/incrediblepbx-pbxstatus",
+      "options": {
+        "url": "https://github.com/sboily/incrediblepbx-pbxstatus"
+      },
       "homepage": "https://github.com/sboily/incrediblepbx-pbxstatus",
       "display_name": "PBX Status",
       "tags": [
@@ -255,7 +291,9 @@
       "icon": "info"
     },
     {
-      "url": "https://github.com/sboily/incrediblepbx-moh",
+      "options": {
+        "url": "https://github.com/sboily/incrediblepbx-moh"
+      },
       "homepage": "https://github.com/sboily/incrediblepbx-moh",
       "display_name": "Moh sounds",
       "tags": [
@@ -270,7 +308,9 @@
       "icon": "music"
     },
     {
-      "url": "https://github.com/sboily/wazo-confgend-driver-followme",
+      "options": {
+        "url": "https://github.com/sboily/wazo-confgend-driver-followme"
+      },
       "homepage": "https://github.com/sboily/wazo-confgend-driver-followme",
       "display_name": "Follow Me",
       "tags": [
@@ -284,7 +324,9 @@
       "icon": "mobile"
     },
     {
-      "url": "https://github.com/sboily/wazo-confgend-driver-pjsip",
+      "options": {
+        "url": "https://github.com/sboily/wazo-confgend-driver-pjsip"
+      },
       "homepage": "https://github.com/sboily/wazo-confgend-driver-pjsip",
       "display_name": "PJSIP driver",
       "tags": [
@@ -298,7 +340,9 @@
       "icon": "gears"
     },
     {
-      "url": "https://github.com/sboily/wazo-plugind-queuemetrics-loway",
+      "options": {
+        "url": "https://github.com/sboily/wazo-plugind-queuemetrics-loway"
+      },
       "homepage": "http://www.queuemetrics.com",
       "display_name": "Queue Metrics",
       "tags": [
@@ -313,7 +357,9 @@
       "icon": "bar-chart"
     },
     {
-      "url": "file:///data/git/repo",
+      "options": {
+        "url": "file:///data/git/repo"
+      },
       "name": "foobar",
       "namespace": "markettests",
       "version": "0.0.1",
