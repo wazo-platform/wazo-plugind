@@ -129,7 +129,7 @@ class TestPlugins(HTTPAppTestCase):
         options = {'namespace': 'foo', 'name': 'bar'}
         self.post({'method': 'market', 'options': options})
 
-        self.plugin_service.create.assert_called_once_with(None, 'market', **options)
+        self.plugin_service.create.assert_called_once_with('market', **options)
 
     def test_on_succes_returns_result_from_service(self):
         url, method = 'url', 'git'
@@ -143,7 +143,7 @@ class TestPlugins(HTTPAppTestCase):
 
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
-        self.plugin_service.create.assert_called_once_with(url, method, ref='master')
+        self.plugin_service.create.assert_called_once_with(method, ref='master', url='url')
 
     def test_on_succes_returns_result_from_service_with_options(self):
         url, method, branch = 'url', 'git', 'foobar'
@@ -158,7 +158,7 @@ class TestPlugins(HTTPAppTestCase):
 
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
-        self.plugin_service.create.assert_called_once_with(url, method, ref=branch)
+        self.plugin_service.create.assert_called_once_with(method, ref=branch, url=url)
 
     def post(self, body):
         result = self.app.post('/0.1/plugins',

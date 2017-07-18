@@ -143,7 +143,7 @@ class _PackageBuilder(object):
 
     def extract(self, ctx):
         extract_path = os.path.join(self._config['extract_dir'], ctx.uuid)
-        ctx.log(logger.debug, 'extracting %s to %s', ctx.url, extract_path)
+        ctx.log(logger.debug, 'extracting to %s', extract_path)
         shutil.rmtree(extract_path, ignore_errors=True)
         shutil.move(ctx.download_path, extract_path)
         metadata_filename = os.path.join(extract_path, self._config['default_metadata_filename'])
