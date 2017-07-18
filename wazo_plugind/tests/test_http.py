@@ -76,12 +76,6 @@ class TestMarket(HTTPAppTestCase):
 
 class TestPlugins(HTTPAppTestCase):
 
-    def setUp(self):
-        config = {'rest_api': {'cors': {'enabled': False}},
-                  'auth': {'host': 'foobar'}}
-        self.plugin_service = Mock(PluginService)
-        self.app = new_app(config, plugin_service=self.plugin_service).test_client()
-
     def test_that_invalid_values_in_fields_return_a_400(self):
         self.plugin_service.create.return_value = None
         bodies = [
