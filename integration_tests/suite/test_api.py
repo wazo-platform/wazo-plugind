@@ -24,9 +24,17 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     def tearDown(self):
         self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
 
-    def get_client(self, token=VALID_TOKEN):
+    def get_client(self, token=VALID_TOKEN, version=None):
         port = self.service_port(9503)
-        return Client('localhost', port=port, token=token, verify_certificate=False, timeout=20)
+        client_args = {
+            'port': port,
+            'token': token,
+            'verify_certificate': False,
+            'timeout': 20,
+        }
+        if version:
+            client_args['version'] = version
+        return Client('localhost', **client_args)
 
     def install_plugin(self, url=None, method=None, **kwargs):
         is_async = kwargs.pop('_async', True)
