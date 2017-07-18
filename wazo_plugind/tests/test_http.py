@@ -35,6 +35,12 @@ class HTTPAppTestCase(TestCase):
         self.plugin_service = Mock(PluginService)
         self.app = new_app(config, plugin_service=self.plugin_service).test_client()
 
+    def post(self, body, version='0.2'):
+        result = self.app.post('/{}/plugins'.format(version),
+                               data=json.dumps(body),
+                               headers={'content-type': 'application/json'})
+        return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
+
 
 class TestMarket(HTTPAppTestCase):
 
@@ -74,7 +80,7 @@ class TestMarket(HTTPAppTestCase):
         return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
 
 
-class TestPlugins(HTTPAppTestCase):
+class TestPluginsV01(HTTPAppTestCase):
 
     def test_that_invalid_values_in_fields_return_a_400(self):
         self.plugin_service.create.return_value = None
@@ -153,9 +159,3 @@ class TestPlugins(HTTPAppTestCase):
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
         self.plugin_service.create.assert_called_once_with(method, ref=branch, url=url)
-
-    def post(self, body, version='0.2'):
-        result = self.app.post('/{}/plugins'.format(version),
-                               data=json.dumps(body),
-                               headers={'content-type': 'application/json'})
-        return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
