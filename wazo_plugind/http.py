@@ -111,6 +111,7 @@ class PluginsV01(Plugins):
 
     @required_acl('plugind.plugins.create')
     def post(self):
+        logger.info('HTTP API version 0.1 is still being used. Upgrading to 0.2 is recommended')
         body, errors = PluginInstallSchemaV01().load(request.get_json())
         if errors:
             raise InvalidInstallParamException(errors)
