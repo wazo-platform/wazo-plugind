@@ -42,12 +42,45 @@ class TestPluginList(BaseIntegrationTest):
                                                           name='foobar')))
 
 
+class TestPluginInstallationV01(BaseIntegrationTest):
+
+    asset = 'plugind_only'
+
+    def test_when_it_works(self):
+        try:
+            self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False)
+        except HTTPError:
+            # We don't care wether it was installed or not
+            pass
+
+        result = self.install_plugin(url='file:///data/git/repo', method='git', version='0.1')
+
+        assert_that(result, has_entries(uuid=uuid_()))
+
+        statuses = ['starting', 'downloading', 'extracting', 'building',
+                    'packaging', 'updating', 'installing', 'completed']
+        for status in statuses:
+            self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status)
+
+        build_success_exists = self.exists_in_container('/tmp/results/build_success')
+        package_success_exists = self.exists_in_container('/tmp/results/package_success')
+        install_success_exists = self.exists_in_container('/tmp/results/install_success')
+
+        assert_that(build_success_exists, is_(True), 'build_success was not created or copied')
+        assert_that(install_success_exists, is_(True), 'install_success was not created')
+        assert_that(package_success_exists, is_(True), 'package_success was not created')
+
+
 class TestPluginInstallation(BaseIntegrationTest):
 
     asset = 'plugind_only'
 
     def test_when_it_works(self):
-        self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False)
+        try:
+            self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False)
+        except HTTPError:
+            # We don't care wether it was installed or not
+            pass
 
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 
