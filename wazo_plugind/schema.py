@@ -111,6 +111,7 @@ def new_plugin_metadata_schema(current_version):
 class GitInstallOptionsSchema(Schema):
 
     ref = fields.String(missing='master', validate=Length(min=1), required=False)
+    url = fields.String(validate=Length(min=1), required=True)
 
 
 class MarketInstallOptionsSchema(Schema):
@@ -118,6 +119,7 @@ class MarketInstallOptionsSchema(Schema):
     namespace = fields.String(validate=Length(min=1), required=True)
     name = fields.String(validate=Length(min=1), required=True)
     version = fields.String(required=False)
+    url = fields.String(validate=Length(min=1))
 
 
 class MarketListRequestSchema(Schema):
@@ -154,11 +156,42 @@ class OptionField(fields.Nested):
 
 class PluginInstallSchema(Schema):
 
+    method = fields.String(validate=OneOf(['git', 'market']), required=True)
+    options = OptionField(missing=dict, required=True)
+
+    @pre_load
+    def ensure_dict(self, data):
+        return data or {}
+
+
+# API 0.1 schema
+class GitInstallOptionsSchemaV01(Schema):
+
+    ref = fields.String(missing='master', validate=Length(min=1), required=False)
+
+
+class MarketInstallOptionsSchemaV01(Schema):
+
+    namespace = fields.String(validate=Length(min=1), required=True)
+    name = fields.String(validate=Length(min=1), required=True)
+    version = fields.String(required=False)
+
+
+class OptionFieldV01(OptionField):
+
+    _options = {
+        'git': fields.Nested(GitInstallOptionsSchemaV01, missing=dict, required=False),
+        'market': fields.Nested(MarketInstallOptionsSchemaV01, required=True),
+    }
+
+
+class PluginInstallSchemaV01(Schema):
+
     _method_optional_url = ['market']
 
     url = fields.String(validate=Length(min=1))
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
-    options = OptionField(missing=dict, required=True)
+    options = OptionFieldV01(missing=dict, required=True)
 
     @pre_load
     def ensure_dict(self, data):

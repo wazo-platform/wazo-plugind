@@ -5,10 +5,10 @@ from unittest import TestCase
 from hamcrest import assert_that, contains, equal_to, has_entries
 from mock import ANY
 
-from ..schema import PluginInstallSchema
+from ..schema import PluginInstallSchemaV01
 
 
-class TestInstallationSchema(TestCase):
+class TestInstallationSchemaV01(TestCase):
 
     def test_git_installation_without_ref(self):
         url = 'file://my-git-repo.git'
@@ -17,7 +17,7 @@ class TestInstallationSchema(TestCase):
             method='git',
         )
 
-        result, _ = PluginInstallSchema().load(input_)
+        result, _ = PluginInstallSchemaV01().load(input_)
 
         expected = {'url': url, 'method': 'git', 'options': {'ref': 'master'}}
         assert_that(result, equal_to(expected))
@@ -30,7 +30,7 @@ class TestInstallationSchema(TestCase):
             options={'ref': 'v0.0.1'},
         )
 
-        result, _ = PluginInstallSchema().load(input_)
+        result, _ = PluginInstallSchemaV01().load(input_)
 
         expected = {'url': url, 'method': 'git', 'options': {'ref': 'v0.0.1'}}
         assert_that(result, equal_to(expected))
@@ -46,7 +46,7 @@ class TestInstallationSchema(TestCase):
             }
         }
 
-        result, _ = PluginInstallSchema().load(input_)
+        result, _ = PluginInstallSchemaV01().load(input_)
 
         expected = {
             'url': url,
@@ -59,8 +59,8 @@ class TestInstallationSchema(TestCase):
         assert_that(result, equal_to(expected))
 
     def test_that_an_invalid_method_returns_an_error(self):
-        result, errors = PluginInstallSchema().load({'method': 'foobar',
-                                                     'url': 'file:///test'})
+        result, errors = PluginInstallSchemaV01().load({'method': 'foobar',
+                                                        'url': 'file:///test'})
         assert_that(
             errors,
             has_entries('method', contains(has_entries('constraint', has_entries('choices', ANY)))))

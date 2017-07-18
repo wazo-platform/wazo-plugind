@@ -51,10 +51,6 @@ class _MarketDownloader(object):
             method=body.get('method'))
 
         options = body['options']
-        # TODO remove the url shenanigan after the api version bump
-        url = body.get('url')
-        if url:
-            options['url'] = url
         if options:
             ctx = ctx.with_fields(install_args=options)
 

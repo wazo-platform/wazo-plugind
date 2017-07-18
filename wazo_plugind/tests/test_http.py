@@ -116,7 +116,7 @@ class TestPlugins(HTTPAppTestCase):
         ]
 
         for body, detail in zip(bodies, details):
-            status_code, result = self.post(body)
+            status_code, result = self.post(body, version='0.1')
             assert_that(status_code, equal_to(400), 'body was {}'.format(body))
             assert_that(result, has_entries(
                 'error_id', 'invalid_data',
@@ -131,7 +131,7 @@ class TestPlugins(HTTPAppTestCase):
 
         self.plugin_service.create.assert_called_once_with('market', **options)
 
-    def test_on_succes_returns_result_from_service(self):
+    def test_on_succes_returns_result_from_service_v01(self):
         url, method = 'url', 'git'
         body = {
             'url': url,
@@ -139,13 +139,13 @@ class TestPlugins(HTTPAppTestCase):
         }
         self.plugin_service.create.return_value = uuid = str(uuid4())
 
-        status_code, data = self.post(body)
+        status_code, data = self.post(body, version='0.1')
 
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
         self.plugin_service.create.assert_called_once_with(method, ref='master', url='url')
 
-    def test_on_succes_returns_result_from_service_with_options(self):
+    def test_on_succes_returns_result_from_service_with_options_v01(self):
         url, method, branch = 'url', 'git', 'foobar'
         body = {
             'url': url,
@@ -154,14 +154,14 @@ class TestPlugins(HTTPAppTestCase):
         }
         self.plugin_service.create.return_value = uuid = str(uuid4())
 
-        status_code, data = self.post(body)
+        status_code, data = self.post(body, version='0.1')
 
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
         self.plugin_service.create.assert_called_once_with(method, ref=branch, url=url)
 
-    def post(self, body):
-        result = self.app.post('/0.1/plugins',
+    def post(self, body, version='0.2'):
+        result = self.app.post('/{}/plugins'.format(version),
                                data=json.dumps(body),
                                headers={'content-type': 'application/json'})
         return result.status_code, json.loads(result.data.decode(encoding='utf-8'))

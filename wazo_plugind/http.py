@@ -8,7 +8,7 @@ from flask_restful import Api, Resource
 from pkg_resources import resource_string
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
-from .schema import MarketListRequestSchema, PluginInstallSchema
+from .schema import MarketListRequestSchema, PluginInstallSchema, PluginInstallSchemaV01
 from .exceptions import InvalidInstallParamException, InvalidListParamException
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,9 @@ class _BaseResource(Resource):
 
     @classmethod
     def add_resource(cls, api, *args, **kwargs):
-        api.add_resource(cls, cls.api_path)
+        endpoint_prefix = kwargs.get('endpoint_prefix', '')
+        endpoint = ''.join([endpoint_prefix, cls.__name__])
+        api.add_resource(cls, cls.api_path, endpoint=endpoint)
 
 
 class _AuthentificatedResource(_BaseResource):
@@ -92,9 +94,9 @@ class Plugins(_AuthentificatedResource):
             raise InvalidInstallParamException(errors)
 
         method, options = body['method'], body['options']
-        url = body.get('url')
-        if url:
-            options['url'] = url
+        return self._post(method, options)
+
+    def _post(self, method, options):
         uuid = self.plugin_service.create(method, **options)
 
         return {'uuid': uuid}
@@ -103,6 +105,22 @@ class Plugins(_AuthentificatedResource):
     def add_resource(cls, api, *args, **kwargs):
         cls.plugin_service = kwargs['plugin_service']
         super().add_resource(api, *args, **kwargs)
+
+
+class PluginsV01(Plugins):
+
+    @required_acl('plugind.plugins.create')
+    def post(self):
+        body, errors = PluginInstallSchemaV01().load(request.get_json())
+        if errors:
+            raise InvalidInstallParamException(errors)
+
+        method, options = body['method'], body['options']
+        url = body.get('url')
+        if url:
+            options['url'] = url
+
+        return self._post(method, options)
 
 
 class PluginsItem(_AuthentificatedResource):
@@ -135,17 +153,29 @@ class Swagger(_BaseResource):
         return make_response(api_spec, 200, {'Content-Type': 'application/x-yaml'})
 
 
+def set_api(app, prefix, config, resources, override=None, *args, **kwargs):
+    override = override or {}
+    api = Api(app, prefix=prefix)
+    resources = dict(resources)
+    resources.update(override)
+    for ResourceClass in resources.values():
+        logger.debug('Adding %s to %s %s', ResourceClass, prefix, api)
+        ResourceClass.add_resource(api, config, *args, **kwargs)
+
+
 def new_app(config, *args, **kwargs):
     cors_config = config['rest_api']['cors']
     auth_verifier.set_config(config['auth'])
     app = Flask('wazo_plugind')
     app.config.update(config)
-    api = Api(app, prefix='/0.1')
-    Swagger.add_resource(api, *args, **kwargs)
-    Config.add_resource(api, config, *args, **kwargs)
-    Market.add_resource(api, config, *args, **kwargs)
-    Plugins.add_resource(api, config, *args, **kwargs)
-    PluginsItem.add_resource(api, config, *args, **kwargs)
+
+    latest = {'Swagger': Swagger, 'Config': Config, 'Market': Market,
+              'Plugins': Plugins, 'PluginsItem': PluginsItem}
+    v01 = {'Plugins': PluginsV01}
+
+    set_api(app, '/0.1', config, latest, override=v01, *args, endpoint_prefix='v01', **kwargs)
+    set_api(app, '/0.2', config, latest, *args, **kwargs)
+
     if cors_config.pop('enabled', False):
         CORS(app, **cors_config)
     return app
