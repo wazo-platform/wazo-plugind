@@ -80,6 +80,85 @@ class TestMarket(HTTPAppTestCase):
         return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
 
 
+class TestPlugins(HTTPAppTestCase):
+
+    def test_install_with_no_method(self):
+        status_code, response = self.post({'options': {'url': 'http://'}})
+
+        assert_that(status_code, equal_to(400))
+        assert_that(response, has_entries('error_id', 'invalid_data',
+                                          'message', 'Invalid data',
+                                          'resource', 'plugins',
+                                          'details', {'method': {'constraint_id': 'required',
+                                                                 'constraint': 'required',
+                                                                 'message': ANY}}))
+
+    def test_install_with_an_unknown_method(self):
+        status_code, response = self.post({'method': 'svn', 'options': {'url': 'http://'}})
+
+        assert_that(status_code, equal_to(400))
+        assert_that(response, has_entries('error_id', 'invalid_data',
+                                          'message', 'Invalid data',
+                                          'resource', 'plugins',
+                                          'details', {'method': {'constraint_id': 'enum',
+                                                                 'constraint': {'choices': ['git', 'market']},
+                                                                 'message': ANY}}))
+
+    def test_market_install_with_minimal_arguments(self):
+        options = {'name': 'foo', 'namespace': 'bar'}
+        self.post({'method': 'market', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with('market', **options)
+
+    def test_market_install_with_all_arguments(self):
+        options = {'name': 'foo', 'namespace': 'bar', 'url': 'http://', 'version': '0.0.1'}
+        self.post({'method': 'market', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with('market', **options)
+
+    def test_market_install_with_no_name_and_namespace(self):
+        status_code, response = self.post({'method': 'market', 'options': {}})
+
+        assert_that(status_code, equal_to(400))
+        assert_that(
+            response,
+            has_entries('error_id', 'invalid_data',
+                        'message', 'Invalid data',
+                        'resource', 'plugins',
+                        'details', {'options': {'name': {'constraint_id': 'required',
+                                                         'constraint': 'required',
+                                                         'message': ANY},
+                                                'namespace': {'constraint_id': 'required',
+                                                              'constraint': 'required',
+                                                              'message': ANY}}}))
+
+    def test_git_install_with_minimal_arguments(self):
+        options = {'url': 'http://'}
+        self.post({'method': 'git', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with('git', ref='master', **options)
+
+    def test_git_install_with_a_branch_name(self):
+        options = {'url': 'http://', 'ref': 'foobar'}
+        self.post({'method': 'git', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with('git', **options)
+
+    def test_git_install_with_no_url(self):
+        options = {'ref': 'foobar'}
+        status_code, response = self.post({'method': 'git', 'options': options})
+
+        assert_that(status_code, equal_to(400))
+        assert_that(
+            response,
+            has_entries('error_id', 'invalid_data',
+                        'message', 'Invalid data',
+                        'resource', 'plugins',
+                        'details', {'options': {'url': {'constraint_id': 'required',
+                                                        'constraint': 'required',
+                                                        'message': ANY}}}))
+
+
 class TestPluginsV01(HTTPAppTestCase):
 
     def test_that_invalid_values_in_fields_return_a_400(self):
@@ -127,7 +206,7 @@ class TestPluginsV01(HTTPAppTestCase):
 
     def test_that_market_can_be_used_without_an_url(self):
         options = {'namespace': 'foo', 'name': 'bar'}
-        self.post({'method': 'market', 'options': options})
+        self.post({'method': 'market', 'options': options}, version='0.1')
 
         self.plugin_service.create.assert_called_once_with('market', **options)
 
