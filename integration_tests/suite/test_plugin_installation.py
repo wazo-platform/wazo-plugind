@@ -42,6 +42,25 @@ class TestPluginList(BaseIntegrationTest):
                                                           name='foobar')))
 
 
+class TestPluginDependencies(BaseIntegrationTest):
+
+    asset = 'dependency'
+
+    def test_that_dependencies_are_installed(self):
+        self.install_plugin(url=None, method='market', options={'namespace': 'dependency',
+                                                                'name': 'one'}, _async=False)
+
+        one_is_installed = self._is_installed('wazo-plugind-one-dependency')
+        two_is_installed = self._is_installed('wazo-plugind-two-dependency')
+        three_is_installed = self._is_installed('wazo-plugind-three-dependency')
+        four_is_installed = self._is_installed('wazo-plugind-four-dependency')
+
+        assert_that(one_is_installed, equal_to(True), 'one should be installed')
+        assert_that(two_is_installed, equal_to(True), 'two should be installed')
+        assert_that(three_is_installed, equal_to(True), 'three should be installed')
+        assert_that(four_is_installed, equal_to(True), 'four should be installed')
+
+
 class TestPluginInstallationV01(BaseIntegrationTest):
 
     asset = 'plugind_only'
