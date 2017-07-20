@@ -1,0 +1,6 @@
+namespace: dependency
+name: three
+version: 0.0.1
+depends:
+  - namespace: dependency
+    name: four
