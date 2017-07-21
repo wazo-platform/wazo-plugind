@@ -8,6 +8,7 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 from functools import wraps
 from pkg_resources import resource_string
+from xivo import http_helpers
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
 
@@ -185,6 +186,8 @@ def new_app(config, *args, **kwargs):
     auth_verifier.set_config(config['auth'])
     app = Flask('wazo_plugind')
     app.config.update(config)
+    app.after_request(http_helpers.log_request)
+
 
     APIv01 = PlugindAPI(app, config, prefix='/0.1', *args, endpoint_prefix='v01', **kwargs)
     APIv02 = PlugindAPI(app, config, prefix='/0.2', *args, endpoint_prefix='v02', **kwargs)
