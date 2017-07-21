@@ -115,7 +115,6 @@ class PluginsV01(Plugins):
 
     @required_acl('plugind.plugins.create')
     def post(self):
-        logger.info('HTTP API version 0.1 is still being used. Upgrading to 0.2 is recommended')
         body, errors = PluginInstallSchemaV01().load(request.get_json())
         if errors:
             raise InvalidInstallParamException(errors)
@@ -181,6 +180,14 @@ class MultiAPI():
                 api.add_resource(resource)
 
 
+def log_v01_deprecated(func):
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        logger.info('HTTP API version 0.1 is still being used. Upgrading to 0.2 is recommended')
+        return func(*args, **kwargs)
+    return decorated
+
+
 def new_app(config, *args, **kwargs):
     cors_config = config['rest_api']['cors']
     auth_verifier.set_config(config['auth'])
@@ -189,7 +196,7 @@ def new_app(config, *args, **kwargs):
     app.after_request(http_helpers.log_request)
 
 
-    APIv01 = PlugindAPI(app, config, prefix='/0.1', *args, endpoint_prefix='v01', **kwargs)
+    APIv01 = PlugindAPI(app, config, prefix='/0.1', decorators=[log_v01_deprecated], *args, endpoint_prefix='v01', **kwargs)
     APIv02 = PlugindAPI(app, config, prefix='/0.2', *args, endpoint_prefix='v02', **kwargs)
     MultiAPI(APIv01, APIv02).add_resource(Swagger)
     MultiAPI(APIv01, APIv02).add_resource(Config)
