@@ -198,7 +198,7 @@ def new_app(config, *args, **kwargs):
 
     APIv01 = PlugindAPI(app, config, prefix='/0.1', decorators=[log_v01_deprecated], *args, endpoint_prefix='v01', **kwargs)
     APIv02 = PlugindAPI(app, config, prefix='/0.2', *args, endpoint_prefix='v02', **kwargs)
-    MultiAPI(APIv01, APIv02).add_resource(Swagger)
+    MultiAPI(False,  APIv02).add_resource(Swagger)
     MultiAPI(APIv01, APIv02).add_resource(Config)
     MultiAPI(APIv01, APIv02).add_resource(Market)
     MultiAPI(APIv01, APIv02).add_resource(PluginsItem)

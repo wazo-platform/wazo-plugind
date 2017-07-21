@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  version: "0.1"
+  version: "0.2"
   title: wazo-plugind
   description: "Wazo's plugin management service"
   contact:
