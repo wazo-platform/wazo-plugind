@@ -1,6 +1,6 @@
 swagger: "2.0"
 info:
-  version: "0.1"
+  version: "0.2"
   title: wazo-plugind
   description: "Wazo's plugin management service"
   contact:
@@ -12,7 +12,7 @@ info:
     url: http://www.gnu.org/licenses/gpl-3.0.html
 x-xivo-port: 9503
 x-xivo-name: plugind
-basePath: /0.1
+basePath: /0.2
 schemes:
 - https
 consumes:
@@ -249,9 +249,6 @@ definitions:
   PluginInstallParameters:
     type: object
     properties:
-      url:
-        type: string
-        description: "The URL to fetch the plugin"
       method:
         type: string
         description: "The method used to fetch this plugin"
@@ -260,7 +257,6 @@ definitions:
         type: object
         description: "Method dependant installation options"
     required:
-      - url
       - method
   PluginMetadata:
     type: object

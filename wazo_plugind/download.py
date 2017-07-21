@@ -17,7 +17,7 @@ class _GitDownloader(object):
         self._download_dir = config['download_dir']
 
     def download(self, ctx):
-        url, ref = ctx.url, ctx.install_args['ref']
+        url, ref = ctx.install_args['url'], ctx.install_args['ref']
         filename = os.path.join(self._download_dir, ctx.uuid)
 
         cmd = ['git', 'clone', '--branch', ref, '--depth', '1', url, filename]
@@ -48,7 +48,6 @@ class _MarketDownloader(object):
             raise InvalidInstallParamException(errors)
 
         ctx = ctx.with_fields(
-            url=body['url'],
             method=body.get('method'))
 
         options = body['options']
@@ -59,8 +58,9 @@ class _MarketDownloader(object):
 
     def _find_matching_plugin(self, ctx):
         market_config = dict(self._market_config)
-        if ctx.url:
-            market_config['url'] = ctx.url
+        market_url = ctx.install_args.get('url')
+        if market_url:
+            market_config['url'] = market_url
 
         market_proxy = db.MarketProxy(market_config)
         market_db = db.MarketDB(market_proxy)
@@ -72,7 +72,7 @@ class _UndefinedDownloader(object):
     def __init__(self, config):
         pass
 
-    def download(self, url):
+    def download(self, ctx):
         raise UnsupportedDownloadMethod()
 
 

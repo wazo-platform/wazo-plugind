@@ -1,12 +1,13 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from unittest import TestCase
-from functools import wraps
-from uuid import uuid4
 import json
+
+from functools import wraps
 from hamcrest import assert_that, equal_to, has_entries
-from mock import ANY, Mock, patch
+from mock import ANY, Mock, patch, sentinel
+from unittest import TestCase
+from uuid import uuid4
 
 from ..service import PluginService
 
@@ -24,7 +25,7 @@ class AuthVerifierMock(object):
 
 
 with patch('xivo.auth_verifier.AuthVerifier', AuthVerifierMock):
-    from ..http import new_app
+    from ..http import new_app, MultiAPI, PlugindAPI
 
 
 class HTTPAppTestCase(TestCase):
@@ -34,6 +35,12 @@ class HTTPAppTestCase(TestCase):
                   'auth': {'host': 'foobar'}}
         self.plugin_service = Mock(PluginService)
         self.app = new_app(config, plugin_service=self.plugin_service).test_client()
+
+    def post(self, body, version='0.2'):
+        result = self.app.post('/{}/plugins'.format(version),
+                               data=json.dumps(body),
+                               headers={'content-type': 'application/json'})
+        return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
 
 
 class TestMarket(HTTPAppTestCase):
@@ -76,11 +83,84 @@ class TestMarket(HTTPAppTestCase):
 
 class TestPlugins(HTTPAppTestCase):
 
-    def setUp(self):
-        config = {'rest_api': {'cors': {'enabled': False}},
-                  'auth': {'host': 'foobar'}}
-        self.plugin_service = Mock(PluginService)
-        self.app = new_app(config, plugin_service=self.plugin_service).test_client()
+    def test_install_with_no_method(self):
+        status_code, response = self.post({'options': {'url': 'http://'}})
+
+        assert_that(status_code, equal_to(400))
+        assert_that(response, has_entries('error_id', 'invalid_data',
+                                          'message', 'Invalid data',
+                                          'resource', 'plugins',
+                                          'details', {'method': {'constraint_id': 'required',
+                                                                 'constraint': 'required',
+                                                                 'message': ANY}}))
+
+    def test_install_with_an_unknown_method(self):
+        status_code, response = self.post({'method': 'svn', 'options': {'url': 'http://'}})
+
+        assert_that(status_code, equal_to(400))
+        assert_that(response, has_entries('error_id', 'invalid_data',
+                                          'message', 'Invalid data',
+                                          'resource', 'plugins',
+                                          'details', {'method': {'constraint_id': 'enum',
+                                                                 'constraint': {'choices': ['git', 'market']},
+                                                                 'message': ANY}}))
+
+    def test_market_install_with_minimal_arguments(self):
+        options = {'name': 'foo', 'namespace': 'bar'}
+        self.post({'method': 'market', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with('market', **options)
+
+    def test_market_install_with_all_arguments(self):
+        options = {'name': 'foo', 'namespace': 'bar', 'url': 'http://', 'version': '0.0.1'}
+        self.post({'method': 'market', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with('market', **options)
+
+    def test_market_install_with_no_name_and_namespace(self):
+        status_code, response = self.post({'method': 'market', 'options': {}})
+
+        assert_that(status_code, equal_to(400))
+        assert_that(
+            response,
+            has_entries('error_id', 'invalid_data',
+                        'message', 'Invalid data',
+                        'resource', 'plugins',
+                        'details', {'options': {'name': {'constraint_id': 'required',
+                                                         'constraint': 'required',
+                                                         'message': ANY},
+                                                'namespace': {'constraint_id': 'required',
+                                                              'constraint': 'required',
+                                                              'message': ANY}}}))
+
+    def test_git_install_with_minimal_arguments(self):
+        options = {'url': 'http://'}
+        self.post({'method': 'git', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with('git', ref='master', **options)
+
+    def test_git_install_with_a_branch_name(self):
+        options = {'url': 'http://', 'ref': 'foobar'}
+        self.post({'method': 'git', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with('git', **options)
+
+    def test_git_install_with_no_url(self):
+        options = {'ref': 'foobar'}
+        status_code, response = self.post({'method': 'git', 'options': options})
+
+        assert_that(status_code, equal_to(400))
+        assert_that(
+            response,
+            has_entries('error_id', 'invalid_data',
+                        'message', 'Invalid data',
+                        'resource', 'plugins',
+                        'details', {'options': {'url': {'constraint_id': 'required',
+                                                        'constraint': 'required',
+                                                        'message': ANY}}}))
+
+
+class TestPluginsV01(HTTPAppTestCase):
 
     def test_that_invalid_values_in_fields_return_a_400(self):
         self.plugin_service.create.return_value = None
@@ -116,7 +196,7 @@ class TestPlugins(HTTPAppTestCase):
         ]
 
         for body, detail in zip(bodies, details):
-            status_code, result = self.post(body)
+            status_code, result = self.post(body, version='0.1')
             assert_that(status_code, equal_to(400), 'body was {}'.format(body))
             assert_that(result, has_entries(
                 'error_id', 'invalid_data',
@@ -127,11 +207,11 @@ class TestPlugins(HTTPAppTestCase):
 
     def test_that_market_can_be_used_without_an_url(self):
         options = {'namespace': 'foo', 'name': 'bar'}
-        self.post({'method': 'market', 'options': options})
+        self.post({'method': 'market', 'options': options}, version='0.1')
 
-        self.plugin_service.create.assert_called_once_with(None, 'market', **options)
+        self.plugin_service.create.assert_called_once_with('market', **options)
 
-    def test_on_succes_returns_result_from_service(self):
+    def test_on_succes_returns_result_from_service_v01(self):
         url, method = 'url', 'git'
         body = {
             'url': url,
@@ -139,13 +219,13 @@ class TestPlugins(HTTPAppTestCase):
         }
         self.plugin_service.create.return_value = uuid = str(uuid4())
 
-        status_code, data = self.post(body)
+        status_code, data = self.post(body, version='0.1')
 
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
-        self.plugin_service.create.assert_called_once_with(url, method, ref='master')
+        self.plugin_service.create.assert_called_once_with(method, ref='master', url='url')
 
-    def test_on_succes_returns_result_from_service_with_options(self):
+    def test_on_succes_returns_result_from_service_with_options_v01(self):
         url, method, branch = 'url', 'git', 'foobar'
         body = {
             'url': url,
@@ -154,14 +234,60 @@ class TestPlugins(HTTPAppTestCase):
         }
         self.plugin_service.create.return_value = uuid = str(uuid4())
 
-        status_code, data = self.post(body)
+        status_code, data = self.post(body, version='0.1')
 
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
-        self.plugin_service.create.assert_called_once_with(url, method, ref=branch)
+        self.plugin_service.create.assert_called_once_with(method, ref=branch, url=url)
 
-    def post(self, body):
-        result = self.app.post('/0.1/plugins',
-                               data=json.dumps(body),
-                               headers={'content-type': 'application/json'})
-        return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
+
+class TestMultiAPI(TestCase):
+
+    def test_given_no_apis_when_add_resource_then_nothing(self):
+        multi = MultiAPI()
+
+        multi.add_resource(Mock())
+
+        # no exception raised
+
+    def test_given_two_apis_when_add_resource_then_add_resource_called_on_each_api(self):
+        api1, api2 = Mock(), Mock()
+        multi = MultiAPI(api1, api2)
+
+        multi.add_resource(sentinel.resource)
+
+        api1.add_resource.assert_called_once_with(sentinel.resource)
+        api2.add_resource.assert_called_once_with(sentinel.resource)
+
+    def test_given_one_false_api_when_add_resource_then_add_resource_called_on_each_non_false_api(self):
+        api1, api2 = Mock(), Mock()
+        multi = MultiAPI(api1, False, api2)
+
+        multi.add_resource(sentinel.resource)
+
+        api1.add_resource.assert_called_once_with(sentinel.resource)
+        api2.add_resource.assert_called_once_with(sentinel.resource)
+
+
+class TestPlugindAPI(TestCase):
+
+    @patch('wazo_plugind.http.Api')
+    def test_when_add_resource_then_add_resource_called_with_right_args(self, RestfulApi):
+        restful_api = RestfulApi.return_value
+        api = PlugindAPI(sentinel.app,
+                         sentinel.config,
+                         sentinel.prefix,
+                         sentinel.decorators,
+                         sentinel.args,
+                         sentinel=sentinel.kwargs)
+        resource = Mock()
+
+        api.add_resource(resource)
+
+        RestfulApi.assert_called_once_with(sentinel.app,
+                                           prefix=sentinel.prefix,
+                                           decorators=sentinel.decorators)
+        resource.add_resource.assert_called_once_with(restful_api,
+                                                      sentinel.config,
+                                                      sentinel.args,
+                                                      sentinel=sentinel.kwargs)

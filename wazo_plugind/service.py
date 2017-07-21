@@ -31,10 +31,10 @@ class PluginService(object):
         market_db = db.MarketDB(market_proxy, self._plugin_db)
         return market_db.count(*args, **kwargs)
 
-    def create(self, url, method, **kwargs):
+    def create(self, method, **kwargs):
         from .tasks import package_and_install
-        ctx = Context(self._config, url=url, method=method, install_args=kwargs)
-        ctx.log(logger.info, 'installing %s...', url)
+        ctx = Context(self._config, method=method, install_args=kwargs)
+        ctx.log(logger.info, 'installing %s...', kwargs)
         package_and_install.apply_async(args=(ctx,))
         return ctx.uuid
 
