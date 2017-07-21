@@ -2,12 +2,15 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+
 from flask import Flask, make_response, request
 from flask_cors import CORS
 from flask_restful import Api, Resource
+from functools import wraps
 from pkg_resources import resource_string
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
+
 from .schema import MarketListRequestSchema, PluginInstallSchema, PluginInstallSchemaV01
 from .exceptions import InvalidInstallParamException, InvalidListParamException
 
@@ -154,14 +157,27 @@ class Swagger(_BaseResource):
         return make_response(api_spec, 200, {'Content-Type': 'application/x-yaml'})
 
 
-def set_api(app, prefix, config, resources, override=None, *args, **kwargs):
-    override = override or {}
-    api = Api(app, prefix=prefix)
-    resources = dict(resources)
-    resources.update(override)
-    for ResourceClass in resources.values():
-        logger.debug('Adding %s to %s %s', ResourceClass, prefix, api)
-        ResourceClass.add_resource(api, config, *args, **kwargs)
+class PlugindAPI():
+    def __init__(self, app, config, prefix, decorators=None, *args, **kwargs):
+        self._config = config
+        self._prefix = prefix
+        self._restful_api = Api(app, prefix=self._prefix, decorators=(decorators or []))
+        self._args = args
+        self._kwargs = kwargs
+
+    def add_resource(self, resource):
+        logger.debug('Adding %s to %s %s', resource, self._prefix, self._restful_api)
+        resource.add_resource(self._restful_api, self._config, *self._args, **self._kwargs)
+
+
+class MultiAPI():
+    def __init__(self, *apis):
+        self._apis = apis
+
+    def add_resource(self, resource):
+        for api in self._apis:
+            if api:
+                api.add_resource(resource)
 
 
 def new_app(config, *args, **kwargs):
@@ -170,12 +186,14 @@ def new_app(config, *args, **kwargs):
     app = Flask('wazo_plugind')
     app.config.update(config)
 
-    latest = {'Swagger': Swagger, 'Config': Config, 'Market': Market,
-              'Plugins': Plugins, 'PluginsItem': PluginsItem}
-    v01 = {'Plugins': PluginsV01}
-
-    set_api(app, '/0.1', config, latest, override=v01, *args, endpoint_prefix='v01', **kwargs)
-    set_api(app, '/0.2', config, latest, *args, **kwargs)
+    APIv01 = PlugindAPI(app, config, prefix='/0.1', *args, endpoint_prefix='v01', **kwargs)
+    APIv02 = PlugindAPI(app, config, prefix='/0.2', *args, endpoint_prefix='v02', **kwargs)
+    MultiAPI(APIv01, APIv02).add_resource(Swagger)
+    MultiAPI(APIv01, APIv02).add_resource(Config)
+    MultiAPI(APIv01, APIv02).add_resource(Market)
+    MultiAPI(APIv01, APIv02).add_resource(PluginsItem)
+    MultiAPI(False,  APIv02).add_resource(Plugins)
+    MultiAPI(APIv01,  False).add_resource(PluginsV01)
 
     if cors_config.pop('enabled', False):
         CORS(app, **cors_config)

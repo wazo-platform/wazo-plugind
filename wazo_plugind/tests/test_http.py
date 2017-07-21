@@ -1,12 +1,13 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from unittest import TestCase
-from functools import wraps
-from uuid import uuid4
 import json
+
+from functools import wraps
 from hamcrest import assert_that, equal_to, has_entries
-from mock import ANY, Mock, patch
+from mock import ANY, Mock, patch, sentinel
+from unittest import TestCase
+from uuid import uuid4
 
 from ..service import PluginService
 
@@ -24,7 +25,7 @@ class AuthVerifierMock(object):
 
 
 with patch('xivo.auth_verifier.AuthVerifier', AuthVerifierMock):
-    from ..http import new_app
+    from ..http import new_app, MultiAPI, PlugindAPI
 
 
 class HTTPAppTestCase(TestCase):
@@ -238,3 +239,55 @@ class TestPluginsV01(HTTPAppTestCase):
         assert_that(status_code, equal_to(200))
         assert_that(data, equal_to({'uuid': uuid}))
         self.plugin_service.create.assert_called_once_with(method, ref=branch, url=url)
+
+
+class TestMultiAPI(TestCase):
+
+    def test_given_no_apis_when_add_resource_then_nothing(self):
+        multi = MultiAPI()
+
+        multi.add_resource(Mock())
+
+        # no exception raised
+
+    def test_given_two_apis_when_add_resource_then_add_resource_called_on_each_api(self):
+        api1, api2 = Mock(), Mock()
+        multi = MultiAPI(api1, api2)
+
+        multi.add_resource(sentinel.resource)
+
+        api1.add_resource.assert_called_once_with(sentinel.resource)
+        api2.add_resource.assert_called_once_with(sentinel.resource)
+
+    def test_given_one_false_api_when_add_resource_then_add_resource_called_on_each_non_false_api(self):
+        api1, api2 = Mock(), Mock()
+        multi = MultiAPI(api1, False, api2)
+
+        multi.add_resource(sentinel.resource)
+
+        api1.add_resource.assert_called_once_with(sentinel.resource)
+        api2.add_resource.assert_called_once_with(sentinel.resource)
+
+
+class TestPlugindAPI(TestCase):
+
+    @patch('wazo_plugind.http.Api')
+    def test_when_add_resource_then_add_resource_called_with_right_args(self, RestfulApi):
+        restful_api = RestfulApi.return_value
+        api = PlugindAPI(sentinel.app,
+                         sentinel.config,
+                         sentinel.prefix,
+                         sentinel.decorators,
+                         sentinel.args,
+                         sentinel=sentinel.kwargs)
+        resource = Mock()
+
+        api.add_resource(resource)
+
+        RestfulApi.assert_called_once_with(sentinel.app,
+                                           prefix=sentinel.prefix,
+                                           decorators=sentinel.decorators)
+        resource.add_resource.assert_called_once_with(restful_api,
+                                                      sentinel.config,
+                                                      sentinel.args,
+                                                      sentinel=sentinel.kwargs)
