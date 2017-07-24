@@ -6,6 +6,7 @@ sync:
     - rabbitmq
   environment:
     PORTS: "5672 9503 9497"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 plugind:
   image: "wazo-plugind-test"
   links:
@@ -22,6 +23,7 @@ plugind:
     - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"
     - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
     - "./etc/wazo-plugind/conf.d/disable_service_discovery.yml:/etc/wazo-plugind/conf.d/disable_service_discovery.yml"
+    # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.4/site-packages/xivo"
   ports:
     - "9503"
 rabbitmq:
