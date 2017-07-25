@@ -31,6 +31,14 @@
       },
       "name": "four",
       "namespace": "dependency"
+    },
+    {
+      "method": "git",
+      "options": {
+        "url": "file:///data/git/dependencynotfound-one"
+      },
+      "name": "one",
+      "namespace": "dependencynotfound"
     }
   ]
 }

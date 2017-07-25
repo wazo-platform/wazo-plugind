@@ -77,13 +77,16 @@ def _package_and_install_impl(ctx):
         publisher.install(ctx, 'completed')
     except PluginValidationException as e:
         ctx.log(logger.info, 'Plugin validation exception %s', e.details)
+        details = dict(e.details)
+        details['install_args'] = dict(ctx.install_args)
         publisher.install_error(ctx, e.error_id, e.message, details=e.details)
     except Exception:
         debug_enabled = ctx.config['debug']
         ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
         error_id = '{}_error'.format(step)
         message = '{} Error'.format(step.capitalize())
-        publisher.install_error(ctx, error_id, message)
+        details = {'install_args': dict(ctx.install_args)}
+        publisher.install_error(ctx, error_id, message, details=details)
         builder.clean(ctx)
 
 
