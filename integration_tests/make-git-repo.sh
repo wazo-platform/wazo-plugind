@@ -5,7 +5,7 @@
 set -eu
 
 for dir in $(find . -name '*-git'); do
-    new_name=$(echo "$dir" | awk -F'-' '{ print $1 }')
+    new_name="${dir::-4}"
     rm -rf "$new_name"
     cp -R "$dir" "$new_name"
     pushd "$new_name"

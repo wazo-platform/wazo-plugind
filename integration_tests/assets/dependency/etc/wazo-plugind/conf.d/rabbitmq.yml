@@ -1,0 +1,4 @@
+bus:
+  host: rabbitmq
+celery:
+  broker: 'amqp://guest:guest@rabbitmq:5672'

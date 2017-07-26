@@ -66,11 +66,15 @@ class TestPackageDB(TestCase):
 class TestDebianGenerator(TestCase):
 
     def test_make_template_ctx_adds_all_necessary_fields(self):
+        depends = [
+            {'namespace': 'foobar', 'name': 'baz'},
+            {'namespace': 'foobar', 'name': 'foobaz', 'version': '0.0.5'},
+        ]
         ctx = Context(
             _DEFAULT_CONFIG,
             namespace='foobar',
             name='foo',
-            metadata={'foo': 'bar'},
+            metadata={'foo': 'bar', 'depends': depends},
             destination_plugin_path='/var/lib/foobar',
             installer_base_filename='wazo/rules')
 
@@ -84,6 +88,8 @@ class TestDebianGenerator(TestCase):
         ctx = generator._make_template_ctx(ctx)
 
         expected = {'foo': 'bar',
+                    'depends': depends,
+                    'debian_depends': ['wazo-plugind-baz-foobar', 'wazo-plugind-foobaz-foobar (= 0.0.5)'],
                     'rules_path': '/usr/lib/wazo-plugind/foobar/foo/wazo/rules',
                     'debian_package_section': s.section,
                     'backup_rules_path': '/var/lib/wazo-plugind/rules/rules.foo.foobar'}

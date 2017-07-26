@@ -9,11 +9,13 @@ from hamcrest import (
     equal_to,
     empty,
     has_entries,
+    has_items,
     has_property,
     is_,
 )
 from requests import HTTPError
 from mock import ANY
+from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
 from .test_api import BaseIntegrationTest
@@ -40,6 +42,69 @@ class TestPluginList(BaseIntegrationTest):
         assert_that(result['total'], equal_to(1))
         assert_that(result['items'], contains(has_entries(namespace='plugindtests',
                                                           name='foobar')))
+
+
+class TestPluginDependencies(BaseIntegrationTest):
+
+    asset = 'dependency'
+
+    def test_that_dependencies_are_installed(self):
+        self.install_plugin(url=None, method='market', options={'namespace': 'dependency',
+                                                                'name': 'one'}, _async=False)
+
+        one_is_installed = self._is_installed('wazo-plugind-one-dependency')
+        two_is_installed = self._is_installed('wazo-plugind-two-dependency')
+        three_is_installed = self._is_installed('wazo-plugind-three-dependency')
+        four_is_installed = self._is_installed('wazo-plugind-four-dependency')
+
+        assert_that(one_is_installed, equal_to(True), 'one should be installed')
+        assert_that(two_is_installed, equal_to(True), 'two should be installed')
+        assert_that(three_is_installed, equal_to(True), 'three should be installed')
+        assert_that(four_is_installed, equal_to(True), 'four should be installed')
+
+    def test_given_dependency_error_when_install_then_error(self):
+        result = self.install_plugin(url=None, method='market', options={'namespace': 'dependencynotfound',
+                                                                         'name': 'one'}, _async=False)
+
+        one_is_installed = self._is_installed('wazo-plugind-one-dependency')
+        three_is_installed = self._is_installed('wazo-plugind-three-dependency')
+
+        assert_that(one_is_installed, equal_to(False), 'one should not be installed')
+        assert_that(three_is_installed, equal_to(True), 'three should be installed')
+
+        def bus_received_two_errors():
+            assert_that(self.msg_accumulator.accumulate(), has_items(
+                has_entries({
+                    'name': 'plugin_install_progress',
+                    'data': has_entries({
+                        'uuid': result['uuid'],
+                        'status': 'error',
+                        'errors': has_entries({
+                            'details': has_entries({
+                                'install_args': has_entries({
+                                    'url': 'file:///data/git/dependencynotfound-one',
+                                })
+                            })
+                        })
+                    })
+                }), has_entries({
+                    'name': 'plugin_install_progress',
+                    'data': has_entries({
+                        'uuid': ANY,
+                        'status': 'error',
+                        'errors': has_entries({
+                            'details': has_entries({
+                                'install_args': has_entries({
+                                    'name': 'not-found',
+                                    'namespace': 'dependency',
+                                })
+                            })
+                        })
+                    })
+                })
+            ))
+
+        until.assert_(bus_received_two_errors, tries=20, interval=0.5)
 
 
 class TestPluginInstallationV01(BaseIntegrationTest):

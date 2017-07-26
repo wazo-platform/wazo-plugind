@@ -1,0 +1,8 @@
+namespace: dependency
+name: one
+version: 0.0.1
+depends:
+  - namespace: dependency
+    name: two
+  - namespace: dependency
+    name: three

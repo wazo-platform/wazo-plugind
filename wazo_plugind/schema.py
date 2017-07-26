@@ -25,6 +25,7 @@ def new_plugin_metadata_schema(current_version):
                                                missing=_DEFAULT_PLUGIN_FORMAT_VERSION)
         max_wazo_version = fields.String(validate=Range(min=current_version))
         min_wazo_version = fields.String(validate=Range(max=current_version))
+        depends = fields.Nested(MarketInstallOptionsSchema, many=True)
 
         @pre_load
         def ensure_string_versions(self, data):

@@ -1,0 +1,47 @@
+sync:
+  image: n3llyb0y/wait
+  links:
+    - auth
+    - market
+    - plugind
+    - rabbitmq
+  environment:
+    PORTS: "5672 8000 9503 9497"
+    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
+
+plugind:
+  image: "wazo-plugind-test"
+  links:
+    - auth
+    - rabbitmq
+    - market
+  environment:
+    - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
+    - WAZO_VERSION=17.10
+  volumes:
+    - "../../..:/usr/src/wazo-plugind"
+    - "./git:/data/git"
+    - "./etc/wazo-plugind/key.yml:/etc/wazo-plugind/key.yml"
+    - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
+    - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"
+    - "./etc/wazo-plugind/conf.d/market.yml:/etc/wazo-plugind/conf.d/market.yml"
+    - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
+    - "./etc/wazo-plugind/conf.d/disable_service_discovery.yml:/etc/wazo-plugind/conf.d/disable_service_discovery.yml"
+    # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.4/site-packages/xivo"
+  ports:
+    - "9503"
+market:
+  image: "python:3.4.2"
+  ports:
+    - "8000"
+  volumes:
+    - "./market:/var/www"
+  command: ["bash", "-c", "cd /var/www && python -m http.server"]
+rabbitmq:
+  image: "rabbitmq"
+  ports:
+    - 5672
+auth:
+  image: "wazopbx/xivo-auth-mock"
+  ports:
+    - "9497"

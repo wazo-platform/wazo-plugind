@@ -8,6 +8,7 @@ import yaml
 import time
 from threading import Thread
 from .celery import worker
+from .context import Context
 from . import bus, debian, download, helpers
 from .exceptions import PluginAlreadyInstalled, PluginValidationException
 from .helpers import exec_and_log
@@ -42,6 +43,10 @@ def uninstall_and_publish(ctx):
 
 @worker.app.task
 def package_and_install(ctx):
+    return _package_and_install_impl(ctx)
+
+
+def _package_and_install_impl(ctx):
     try:
         step = 'initializing'
         builder = _PackageBuilder(ctx.config)
@@ -52,6 +57,7 @@ def package_and_install(ctx):
             ('downloading', builder.download),
             ('extracting', builder.extract),
             ('validating', builder.validate),
+            ('installing dependencies', builder.install_dependencies),
             ('building', builder.build),
             ('packaging', builder.package),
             ('updating', builder.update),
@@ -71,13 +77,16 @@ def package_and_install(ctx):
         publisher.install(ctx, 'completed')
     except PluginValidationException as e:
         ctx.log(logger.info, 'Plugin validation exception %s', e.details)
+        details = dict(e.details)
+        details['install_args'] = dict(ctx.install_args)
         publisher.install_error(ctx, e.error_id, e.message, details=e.details)
     except Exception:
         debug_enabled = ctx.config['debug']
         ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
         error_id = '{}_error'.format(step)
         message = '{} Error'.format(step.capitalize())
-        publisher.install_error(ctx, error_id, message)
+        details = {'install_args': dict(ctx.install_args)}
+        publisher.install_error(ctx, error_id, message, details=details)
         builder.clean(ctx)
 
 
@@ -167,6 +176,17 @@ class _PackageBuilder(object):
         if result.result is not True:
             raise Exception('Installation failed')
         return ctx
+
+    def install_dependencies(self, ctx):
+        dependencies = ctx.metadata.get('depends', [])
+        for dependency in dependencies:
+            ctx.log(logger.info, 'installing dependency %s', dependency)
+            self.install_dependency(dependency)
+        return ctx
+
+    def install_dependency(self, dep):
+        ctx = Context(self._config, method='market', install_args=dep)
+        _package_and_install_impl(ctx)
 
     def update(self, ctx):
         if not ctx.metadata.get('debian_depends'):
