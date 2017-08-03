@@ -68,15 +68,12 @@ class MarketListRequestSchema(Schema):
         return data or {}
 
 
-class OptionField(fields.Nested):
+class OptionField(fields.Field):
 
     _options = {
         'git': fields.Nested(GitInstallOptionsSchema, missing=dict),
         'market': fields.Nested(MarketInstallOptionsSchema, required=True),
     }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(Schema, *args, **kwargs)
 
     def _deserialize(self, value, attr, data):
         method = data.get('method')
