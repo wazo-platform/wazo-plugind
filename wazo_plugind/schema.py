@@ -42,7 +42,7 @@ def new_plugin_metadata_schema(current_version):
 
 class GitInstallOptionsSchema(Schema):
 
-    ref = fields.String(missing='master', validate=Length(min=1), required=False)
+    ref = fields.String(missing='master', validate=Length(min=1))
     url = fields.String(validate=Length(min=1), required=True)
 
 
@@ -50,7 +50,7 @@ class MarketInstallOptionsSchema(Schema):
 
     namespace = fields.String(validate=Length(min=1), required=True)
     name = fields.String(validate=Length(min=1), required=True)
-    version = fields.String(required=False)
+    version = fields.String()
     url = fields.String(validate=Length(min=1))
 
 
@@ -71,7 +71,7 @@ class MarketListRequestSchema(Schema):
 class OptionField(fields.Nested):
 
     _options = {
-        'git': fields.Nested(GitInstallOptionsSchema, missing=dict, required=False),
+        'git': fields.Nested(GitInstallOptionsSchema, missing=dict),
         'market': fields.Nested(MarketInstallOptionsSchema, required=True),
     }
 
@@ -99,20 +99,20 @@ class PluginInstallSchema(Schema):
 # API 0.1 schema
 class GitInstallOptionsSchemaV01(Schema):
 
-    ref = fields.String(missing='master', validate=Length(min=1), required=False)
+    ref = fields.String(missing='master', validate=Length(min=1))
 
 
 class MarketInstallOptionsSchemaV01(Schema):
 
     namespace = fields.String(validate=Length(min=1), required=True)
     name = fields.String(validate=Length(min=1), required=True)
-    version = fields.String(required=False)
+    version = fields.String()
 
 
 class OptionFieldV01(OptionField):
 
     _options = {
-        'git': fields.Nested(GitInstallOptionsSchemaV01, missing=dict, required=False),
+        'git': fields.Nested(GitInstallOptionsSchemaV01, missing=dict),
         'market': fields.Nested(MarketInstallOptionsSchemaV01, required=True),
     }
 
