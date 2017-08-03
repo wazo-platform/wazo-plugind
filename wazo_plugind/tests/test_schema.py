@@ -38,6 +38,11 @@ class TestInstallationSchema(TestCase):
         result, errors = PluginInstallSchema().load(input_)
         assert_that(errors, has_entries(options=all_of(has_key('namespace'), has_key('name'))))
 
+    def test_none(self):
+        input_ = None
+        result, errors = PluginInstallSchema().load(input_)
+        assert_that(errors, has_key('method'))
+
 
 class TestInstallationSchemaV01(TestCase):
 

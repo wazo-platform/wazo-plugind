@@ -40,6 +40,13 @@ def new_plugin_metadata_schema(current_version):
     return PluginMetadataSchema()
 
 
+class BaseSchema(Schema):
+
+    @pre_load
+    def ensure_dict(self, data):
+        return data or {}
+
+
 class GitInstallOptionsSchema(Schema):
 
     ref = fields.String(missing='master', validate=Length(min=1))
@@ -54,7 +61,7 @@ class MarketInstallOptionsSchema(Schema):
     url = fields.String(validate=Length(min=1))
 
 
-class MarketListRequestSchema(Schema):
+class MarketListRequestSchema(BaseSchema):
 
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
     order = fields.String(validate=Length(min=1), missing='name')
@@ -62,10 +69,6 @@ class MarketListRequestSchema(Schema):
     offset = fields.Integer(validate=Range(min=0), missing=0)
     search = fields.String(missing=None)
     installed = fields.Boolean()
-
-    @pre_load
-    def ensure_dict(self, data):
-        return data or {}
 
 
 class OptionField(fields.Field):
@@ -83,14 +86,10 @@ class OptionField(fields.Field):
         return concrete_options._deserialize(value, attr, data)
 
 
-class PluginInstallSchema(Schema):
+class PluginInstallSchema(BaseSchema):
 
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
     options = OptionField(missing=dict)
-
-    @pre_load
-    def ensure_dict(self, data):
-        return data or {}
 
 
 # API 0.1 schema
@@ -114,17 +113,13 @@ class OptionFieldV01(OptionField):
     }
 
 
-class PluginInstallSchemaV01(Schema):
+class PluginInstallSchemaV01(BaseSchema):
 
     _method_optional_url = ['market']
 
     url = fields.String(validate=Length(min=1))
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
     options = OptionFieldV01(missing=dict)
-
-    @pre_load
-    def ensure_dict(self, data):
-        return data or {}
 
     @validates_schema
     def validate_url(self, data):
