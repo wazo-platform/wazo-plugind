@@ -71,8 +71,8 @@ class MarketListRequestSchema(Schema):
 class OptionField(fields.Field):
 
     _options = {
-        'git': fields.Nested(GitInstallOptionsSchema, missing=dict),
-        'market': fields.Nested(MarketInstallOptionsSchema, required=True),
+        'git': fields.Nested(GitInstallOptionsSchema),
+        'market': fields.Nested(MarketInstallOptionsSchema),
     }
 
     def _deserialize(self, value, attr, data):
@@ -109,8 +109,8 @@ class MarketInstallOptionsSchemaV01(Schema):
 class OptionFieldV01(OptionField):
 
     _options = {
-        'git': fields.Nested(GitInstallOptionsSchemaV01, missing=dict),
-        'market': fields.Nested(MarketInstallOptionsSchemaV01, required=True),
+        'git': fields.Nested(GitInstallOptionsSchemaV01),
+        'market': fields.Nested(MarketInstallOptionsSchemaV01),
     }
 
 
