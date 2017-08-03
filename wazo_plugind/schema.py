@@ -86,7 +86,7 @@ class OptionField(fields.Field):
 class PluginInstallSchema(Schema):
 
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
-    options = OptionField(missing=dict, required=True)
+    options = OptionField(missing=dict)
 
     @pre_load
     def ensure_dict(self, data):
@@ -120,7 +120,7 @@ class PluginInstallSchemaV01(Schema):
 
     url = fields.String(validate=Length(min=1))
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
-    options = OptionFieldV01(missing=dict, required=True)
+    options = OptionFieldV01(missing=dict)
 
     @pre_load
     def ensure_dict(self, data):
