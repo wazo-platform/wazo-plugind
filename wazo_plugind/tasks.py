@@ -49,52 +49,51 @@ class PackageAndInstallTask(object):
 
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
-        self._builder = _PackageBuilder(config, self._root_worker, _package_and_install_impl)
+        self._builder = _PackageBuilder(config, self._root_worker, self._package_and_install_impl)
 
     def execute(self, ctx):
-        return _package_and_install_impl(self._builder, ctx)
+        return self._package_and_install_impl(ctx)
 
+    def _package_and_install_impl(self, ctx):
+        try:
+            step = 'initializing'
+            publisher = get_publisher(ctx.config)
 
-def _package_and_install_impl(builder, ctx):
-    try:
-        step = 'initializing'
-        publisher = get_publisher(ctx.config)
+            steps = [
+                ('starting', lambda ctx: ctx),
+                ('downloading', self._builder.download),
+                ('extracting', self._builder.extract),
+                ('validating', self._builder.validate),
+                ('installing dependencies', self._builder.install_dependencies),
+                ('building', self._builder.build),
+                ('packaging', self._builder.package),
+                ('updating', self._builder.update),
+                ('installing', self._builder.install),
+                ('cleaning', self._builder.clean),
+                ('completed', lambda ctx: ctx),
+            ]
 
-        steps = [
-            ('starting', lambda ctx: ctx),
-            ('downloading', builder.download),
-            ('extracting', builder.extract),
-            ('validating', builder.validate),
-            ('installing dependencies', builder.install_dependencies),
-            ('building', builder.build),
-            ('packaging', builder.package),
-            ('updating', builder.update),
-            ('installing', builder.install),
-            ('cleaning', builder.clean),
-            ('completed', lambda ctx: ctx),
-        ]
+            for step, fn in steps:
+                publisher.install(ctx, step)
+                ctx = fn(ctx)
 
-        for step, fn in steps:
-            publisher.install(ctx, step)
-            ctx = fn(ctx)
-
-    except PluginAlreadyInstalled:
-        ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
-        builder.clean(ctx)
-        publisher.install(ctx, 'completed')
-    except PluginValidationException as e:
-        ctx.log(logger.info, 'Plugin validation exception %s', e.details)
-        details = dict(e.details)
-        details['install_args'] = dict(ctx.install_args)
-        publisher.install_error(ctx, e.error_id, e.message, details=e.details)
-    except Exception:
-        debug_enabled = ctx.config['debug']
-        ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
-        error_id = '{}_error'.format(step)
-        message = '{} Error'.format(step.capitalize())
-        details = {'install_args': dict(ctx.install_args)}
-        publisher.install_error(ctx, error_id, message, details=details)
-        builder.clean(ctx)
+        except PluginAlreadyInstalled:
+            ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
+            self._builder.clean(ctx)
+            publisher.install(ctx, 'completed')
+        except PluginValidationException as e:
+            ctx.log(logger.info, 'Plugin validation exception %s', e.details)
+            details = dict(e.details)
+            details['install_args'] = dict(ctx.install_args)
+            publisher.install_error(ctx, e.error_id, e.message, details=e.details)
+        except Exception:
+            debug_enabled = ctx.config['debug']
+            ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
+            error_id = '{}_error'.format(step)
+            message = '{} Error'.format(step.capitalize())
+            details = {'install_args': dict(ctx.install_args)}
+            publisher.install_error(ctx, error_id, message, details=details)
+            self._builder.clean(ctx)
 
 
 def get_publisher(config):
@@ -190,7 +189,7 @@ class _PackageBuilder(object):
 
     def install_dependency(self, dep):
         ctx = Context(self._config, method='market', install_args=dep)
-        self._package_install_fn(self, ctx)
+        self._package_install_fn(ctx)
 
     def update(self, ctx):
         if not ctx.metadata.get('debian_depends'):
