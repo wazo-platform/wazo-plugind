@@ -73,15 +73,8 @@ class RootWorker(BaseWorker):
 
 class _CommandExecutor(object):
 
-    def __init__(self):
-        self._fn_map = {
-            'update': self._apt_get_update,
-            'install': self._install,
-            'uninstall': self._uninstall,
-        }
-
     def execute(self, cmd, *args, **kwargs):
-        fn = self._fn_map.get(cmd)
+        fn = getattr(self, cmd, None)
         if not fn:
             logger.info('root worker received an unknown command "%s"', cmd.name)
             return
@@ -91,19 +84,19 @@ class _CommandExecutor(object):
         except Exception:
             logger.exception('Exception caugth in root worker process')
 
-    def _apt_get_update(self, uuid_):
+    def update(self, uuid_):
         logger.debug('[%s] updating apt cache', uuid_)
         cmd = ['apt-get', 'update', '-q']
         p = exec_and_log(logger.debug, logger.error, cmd)
         return p.returncode == 0
 
-    def _install(self, uuid_, deb):
+    def install(self, uuid_, deb):
         logger.debug('[%s] installing %s...', uuid_, deb)
         cmd = ['gdebi', '-nq', deb]
         p = exec_and_log(logger.debug, logger.error, cmd)
         return p.returncode == 0
 
-    def _uninstall(self, uuid, package_name):
+    def uninstall(self, uuid, package_name):
         logger.debug('[%s] uninstalling %s', uuid, package_name)
         cmd = ['apt-get', 'remove', '-y', package_name]
         p = exec_and_log(logger.debug, logger.error, cmd)
