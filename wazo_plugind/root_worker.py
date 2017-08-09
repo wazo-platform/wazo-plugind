@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 class BaseWorker(object):
 
+    name = 'base'
+
     def __init__(self):
         self._command_queue = Queue()
         self._result_queue = Queue()
@@ -23,11 +25,11 @@ class BaseWorker(object):
                                                    self._stop_requested))
 
     def run(self):
-        logger.info('starting root worker')
+        logger.info('starting %s worker', self.name)
         self._process.start()
 
     def stop(self):
-        logger.info('stopping root worker')
+        logger.info('stopping %s worker', self.name)
         # unblock the command_queue in the worker
         self._stop_requested.set()
 
@@ -41,11 +43,11 @@ class BaseWorker(object):
         if self._process.is_alive():
             self._process.join()
 
-        logger.info('root worker stopped')
+        logger.info('%s worker stopped', self.name)
 
     def send_cmd_and_wait(self, cmd, *args, **kwargs):
         if not self._process.is_alive():
-            logger.info('root process is dead quitting')
+            logger.info('%s process is dead quitting', self.name)
             # kill the main thread
             os.kill(os.getpid(), signal.SIGTERM)
             # shutdown the current thread execution so that executor.shutdown does not block
@@ -56,6 +58,8 @@ class BaseWorker(object):
 
 
 class RootWorker(BaseWorker):
+
+    name = 'root'
 
     def apt_get_update(self, *args, **kwargs):
         return self.send_cmd_and_wait('update', *args, **kwargs)
