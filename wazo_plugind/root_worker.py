@@ -5,7 +5,8 @@ import logging
 import signal
 import os
 import sys
-from multiprocessing import Process, Queue
+from multiprocessing import Event, Process, Queue
+from queue import Empty
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
@@ -16,7 +17,10 @@ class RootWorker(object):
     def __init__(self):
         self._command_queue = Queue()
         self._result_queue = Queue()
-        self._process = Process(target=_run, args=(self._command_queue, self._result_queue))
+        self._stop_requested = Event()
+        self._process = Process(target=_run, args=(self._command_queue,
+                                                   self._result_queue,
+                                                   self._stop_requested))
 
     def run(self):
         logger.info('starting root worker')
@@ -25,17 +29,11 @@ class RootWorker(object):
     def stop(self):
         logger.info('stopping root worker')
         # unblock the command_queue in the worker
-        cmd = _Command('stop')
-        try:
-            self._command_queue.put(cmd)
-        except AssertionError:
-            # The queue has already been closed
-            pass
+        self._stop_requested.set()
 
-        # close the command queue and wait for all messages to be processed
+        # close both queues
         self._command_queue.close()
         self._command_queue.join_thread()
-
         self._result_queue.close()
         self._result_queue.join_thread()
 
@@ -84,7 +82,6 @@ class _CommandExecutor(object):
             'update': self._apt_get_update,
             'install': self._install,
             'uninstall': self._uninstall,
-            'stop': self._stop,
         }
 
     def execute(self, cmd):
@@ -116,21 +113,18 @@ class _CommandExecutor(object):
         p = exec_and_log(logger.debug, logger.error, cmd)
         return p.returncode == 0
 
-    def _stop(self):
-        return True
 
 
-def _run(command_queue, result_queue):
+def _run(command_queue, result_queue, stop_requested):
     logger.info('root worker started')
     os.setsid()
 
     executor = _CommandExecutor()
-    while True:
+    while not stop_requested.is_set():
         try:
-            command_data = command_queue.get()
-        except (OSError, KeyboardInterrupt):
-            # The queue has been closed. The process should exit
-            break
+            command_data = command_queue.get(timeout=0.1)
+        except (KeyboardInterrupt, Empty, Exception):
+            continue
 
         result = executor.execute(command_data)
         result_queue.put(result)
