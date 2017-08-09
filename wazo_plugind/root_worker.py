@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+import signal
 import os
+import sys
 from multiprocessing import Process, Queue
 from .helpers import exec_and_log
 
@@ -56,6 +58,13 @@ class RootWorker(object):
         return self._send_cmd_and_wait(cmd)
 
     def _send_cmd_and_wait(self, cmd):
+        if not self._process.is_alive():
+            logger.info('root process is dead quitting')
+            # kill the main thread
+            os.kill(os.getpid(), signal.SIGTERM)
+            # shutdown the current thread execution so that executor.shutdown does not block
+            sys.exit(1)
+
         self._command_queue.put(cmd)
         return self._result_queue.get()
 
