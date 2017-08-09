@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+import os
 from multiprocessing import Process, Queue
 from .helpers import exec_and_log
 
@@ -112,6 +113,7 @@ class _CommandExecutor(object):
 
 def _run(command_queue, result_queue):
     logger.info('root worker started')
+    os.setsid()
 
     executor = _CommandExecutor()
     while True:
