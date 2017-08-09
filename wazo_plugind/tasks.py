@@ -49,7 +49,7 @@ class PackageAndInstallTask(object):
 
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
-        self._builder = _PackageBuilder(config, self._root_worker)
+        self._builder = _PackageBuilder(config, self._root_worker, _package_and_install_impl)
 
     def execute(self, ctx):
         return _package_and_install_impl(self._builder, ctx)
@@ -123,11 +123,12 @@ class _PackageRemover(object):
 
 class _PackageBuilder(object):
 
-    def __init__(self, config, root_worker):
+    def __init__(self, config, root_worker, package_install_fn):
         self._config = config
         self._downloader = download.Downloader(config)
         self._debian_file_generator = debian.Generator.from_config(config)
         self._root_worker = root_worker
+        self._package_install_fn = package_install_fn
 
     def build(self, ctx):
         namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
@@ -189,7 +190,7 @@ class _PackageBuilder(object):
 
     def install_dependency(self, dep):
         ctx = Context(self._config, method='market', install_args=dep)
-        _package_and_install_impl(self, ctx)
+        self._package_install_fn(self, ctx)
 
     def update(self, ctx):
         if not ctx.metadata.get('debian_depends'):
