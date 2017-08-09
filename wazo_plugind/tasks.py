@@ -50,6 +50,7 @@ class PackageAndInstallTask(object):
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
         self._builder = _PackageBuilder(config, self._root_worker, self._package_and_install_impl)
+        self._publisher = get_publisher(config)
 
     def execute(self, ctx):
         return self._package_and_install_impl(ctx)
@@ -57,7 +58,6 @@ class PackageAndInstallTask(object):
     def _package_and_install_impl(self, ctx):
         try:
             step = 'initializing'
-            publisher = get_publisher(ctx.config)
 
             steps = [
                 ('starting', lambda ctx: ctx),
@@ -74,25 +74,25 @@ class PackageAndInstallTask(object):
             ]
 
             for step, fn in steps:
-                publisher.install(ctx, step)
+                self._publisher.install(ctx, step)
                 ctx = fn(ctx)
 
         except PluginAlreadyInstalled:
             ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
             self._builder.clean(ctx)
-            publisher.install(ctx, 'completed')
+            self._publisher.install(ctx, 'completed')
         except PluginValidationException as e:
             ctx.log(logger.info, 'Plugin validation exception %s', e.details)
             details = dict(e.details)
             details['install_args'] = dict(ctx.install_args)
-            publisher.install_error(ctx, e.error_id, e.message, details=e.details)
+            self._publisher.install_error(ctx, e.error_id, e.message, details=e.details)
         except Exception:
             debug_enabled = ctx.config['debug']
             ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
             error_id = '{}_error'.format(step)
             message = '{} Error'.format(step.capitalize())
             details = {'install_args': dict(ctx.install_args)}
-            publisher.install_error(ctx, error_id, message, details=details)
+            self._publisher.install_error(ctx, error_id, message, details=details)
             self._builder.clean(ctx)
 
 
