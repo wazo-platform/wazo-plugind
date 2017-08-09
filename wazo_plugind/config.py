@@ -42,21 +42,6 @@ _DEFAULT_CONFIG = dict(
         'verify_certificate': False,
     },
     pid_file=os.path.join(_PID_DIR, '{}.pid'.format(_DAEMONNAME)),
-    celery={
-        'broker': 'amqp://guest:guest@localhost:5672',
-        'unpriviledged': {
-            'exchange_name': 'celery_plugind',
-            'queue_name': 'plugind_task_queue',
-            'routing_key': 'plugind.tasks',
-            'pid_file': os.path.join(_PID_DIR, 'worker.pid')
-        },
-        'priviledged': {
-            'exchange_name': 'celery_plugind_root',
-            'queue_name': 'plugind_root_task_queue',
-            'routing_key': 'plugind.root_tasks',
-            'pid_file': os.path.join(_PID_DIR, 'root_worker.pid')
-        },
-    },
     confd={
         'host': 'localhost',
         'port': 9486,
