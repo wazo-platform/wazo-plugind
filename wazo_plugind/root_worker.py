@@ -43,7 +43,7 @@ class BaseWorker(object):
 
         logger.info('root worker stopped')
 
-    def send_cmd_and_wait(self, cmd):
+    def send_cmd_and_wait(self, cmd, *args, **kwargs):
         if not self._process.is_alive():
             logger.info('root process is dead quitting')
             # kill the main thread
@@ -51,31 +51,20 @@ class BaseWorker(object):
             # shutdown the current thread execution so that executor.shutdown does not block
             sys.exit(1)
 
-        self._command_queue.put(cmd)
+        self._command_queue.put((cmd, args, kwargs))
         return self._result_queue.get()
 
 
 class RootWorker(BaseWorker):
 
     def apt_get_update(self, *args, **kwargs):
-        cmd = _Command('update', *args, **kwargs)
-        return self.send_cmd_and_wait(cmd)
+        return self.send_cmd_and_wait('update', *args, **kwargs)
 
     def install(self, *args, **kwargs):
-        cmd = _Command('install', *args, **kwargs)
-        return self.send_cmd_and_wait(cmd)
+        return self.send_cmd_and_wait('install', *args, **kwargs)
 
     def uninstall(self, *args, **kwargs):
-        cmd = _Command('uninstall', *args, **kwargs)
-        return self.send_cmd_and_wait(cmd)
-
-
-class _Command(object):
-
-    def __init__(self, name, *args, **kwargs):
-        self.name = name
-        self.args = args
-        self.kwargs = kwargs
+        return self.send_cmd_and_wait('uninstall', *args, **kwargs)
 
 
 class _CommandExecutor(object):
@@ -87,14 +76,14 @@ class _CommandExecutor(object):
             'uninstall': self._uninstall,
         }
 
-    def execute(self, cmd):
-        fn = self._fn_map.get(cmd.name)
+    def execute(self, cmd, *args, **kwargs):
+        fn = self._fn_map.get(cmd)
         if not fn:
             logger.info('root worker received an unknown command "%s"', cmd.name)
             return
 
         try:
-            return fn(*cmd.args, **cmd.kwargs)
+            return fn(*args, **kwargs)
         except Exception:
             logger.exception('Exception caugth in root worker process')
 
@@ -129,11 +118,11 @@ def _run(command_queue, result_queue, stop_requested):
     executor = _CommandExecutor()
     while not stop_requested.is_set():
         try:
-            command_data = command_queue.get(timeout=0.1)
+            cmd, args, kwargs = command_queue.get(timeout=0.1)
         except (KeyboardInterrupt, Empty, Exception):
             continue
 
-        result = executor.execute(command_data)
+        result = executor.execute(cmd, *args, **kwargs)
         result_queue.put(result)
 
     logger.info('root worker done')
