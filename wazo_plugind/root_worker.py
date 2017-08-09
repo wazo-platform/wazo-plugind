@@ -114,10 +114,14 @@ class _CommandExecutor(object):
         return p.returncode == 0
 
 
+def _ignore_sigterm(signum, frame):
+    logger.info('root worker is ignoring a SIGTERM')
+
 
 def _run(command_queue, result_queue, stop_requested):
     logger.info('root worker started')
     os.setsid()
+    signal.signal(signal.SIGTERM, _ignore_sigterm)
 
     executor = _CommandExecutor()
     while not stop_requested.is_set():
