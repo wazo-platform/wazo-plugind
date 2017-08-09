@@ -12,7 +12,7 @@ from .helpers import exec_and_log
 logger = logging.getLogger(__name__)
 
 
-class RootWorker(object):
+class BaseWorker(object):
 
     def __init__(self):
         self._command_queue = Queue()
@@ -43,19 +43,7 @@ class RootWorker(object):
 
         logger.info('root worker stopped')
 
-    def apt_get_update(self, *args, **kwargs):
-        cmd = _Command('update', *args, **kwargs)
-        return self._send_cmd_and_wait(cmd)
-
-    def install(self, *args, **kwargs):
-        cmd = _Command('install', *args, **kwargs)
-        return self._send_cmd_and_wait(cmd)
-
-    def uninstall(self, *args, **kwargs):
-        cmd = _Command('uninstall', *args, **kwargs)
-        return self._send_cmd_and_wait(cmd)
-
-    def _send_cmd_and_wait(self, cmd):
+    def send_cmd_and_wait(self, cmd):
         if not self._process.is_alive():
             logger.info('root process is dead quitting')
             # kill the main thread
@@ -65,6 +53,21 @@ class RootWorker(object):
 
         self._command_queue.put(cmd)
         return self._result_queue.get()
+
+
+class RootWorker(BaseWorker):
+
+    def apt_get_update(self, *args, **kwargs):
+        cmd = _Command('update', *args, **kwargs)
+        return self.send_cmd_and_wait(cmd)
+
+    def install(self, *args, **kwargs):
+        cmd = _Command('install', *args, **kwargs)
+        return self.send_cmd_and_wait(cmd)
+
+    def uninstall(self, *args, **kwargs):
+        cmd = _Command('uninstall', *args, **kwargs)
+        return self.send_cmd_and_wait(cmd)
 
 
 class _Command(object):
