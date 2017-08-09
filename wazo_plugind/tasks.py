@@ -21,30 +21,28 @@ class UninstallTask(object):
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
         self._remover = _PackageRemover(config, root_worker)
+        self._publisher = get_publisher(config)
+        self._debug_enabled = config['debug']
 
     def execute(self, ctx):
-        return uninstall_and_publish(ctx, self._remover)
+        return self._uninstall_and_publish(ctx)
 
-
-def uninstall_and_publish(ctx, remover):
-    try:
-        step = 'initializing'
-        publisher = get_publisher(ctx.config)
-
-        steps = [
-            ('starting', lambda ctx: ctx),
-            ('removing', remover.remove),
-            ('completed', lambda ctx: ctx),
-        ]
-        for step, fn in steps:
-            publisher.uninstall(ctx, step)
-            ctx = fn(ctx)
-    except Exception:
-        debug_enabled = ctx.config['debug']
-        ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
-        error_id = '{}_error'.format(step)
-        message = '{} Error'.format(step.capitalize())
-        publisher.uninstall_error(ctx, error_id, message)
+    def _uninstall_and_publish(self, ctx):
+        try:
+            step = 'initializing'
+            steps = [
+                ('starting', lambda ctx: ctx),
+                ('removing', self._remover.remove),
+                ('completed', lambda ctx: ctx),
+            ]
+            for step, fn in steps:
+                self._publisher.uninstall(ctx, step)
+                ctx = fn(ctx)
+        except Exception:
+            ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=self._debug_enabled)
+            error_id = '{}_error'.format(step)
+            message = '{} Error'.format(step.capitalize())
+            self._publisher.uninstall_error(ctx, error_id, message)
 
 
 class PackageAndInstallTask(object):
