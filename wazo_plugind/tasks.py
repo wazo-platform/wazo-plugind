@@ -5,9 +5,7 @@ import logging
 import os
 import shutil
 import yaml
-import time
 from threading import Thread
-from .celery import worker
 from .context import Context
 from . import bus, debian, download, helpers
 from .exceptions import PluginAlreadyInstalled, PluginValidationException
@@ -18,76 +16,84 @@ logger = logging.getLogger(__name__)
 _publisher = None
 
 
-@worker.app.task
-def uninstall_and_publish(ctx):
-    try:
-        step = 'initializing'
-        publisher = get_publisher(ctx.config)
-        remover = _PackageRemover(ctx.config)
+class UninstallTask(object):
 
-        steps = [
-            ('starting', lambda ctx: ctx),
-            ('removing', remover.remove),
-            ('completed', lambda ctx: ctx),
-        ]
-        for step, fn in steps:
-            publisher.uninstall(ctx, step)
-            ctx = fn(ctx)
-    except Exception:
-        debug_enabled = ctx.config['debug']
-        ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
-        error_id = '{}_error'.format(step)
-        message = '{} Error'.format(step.capitalize())
-        publisher.uninstall_error(ctx, error_id, message)
+    def __init__(self, config, root_worker):
+        self._root_worker = root_worker
+        self._remover = _PackageRemover(config, root_worker)
+        self._publisher = get_publisher(config)
+        self._debug_enabled = config['debug']
+
+    def execute(self, ctx):
+        return self._uninstall_and_publish(ctx)
+
+    def _uninstall_and_publish(self, ctx):
+        try:
+            step = 'initializing'
+            steps = [
+                ('starting', lambda ctx: ctx),
+                ('removing', self._remover.remove),
+                ('completed', lambda ctx: ctx),
+            ]
+            for step, fn in steps:
+                self._publisher.uninstall(ctx, step)
+                ctx = fn(ctx)
+        except Exception:
+            ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=self._debug_enabled)
+            error_id = '{}_error'.format(step)
+            message = '{} Error'.format(step.capitalize())
+            self._publisher.uninstall_error(ctx, error_id, message)
 
 
-@worker.app.task
-def package_and_install(ctx):
-    return _package_and_install_impl(ctx)
+class PackageAndInstallTask(object):
 
+    def __init__(self, config, root_worker):
+        self._root_worker = root_worker
+        self._builder = _PackageBuilder(config, self._root_worker, self._package_and_install_impl)
+        self._publisher = get_publisher(config)
 
-def _package_and_install_impl(ctx):
-    try:
-        step = 'initializing'
-        builder = _PackageBuilder(ctx.config)
-        publisher = get_publisher(ctx.config)
+    def execute(self, ctx):
+        return self._package_and_install_impl(ctx)
 
-        steps = [
-            ('starting', lambda ctx: ctx),
-            ('downloading', builder.download),
-            ('extracting', builder.extract),
-            ('validating', builder.validate),
-            ('installing dependencies', builder.install_dependencies),
-            ('building', builder.build),
-            ('packaging', builder.package),
-            ('updating', builder.update),
-            ('installing', builder.install),
-            ('cleaning', builder.clean),
-            ('completed', lambda ctx: ctx),
-        ]
+    def _package_and_install_impl(self, ctx):
+        try:
+            step = 'initializing'
 
-        for step, fn in steps:
-            if step:
-                publisher.install(ctx, step)
-            ctx = fn(ctx)
+            steps = [
+                ('starting', lambda ctx: ctx),
+                ('downloading', self._builder.download),
+                ('extracting', self._builder.extract),
+                ('validating', self._builder.validate),
+                ('installing dependencies', self._builder.install_dependencies),
+                ('building', self._builder.build),
+                ('packaging', self._builder.package),
+                ('updating', self._builder.update),
+                ('installing', self._builder.install),
+                ('cleaning', self._builder.clean),
+                ('completed', lambda ctx: ctx),
+            ]
 
-    except PluginAlreadyInstalled:
-        ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
-        builder.clean(ctx)
-        publisher.install(ctx, 'completed')
-    except PluginValidationException as e:
-        ctx.log(logger.info, 'Plugin validation exception %s', e.details)
-        details = dict(e.details)
-        details['install_args'] = dict(ctx.install_args)
-        publisher.install_error(ctx, e.error_id, e.message, details=e.details)
-    except Exception:
-        debug_enabled = ctx.config['debug']
-        ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
-        error_id = '{}_error'.format(step)
-        message = '{} Error'.format(step.capitalize())
-        details = {'install_args': dict(ctx.install_args)}
-        publisher.install_error(ctx, error_id, message, details=details)
-        builder.clean(ctx)
+            for step, fn in steps:
+                self._publisher.install(ctx, step)
+                ctx = fn(ctx)
+
+        except PluginAlreadyInstalled:
+            ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
+            self._builder.clean(ctx)
+            self._publisher.install(ctx, 'completed')
+        except PluginValidationException as e:
+            ctx.log(logger.info, 'Plugin validation exception %s', e.details)
+            details = dict(e.details)
+            details['install_args'] = dict(ctx.install_args)
+            self._publisher.install_error(ctx, e.error_id, e.message, details=e.details)
+        except Exception:
+            debug_enabled = ctx.config['debug']
+            ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
+            error_id = '{}_error'.format(step)
+            message = '{} Error'.format(step.capitalize())
+            details = {'install_args': dict(ctx.install_args)}
+            self._publisher.install_error(ctx, error_id, message, details=details)
+            self._builder.clean(ctx)
 
 
 def get_publisher(config):
@@ -103,25 +109,25 @@ def get_publisher(config):
 
 class _PackageRemover(object):
 
-    def __init__(self, config):
+    def __init__(self, config, root_worker):
         self._config = config
+        self._root_worker = root_worker
 
     def remove(self, ctx):
-        from .root_tasks import uninstall
-        result = uninstall.apply_async(args=(ctx.uuid, ctx.package_name))
-        while not result.ready():
-            time.sleep(0.1)
-        if result.result is not True:
+        result = self._root_worker.uninstall(ctx.uuid, ctx.package_name)
+        if result is not True:
             raise Exception('Uninstallation failed')
         return ctx
 
 
 class _PackageBuilder(object):
 
-    def __init__(self, config):
+    def __init__(self, config, root_worker, package_install_fn):
         self._config = config
         self._downloader = download.Downloader(config)
         self._debian_file_generator = debian.Generator.from_config(config)
+        self._root_worker = root_worker
+        self._package_install_fn = package_install_fn
 
     def build(self, ctx):
         namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
@@ -169,11 +175,8 @@ class _PackageBuilder(object):
         return ctx
 
     def install(self, ctx):
-        from .root_tasks import install
-        result = install.apply_async(args=(ctx.uuid, ctx.package_deb_file))
-        while not result.ready():
-            time.sleep(0.1)
-        if result.result is not True:
+        result = self._root_worker.install(ctx.uuid, ctx.package_deb_file)
+        if result is not True:
             raise Exception('Installation failed')
         return ctx
 
@@ -186,17 +189,14 @@ class _PackageBuilder(object):
 
     def install_dependency(self, dep):
         ctx = Context(self._config, method='market', install_args=dep)
-        _package_and_install_impl(ctx)
+        self._package_install_fn(ctx)
 
     def update(self, ctx):
         if not ctx.metadata.get('debian_depends'):
             return ctx
 
-        from .root_tasks import apt_get_update
-        result = apt_get_update.apply_async(args=(ctx.uuid,))
-        while not result.ready():
-            time.sleep(0.1)
-        if result.result is not True:
+        result = self._root_worker.apt_get_update(ctx.uuid)
+        if result is not True:
             raise Exception('apt-get update failed')
         return ctx
 

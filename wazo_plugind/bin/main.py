@@ -8,7 +8,7 @@ from xivo.daemonize import pidfile_context
 from xivo.user_rights import change_user
 from wazo_plugind import config
 from wazo_plugind.controller import Controller
-from wazo_plugind import celery
+from wazo_plugind.root_worker import RootWorker
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +19,8 @@ def main(args):
     conf = config.load_config(args)
 
     xivo_logging.setup_logging(conf['log_file'], FOREGROUND, conf['debug'], conf['log_level'])
-    celery.root_worker = celery.RootWorker.from_config(conf)
-    celery.root_worker.run()
+    root_worker = RootWorker()
+    root_worker.run()
 
     if conf['user']:
         change_user(conf['user'])
@@ -31,9 +31,10 @@ def main(args):
         # handled in the controller
         pass
 
-    controller = Controller(conf)
+    controller = Controller(conf, root_worker)
     with pidfile_context(conf['pid_file'], FOREGROUND):
         logger.debug('starting')
         controller.run()
         logger.debug('controller stopped')
+    root_worker.stop()
     logger.debug('done')

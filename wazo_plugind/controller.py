@@ -4,6 +4,7 @@
 import logging
 import signal
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from threading import Thread
 from functools import partial
 from cheroot import wsgi
@@ -11,7 +12,7 @@ from werkzeug.contrib.fixers import ProxyFix
 from xivo import http_helpers
 from xivo.http_helpers import ReverseProxied
 from xivo.consul_helpers import ServiceCatalogRegistration
-from wazo_plugind import celery, http, bus, service
+from wazo_plugind import http, bus, service
 from .service_discovery import self_check
 
 logger = logging.getLogger(__name__)
@@ -24,7 +25,8 @@ def _signal_handler(signum, frame):
 
 class Controller(object):
 
-    def __init__(self, config):
+    def __init__(self, config, root_worker):
+        self._executor = ThreadPoolExecutor(max_workers=10)  # Make it configurable
         self._xivo_uuid = config.get('uuid')
         self._listen_addr = config['rest_api']['https']['listen']
         self._listen_port = config['rest_api']['https']['port']
@@ -37,8 +39,7 @@ class Controller(object):
 
         bind_addr = (self._listen_addr, self._listen_port)
         self._publisher = bus.StatusPublisher.from_config(config)
-        celery.worker = celery.Worker.from_config(config)
-        plugin_service = service.PluginService(config, self._publisher)
+        plugin_service = service.PluginService(config, self._publisher, root_worker, self._executor)
 
         flask_app = http.new_app(config, plugin_service=plugin_service)
         flask_app.after_request(http_helpers.log_request)
@@ -53,7 +54,6 @@ class Controller(object):
         signal.signal(signal.SIGTERM, _signal_handler)
         publisher_thread = Thread(target=self._publisher.run)
         publisher_thread.start()
-        celery.worker.run()
         with ServiceCatalogRegistration(
                 'wazo-plugind',
                 self._xivo_uuid,
@@ -68,5 +68,6 @@ class Controller(object):
                 logger.info('Main process stopping')
             finally:
                 self._server.stop()
+        self._executor.shutdown()
         self._publisher.stop()
         publisher_thread.join()

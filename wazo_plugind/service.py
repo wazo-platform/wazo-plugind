@@ -6,18 +6,21 @@ from . import db
 from .exceptions import PluginNotFoundException
 from .helpers import exec_and_log
 from .context import Context
+from .tasks import PackageAndInstallTask, UninstallTask
 
 logger = logging.getLogger(__name__)
 
 
 class PluginService(object):
 
-    def __init__(self, config, status_publisher):
+    def __init__(self, config, status_publisher, root_worker, executor):
         self._build_dir = config['build_dir']
         self._deb_file = '{}.deb'.format(self._build_dir)
         self._config = config
         self._status_publisher = status_publisher
         self._plugin_db = db.PluginDB(config)
+        self._root_worker = root_worker
+        self._executor = executor
 
     def _exec(self, ctx, *args, **kwargs):
         log_debug = ctx.get_logger(logger.debug)
@@ -32,10 +35,10 @@ class PluginService(object):
         return market_db.count(*args, **kwargs)
 
     def create(self, method, **kwargs):
-        from .tasks import package_and_install
+        task = PackageAndInstallTask(self._config, self._root_worker)
         ctx = Context(self._config, method=method, install_args=kwargs)
         ctx.log(logger.info, 'installing %s...', kwargs)
-        package_and_install.apply_async(args=(ctx,))
+        self._executor.submit(task.execute, ctx)
         return ctx.uuid
 
     def new_market_proxy(self):
@@ -54,7 +57,8 @@ class PluginService(object):
         plugin = self._plugin_db.get_plugin(namespace, name)
         if not plugin.is_installed():
             raise PluginNotFoundException(namespace, name)
-        from .tasks import uninstall_and_publish
+
+        task = UninstallTask(self._config, self._root_worker)
         ctx = ctx.with_fields(package_name=plugin.debian_package_name)
-        uninstall_and_publish.apply_async(args=(ctx,))
+        self._executor.submit(task.execute, ctx)
         return ctx.uuid

@@ -15,7 +15,6 @@ Depends:
  fakeroot,
  gdebi-core,
  git,
- python3-celery,
  python3-cheroot,
  python3-consul,
  python3-flask,
