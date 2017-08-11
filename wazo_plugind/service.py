@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 
 class PluginService(object):
 
-    def __init__(self, config, status_publisher, root_worker, executor):
+    def __init__(self, config, status_publisher, root_worker, executor, plugin_db):
         self._build_dir = config['build_dir']
         self._deb_file = '{}.deb'.format(self._build_dir)
         self._config = config
         self._status_publisher = status_publisher
-        self._plugin_db = db.PluginDB(config)
+        self._plugin_db = plugin_db
         self._root_worker = root_worker
         self._executor = executor
 
@@ -62,3 +62,8 @@ class PluginService(object):
         ctx = ctx.with_fields(package_name=plugin.debian_package_name)
         self._executor.submit(task.execute, ctx)
         return ctx.uuid
+
+    @classmethod
+    def from_config(cls, config, *args, **kwargs):
+        plugin_db = db.PluginDB(config)
+        return cls(config, *args, plugin_db=plugin_db, **kwargs)

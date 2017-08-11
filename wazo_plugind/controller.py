@@ -39,7 +39,8 @@ class Controller(object):
 
         bind_addr = (self._listen_addr, self._listen_port)
         self._publisher = bus.StatusPublisher.from_config(config)
-        plugin_service = service.PluginService(config, self._publisher, root_worker, self._executor)
+        plugin_service = service.PluginService.from_config(
+            config, self._publisher, root_worker, self._executor)
 
         flask_app = http.new_app(config, plugin_service=plugin_service)
         flask_app.after_request(http_helpers.log_request)
