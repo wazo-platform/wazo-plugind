@@ -41,6 +41,12 @@ class PluginService(object):
         self._executor.submit(task.execute, ctx)
         return ctx.uuid
 
+    def get_plugin_metadata(self, namespace, name):
+        plugin = self._plugin_db.get_plugin(namespace, name)
+        if not plugin.is_installed():
+            raise PluginNotFoundException(namespace, name)
+        return plugin.metadata()
+
     def new_market_proxy(self):
         return db.MarketProxy(self._config['market'])
 
