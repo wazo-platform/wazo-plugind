@@ -136,6 +136,11 @@ class PluginsItem(_AuthentificatedResource):
         uuid = self.plugin_service.delete(namespace, name)
         return {'uuid': uuid}
 
+    @required_acl('plugind.plugins.{namespace}.{name}.read')
+    def get(self, namespace, name):
+        plugin_metadata = self.plugin_service.get_plugin_metadata(namespace, name)
+        return plugin_metadata
+
     @classmethod
     def add_resource(cls, api, *args, **kwargs):
         cls.plugin_service = kwargs['plugin_service']
