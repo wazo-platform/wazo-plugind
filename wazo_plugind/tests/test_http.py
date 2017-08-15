@@ -9,7 +9,10 @@ from mock import ANY, Mock, patch, sentinel
 from unittest import TestCase
 from uuid import uuid4
 
+from ..exceptions import PluginNotFoundException
 from ..service import PluginService
+
+API_VERSION = '0.2'
 
 
 class AuthVerifierMock(object):
@@ -36,7 +39,12 @@ class HTTPAppTestCase(TestCase):
         self.plugin_service = Mock(PluginService)
         self.app = new_app(config, plugin_service=self.plugin_service).test_client()
 
-    def post(self, body, version='0.2'):
+    def get_plugin(self, namespace, name, version=API_VERSION):
+        url = '/{version}/plugins/{namespace}/{name}'.format(version=version, namespace=namespace, name=name)
+        result = self.app.get(url)
+        return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
+
+    def post(self, body, version=API_VERSION):
         result = self.app.post('/{}/plugins'.format(version),
                                data=json.dumps(body),
                                headers={'content-type': 'application/json'})
@@ -82,6 +90,20 @@ class TestMarket(HTTPAppTestCase):
 
 
 class TestPlugins(HTTPAppTestCase):
+
+    def test_get_plugin(self):
+        self.plugin_service.get_plugin_metadata.return_value = {'meta': 'data'}
+        status_code, response = self.get_plugin('namespace', 'name')
+
+        assert_that(status_code, equal_to(200))
+        assert_that(response, equal_to(self.plugin_service.get_plugin_metadata.return_value))
+
+    def test_get_plugin_not_found(self):
+        self.plugin_service.get_plugin_metadata.side_effect = PluginNotFoundException('namespace', 'name')
+
+        status_code, response = self.get_plugin('namespace', 'name')
+
+        assert_that(status_code, equal_to(404))
 
     def test_install_with_no_method(self):
         status_code, response = self.post({'options': {'url': 'http://'}})

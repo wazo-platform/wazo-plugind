@@ -36,6 +36,10 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
             client_args['version'] = version
         return Client('localhost', **client_args)
 
+    def get_plugin(self, namespace, name, **kwargs):
+        client = self.get_client(**kwargs)
+        return client.plugins.get(namespace, name)
+
     def install_plugin(self, url=None, method=None, **kwargs):
         is_async = kwargs.pop('_async', True)
         options = kwargs.pop('options', None)

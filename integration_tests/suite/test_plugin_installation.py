@@ -164,6 +164,23 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(install_success_exists, is_(True), 'install_success was not created')
         assert_that(package_success_exists, is_(True), 'package_success was not created')
 
+    def test_get_plugin(self):
+        namespace, name = 'plugindtests', 'foobar'
+
+        self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
+
+        result = self.get_plugin(namespace, name)
+
+        assert_that(result, has_entries('namespace', namespace,
+                                        'name', name,
+                                        'version', '0.0.1'))
+
+        assert_that(calling(self.get_plugin).with_args(namespace, 'not-foobar'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
+
+        assert_that(calling(self.get_plugin).with_args(namespace, 'not-foobar', token='invalid-token'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
+
     def test_plugin_debian_dependency(self):
         dependency = 'tig'
         if self._is_installed(dependency):
