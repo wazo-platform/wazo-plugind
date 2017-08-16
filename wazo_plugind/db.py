@@ -168,15 +168,7 @@ class MarketDB(object):
         def key(element):
             value = element.get(order, LAST_ITEM)
             if order in _VERSION_COLUMNS:
-                try:
-                    value_tmp = StrictVersion(value)
-                    value_tmp.version  # raise AttributeError if value is None
-                    value = value_tmp
-                except (ValueError, TypeError, AttributeError):
-                    # Integer raise TypeError
-                    # Unsupported version raise ValueError
-                    # Not a valid version number fallback to alphabetic ordering
-                    value = str(value)
+                value = _make_comparable_version(value)
             return value
 
         try:
@@ -283,3 +275,29 @@ class InstalledVersionMatcher(object):
 
     def __ne__(self, other):
         return not self == other
+
+
+def _make_comparable_version(version):
+    try:
+        value_tmp = StrictVersion(version)
+        value_tmp.version  # raise AttributeError if value is None
+        version = value_tmp
+    except (ValueError, TypeError, AttributeError):
+        # Integer raise TypeError
+        # Unsupported version raise ValueError
+        # Not a valid version number fallback to alphabetic ordering
+        version = str(version)
+
+    return version
+
+
+def _version_less_than(left, right):
+    if not left:
+        return True
+    if not right:
+        return False
+
+    left = _make_comparable_version(left)
+    right = _make_comparable_version(right)
+
+    return left < right

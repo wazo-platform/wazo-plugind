@@ -6,8 +6,18 @@ from hamcrest import assert_that, calling, contains, empty, equal_to, raises
 from mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
-from ..db import iin, normalize_caseless, MarketDB, MarketProxy, Plugin
+from ..db import (iin, normalize_caseless, MarketDB, MarketProxy, Plugin, _version_less_than)
 from ..exceptions import InvalidSortParamException
+
+
+class TestVersionLessThan(TestCase):
+
+    def test_less_than(self):
+        assert_that(_version_less_than('17.10', '17.10'), equal_to(False))
+        assert_that(_version_less_than('17.09', '17.10'), equal_to(True))
+        assert_that(_version_less_than(None, '17.10'), equal_to(True))
+        assert_that(_version_less_than('17.10', None), equal_to(False))
+        assert_that(_version_less_than('', None), equal_to(True))
 
 
 class TestPlugin(TestCase):
