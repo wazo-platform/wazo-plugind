@@ -7,7 +7,8 @@ import re
 import yaml
 from unidecode import unidecode
 from distutils.version import StrictVersion
-import requests
+from requests import HTTPError
+from wazo_market_client import Client as MarketClient
 from .exceptions import InvalidSortParamException, InvalidPackageNameException
 from . import debian
 
@@ -59,19 +60,20 @@ class MarketProxy(object):
     """
 
     def __init__(self, market_config):
-        self._market_url = market_config['url']
-        self._verify = market_config['verify_certificate']
+        self._client = MarketClient(**market_config)
         self._content = {}
 
     def get_content(self):
         if not self._content:
-            self._fetch_plugin_list()
+            self._content = self._fetch_plugin_list()
         return self._content
 
     def _fetch_plugin_list(self):
-        response = requests.get(self._market_url, verify=self._verify)
-        if response.status_code != 200:
-            logger.info('Failed to fetch plugins from the market %s', response.status_code)
+        try:
+            result = self._client.plugins.list()
+            return result['items']
+        except HTTPError as e:
+            logger.info('Failed to fetch plugins from the market %s', e.response.status_code)
             return
         self._content = response.json()['items']
 
