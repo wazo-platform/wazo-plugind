@@ -1,2 +1,4 @@
 market:
-  url: "http://market:8000/index.json"
+  host: market
+  port: 8000
+  https: False
