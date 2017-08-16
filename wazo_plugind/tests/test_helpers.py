@@ -9,12 +9,13 @@ from ..helpers import Validator
 from ..config import _MAX_PLUGIN_FORMAT_VERSION
 from .. import exceptions
 
+CURRENT_WAZO_VERSION = '17.10'
+
 
 class TestValidator(TestCase):
 
     def setUp(self):
-        self.wazo_version_finder = Mock()
-        self.validator = Validator(Mock(), self.wazo_version_finder)
+        self.validator = Validator(Mock(), CURRENT_WAZO_VERSION)
 
     def test_that_missing_fields_raises(self):
         metadata = self.new_metadata()
@@ -85,14 +86,11 @@ class TestValidator(TestCase):
         )
 
     def test_max_wazo_version_too_small(self):
-        current_version = '17.10'
-        self.wazo_version_finder.get_version.return_value = current_version
-
         metadata = self.new_metadata(max_wazo_version='16.16')
 
         expected_details = {
             'max_wazo_version': {'constraint_id': 'range',
-                                 'constraint': {'min': current_version},
+                                 'constraint': {'min': CURRENT_WAZO_VERSION},
                                  'message': ANY}}
         assert_that(
             calling(self.validator.validate).with_args(metadata),
@@ -104,14 +102,11 @@ class TestValidator(TestCase):
         )
 
     def test_min_wazo_version_too_high(self):
-        current_version = '17.10'
-        self.wazo_version_finder.get_version.return_value = current_version
-
         metadata = self.new_metadata(min_wazo_version='17.11')
 
         expected_details = {
             'min_wazo_version': {'constraint_id': 'range',
-                                 'constraint': {'max': current_version},
+                                 'constraint': {'max': CURRENT_WAZO_VERSION},
                                  'message': ANY}}
         assert_that(
             calling(self.validator.validate).with_args(metadata),

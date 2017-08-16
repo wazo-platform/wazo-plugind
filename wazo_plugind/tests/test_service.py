@@ -19,8 +19,15 @@ class TestPluginService(TestCase):
         self._worker = Mock()
         self._executor = Mock()
         self._plugin_db = Mock()
+        self._version_finder = Mock()
         self._service = PluginService(
-            _DEFAULT_CONFIG, self._publisher, self._worker, self._executor, self._plugin_db)
+            _DEFAULT_CONFIG,
+            self._publisher,
+            self._worker,
+            self._executor,
+            plugin_db=self._plugin_db,
+            wazo_version_finder=self._version_finder,
+        )
 
     def test_get_plugin_metadata(self):
         namespace, name = 'foobar', 'someplugin'
