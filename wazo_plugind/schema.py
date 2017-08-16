@@ -83,6 +83,7 @@ class MarketVersionResultSchema(BaseSchema):
 class MarketListResultSchema(BaseSchema):
 
     homepage = fields.String()
+    color = fields.String()
     display_name = fields.String()
     name = fields.String(validate=Regexp(_PLUGIN_NAME_REGEXP), required=True)
     namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
