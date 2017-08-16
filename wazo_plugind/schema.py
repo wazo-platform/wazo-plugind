@@ -60,7 +60,6 @@ class MarketInstallOptionsSchema(Schema):
     namespace = fields.String(validate=Length(min=1), required=True)
     name = fields.String(validate=Length(min=1), required=True)
     version = fields.String()
-    url = fields.String(validate=Length(min=1))
 
 
 class MarketListRequestSchema(BaseSchema):

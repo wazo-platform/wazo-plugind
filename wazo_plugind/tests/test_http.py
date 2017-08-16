@@ -134,7 +134,7 @@ class TestPlugins(HTTPAppTestCase):
         self.plugin_service.create.assert_called_once_with('market', **options)
 
     def test_market_install_with_all_arguments(self):
-        options = {'name': 'foo', 'namespace': 'bar', 'url': 'http://', 'version': '0.0.1'}
+        options = {'name': 'foo', 'namespace': 'bar', 'version': '0.0.1'}
         self.post({'method': 'market', 'options': options})
 
         self.plugin_service.create.assert_called_once_with('market', **options)
