@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "name": "one",
+      "namespace": "dependency",
+      "versions": [
+        {
+          "method": "git",
+          "options": {
+            "url": "file:///data/git/one"
+          }
+        }
+      ]
+    },
+    {
+      "name": "two",
+      "namespace": "dependency",
+      "versions": [
+        {
+          "method": "git",
+          "options": {
+            "url": "file:///data/git/two"
+          }
+        }
+      ]
+    },
+    {
+      "name": "three",
+      "namespace": "dependency",
+      "versions": [
+        {
+          "method": "git",
+          "options": {
+            "url": "file:///data/git/three"
+          }
+        }
+      ]
+    },
+    {
+      "name": "four",
+      "namespace": "dependency",
+      "versions": [
+        {
+          "method": "git",
+          "options": {
+            "url": "file:///data/git/four"
+          }
+        }
+      ]
+    },
+    {
+      "name": "one",
+      "namespace": "dependencynotfound",
+      "versions": [
+        {
+          "method": "git",
+          "options": {
+            "url": "file:///data/git/dependencynotfound-one"
+          }
+        }
+      ]
+    }
+  ]
+}
