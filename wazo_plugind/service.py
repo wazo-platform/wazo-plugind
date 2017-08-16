@@ -32,7 +32,8 @@ class PluginService(object):
         return self._plugin_db.count()
 
     def count_from_market(self, market_proxy, *args, **kwargs):
-        market_db = db.MarketDB(market_proxy, self._plugin_db)
+        current_wazo_version = self._wazo_version_finder.get_version()
+        market_db = db.MarketDB(market_proxy, current_wazo_version, self._plugin_db)
         return market_db.count(*args, **kwargs)
 
     def create(self, method, **kwargs):
@@ -56,7 +57,8 @@ class PluginService(object):
         return self._plugin_db.list_()
 
     def list_from_market(self, market_proxy, *args, **kwargs):
-        market_db = db.MarketDB(market_proxy, self._plugin_db)
+        current_wazo_version = self._wazo_version_finder.get_version()
+        market_db = db.MarketDB(market_proxy, current_wazo_version, self._plugin_db)
         return market_db.list_(*args, **kwargs)
 
     def delete(self, namespace, name):

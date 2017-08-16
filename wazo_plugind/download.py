@@ -7,6 +7,7 @@ from . import db
 from .exceptions import InvalidInstallParamException, UnsupportedDownloadMethod
 from .helpers import exec_and_log
 from .schema import PluginInstallSchema
+from .db import PluginDB
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +39,13 @@ class _MarketDownloader(object):
         self._downloader = downloader
 
     def download(self, ctx):
-        metadata = self._find_matching_plugin(ctx)
+        version_info = self._find_matching_plugin(ctx)
+        # TODO: if the plugin was not found on the market version_info will be None
         for key, value in self._defaults.items():
-            if key not in metadata:
-                metadata[key] = value
+            if key not in version_info:
+                version_info[key] = value
 
-        body, errors = PluginInstallSchema().load(metadata)
+        body, errors = PluginInstallSchema().load(version_info)
         if errors:
             raise InvalidInstallParamException(errors)
 
@@ -62,9 +64,28 @@ class _MarketDownloader(object):
         if market_url:
             market_config['url'] = market_url
 
+        plugin_db = PluginDB(ctx.config)
         market_proxy = db.MarketProxy(market_config)
-        market_db = db.MarketDB(market_proxy)
-        return market_db.get(**ctx.install_args)
+        market_db = db.MarketDB(market_proxy, ctx.wazo_version, plugin_db, include_install_data=True)
+        plugin_info = market_db.get(**ctx.install_args)
+        required_version = ctx.install_args.get('version')
+
+        # If a version is specified, it has to be that version
+        if required_version:
+            return self._find_matching_version(plugin_info, required_version)
+        # Otherwise, use the first version available
+        else:
+            return self._find_first_upgradable_version(plugin_info)
+
+    def _find_matching_version(self, plugin_info, required_version):
+        for version_info in plugin_info.get('versions', []):
+            if version_info['version'] == required_version:
+                return version_info
+
+    def _find_first_upgradable_version(self, plugin_info):
+        for version_info in plugin_info.get('versions', []):
+            if version_info['upgradable'] == True:
+                return version_info
 
 
 class _UndefinedDownloader(object):

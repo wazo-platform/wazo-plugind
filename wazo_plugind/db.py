@@ -126,9 +126,9 @@ class MarketPluginUpdater(object):
 
 class MarketDB(object):
 
-    def __init__(self, market_proxy, plugin_db=None):
+    def __init__(self, market_proxy, current_wazo_version, plugin_db=None, include_install_data=False):
         self._market_proxy = market_proxy
-        self._plugin_db = plugin_db
+        self._updater = MarketPluginUpdater(plugin_db, current_wazo_version, include_install_data)
 
     def count(self, *args, **kwargs):
         content = self._market_proxy.get_content()
@@ -166,15 +166,8 @@ class MarketDB(object):
         return content
 
     def _add_local_values(self, content):
-        if not self._plugin_db:
-            return content
-
         for metadata in content:
-            plugin = self._plugin_db.get_plugin(metadata['namespace'], metadata['name'])
-            if plugin.is_installed():
-                metadata['installed_version'] = plugin.metadata()['version']
-            else:
-                metadata['installed_version'] = None
+            self._updater.update(metadata)
         return content
 
     @staticmethod
