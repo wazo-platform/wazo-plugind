@@ -260,13 +260,63 @@ class TestMarketDB(TestCase):
 
     def setUp(self):
         self.content = [
-            {'name': 'a', 'namespace': 'c', 'tags': ['foobar'], 'd': {}, 'version': '0.1.1', 'min_wazo_version': '1', 'installed_version': '0.0.1'},
-            {'name': 'b', 'tags': ['pépé'], 'd': {42: 'bar'}, 'version': '0.2.0', 'min_wazo_version': '3', 'installed_version': None},
-            {'namespace': 'a', 'version': '0.12.0', 'min_wazo_version': '2', 'installed_version': '0.10.0'},
+            {
+                'name': 'a',
+                'namespace': 'c',
+                'tags': ['foobar'],
+                'd': {},
+                'author': 'me',
+                'installed_version': '0.0.1',
+                'versions': [
+                    {
+                        'version': '0.1.1',
+                        'min_wazo_version': '1',
+                    },
+                    {
+                        'version': '0.0.1',
+                    },
+                ],
+            },
+            {
+                'name': 'b',
+                'tags': ['pépé'],
+                'd': {42: 'bar'},
+                'author': 'you',
+                'installed_version': None,
+                'versions': [
+                    {
+                        'version': '0.3.0',
+                        'min_wazo_version': '9999',
+                    },
+                    {
+                        'version': '0.2.0',
+                        'min_wazo_version': '3',
+                    },
+                    {
+                        'version': '0.1.1',
+                    },
+                ],
+            },
+            {
+                'namespace': 'a',
+                'author': 'you & me',
+                'installed_version': '0.10.0',
+                'versions': [
+                    {
+                        'version': '0.12.0',
+                        'min_wazo_version': '2',
+                    },
+                    {
+                        'version': '0.10.5',
+                        'max_wazo_version': '0',
+                    },
+                ],
+            },
         ]
         self.market_proxy = Mock(MarketProxy)
         self.market_proxy.get_content.return_value = self.content
-        self.db = MarketDB(self.market_proxy)
+        self.db = MarketDB(self.market_proxy, CURRENT_WAZO_VERSION)
+        self.db._updater = Mock(MarketPluginUpdater)
 
     def test_the_installed_param(self):
         a, b, c = self.content
@@ -280,32 +330,27 @@ class TestMarketDB(TestCase):
         results = self.db.list_(namespace='a')
         assert_that(results, contains(c))
 
-        results = self.db.list_(name='a', namespace='c', version='0.1.1')
+        results = self.db.list_(name='a', namespace='c', author='me')
         assert_that(results, contains(a))
 
-        results = self.db.list_(name='a', namespace='c', version='0.1')  # Not full match on version
+        results = self.db.list_(name='a', namespace='c', author='you')  # Not full match on author
         assert_that(results, empty())
 
     def test_get(self):
-        self.market_proxy.get_content.return_value = a, b, c = [
-            {'namespace': 'foo', 'name': 'bar', 'version': '0.1.1'},
-            {'namespace': 'foo', 'name': 'bar', 'version': '0.0.1'},
-            {'namespace': 'foo', 'name': 'bar', 'version': '0.2.0'},
+        self.market_proxy.get_content.return_value = expected_result = [
+            {
+                'namespace': 'foo',
+                'name': 'bar',
+                'verions': [
+                    {'version': '0.1.1'},
+                    {'version': '0.0.1'},
+                    {'version': '0.2.0'},
+                ],
+            },
         ]
 
-        # Latest version
         result = self.db.get('foo', 'bar')
-        assert_that(result, equal_to(c))
-
-        # Specified version
-        result = self.db.get('foo', 'bar', '0.0.1')
-        assert_that(result, equal_to(b))
-
-        # Unknown version
-        assert_that(
-            calling(self.db.get).with_args('foo', 'bar', '0.0.42'),
-            raises(Exception)
-        )
+        assert_that(result, expected_result)
 
         # Unknown name
         assert_that(

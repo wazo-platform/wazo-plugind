@@ -138,17 +138,15 @@ class MarketDB(object):
             content = list(self._filter(content, **kwargs))
         return len(content)
 
-    def get(self, namespace, name, version=None):
+    def get(self, namespace, name):
         filters = dict(
             namespace=namespace,
             name=name,
         )
-        if version:
-            filters['version'] = version
 
         content = self._market_proxy.get_content()
+        content = self._add_local_values(content)
         content = self._strict_filter(content, **filters)
-        content = self._sort(content, order='version', direction='desc')
 
         if not content:
             raise LookupError('No such plugin {}'.format(filters))
