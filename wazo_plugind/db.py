@@ -14,12 +14,6 @@ from . import debian
 
 logger = logging.getLogger(__name__)
 
-_VERSION_COLUMNS = [
-    'version',
-    'min_wazo_version',
-    'max_wazo_version',
-]
-
 
 class AlwaysLast(object):
 
@@ -205,10 +199,7 @@ class MarketDB(object):
         reverse = direction == 'desc'
 
         def key(element):
-            value = element.get(order, LAST_ITEM)
-            if order in _VERSION_COLUMNS:
-                value = _make_comparable_version(value)
-            return value
+            return element.get(order, LAST_ITEM)
 
         try:
             return sorted(content, key=key, reverse=reverse)
