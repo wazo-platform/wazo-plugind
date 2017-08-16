@@ -40,7 +40,6 @@ class _MarketDownloader(object):
 
     def download(self, ctx):
         version_info = self._find_matching_plugin(ctx)
-        # TODO: if the plugin was not found on the market version_info will be None
         for key, value in self._defaults.items():
             if key not in version_info:
                 version_info[key] = value
