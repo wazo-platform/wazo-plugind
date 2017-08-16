@@ -3,8 +3,8 @@
 
 from contextlib import contextmanager
 from unittest import TestCase
-from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, not_, raises
-from mock import ANY, Mock, patch
+from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, raises
+from mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
 from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB,
@@ -32,29 +32,6 @@ class TestMarketPluginUpdater(TestCase):
         self.plugin_db = Mock(PluginDB)
         self.plugin_db.get_plugin.return_value = self.uninstalled_plugin
         self.updater = MarketPluginUpdater(self.plugin_db, current_wazo_version=CURRENT_WAZO_VERSION)
-
-    def test_that_install_related_fields_are_removed(self):
-        # The method and options fields are for plugind only and should not be exposed to the
-        # UI
-        plugin_info = {
-            'name': 'foo',
-            'namespace': 'foobar',
-            'versions': [
-                {
-                    'version': '0.0.1',
-                    'method': 'git',
-                    'options': {
-                        'ref': 'v0.0.1',
-                        'url': 'the://foo/bar.url',
-                    },
-                },
-            ],
-        }
-
-        result = self.updater.update(plugin_info)
-
-        assert_that(result, has_entries('versions', contains(not_(has_entries('method', 'git',
-                                                                              'options', ANY)))))
 
     def test_that_the_installed_version_is_added(self):
         plugin_info = {

@@ -72,10 +72,9 @@ class MarketProxy(object):
 
 class MarketPluginUpdater(object):
 
-    def __init__(self, plugin_db, current_wazo_version, include_install_data=False):
+    def __init__(self, plugin_db, current_wazo_version):
         self._plugin_db = plugin_db
         self._current_wazo_version = current_wazo_version
-        self._include_install_data = include_install_data
 
     def update(self, plugin_info):
         namespace, name = plugin_info['namespace'], plugin_info['name']
@@ -83,7 +82,6 @@ class MarketPluginUpdater(object):
 
         self._add_installed_version(plugin_info, plugin)
         self._add_upgradable_field(plugin_info, plugin)
-        self._remove_install_fields(plugin_info)
 
         return plugin_info
 
@@ -108,21 +106,12 @@ class MarketPluginUpdater(object):
                 if not _version_less_than(installed_version, proposed_version):
                     version_info['upgradable'] = False
 
-    def _remove_install_fields(self, plugin_info):
-        # TODO: remove this method and remove fields in the http route using marshmallow
-        if self._include_install_data:
-            return
-
-        for version_info in plugin_info.get('versions', []):
-            version_info.pop('method', None)
-            version_info.pop('options', None)
-
 
 class MarketDB(object):
 
-    def __init__(self, market_proxy, current_wazo_version, plugin_db=None, include_install_data=False):
+    def __init__(self, market_proxy, current_wazo_version, plugin_db=None):
         self._market_proxy = market_proxy
-        self._updater = MarketPluginUpdater(plugin_db, current_wazo_version, include_install_data)
+        self._updater = MarketPluginUpdater(plugin_db, current_wazo_version)
 
     def count(self, *args, **kwargs):
         content = self._market_proxy.get_content()

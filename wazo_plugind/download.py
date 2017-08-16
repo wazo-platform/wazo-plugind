@@ -66,7 +66,7 @@ class _MarketDownloader(object):
 
         plugin_db = PluginDB(ctx.config)
         market_proxy = db.MarketProxy(market_config)
-        market_db = db.MarketDB(market_proxy, ctx.wazo_version, plugin_db, include_install_data=True)
+        market_db = db.MarketDB(market_proxy, ctx.wazo_version, plugin_db)
         plugin_info = market_db.get(**ctx.install_args)
         required_version = ctx.install_args.get('version')
 
@@ -84,7 +84,7 @@ class _MarketDownloader(object):
 
     def _find_first_upgradable_version(self, plugin_info):
         for version_info in plugin_info.get('versions', []):
-            if version_info['upgradable'] == True:
+            if version_info['upgradable'] is True:
                 return version_info
 
 

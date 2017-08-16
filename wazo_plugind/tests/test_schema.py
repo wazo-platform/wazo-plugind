@@ -5,7 +5,29 @@ from unittest import TestCase
 from hamcrest import assert_that, contains, equal_to, has_entries, all_of, has_key
 from mock import ANY
 
-from ..schema import PluginInstallSchemaV01, PluginInstallSchema
+from ..schema import MarketListResultSchema, PluginInstallSchemaV01, PluginInstallSchema
+
+
+class TestMarketResultSchema(TestCase):
+
+    def test_that_install_options_are_removed(self):
+        plugin_info = {
+            'name': 'foo',
+            'namespace': 'foobar',
+            'versions': [
+                {
+                    'method': 'git',
+                    'options': {
+                        'url': 'the://git/url',
+                    },
+                    'version': '0.0.1',
+                },
+            ],
+        }
+
+        result, errors = MarketListResultSchema().load(plugin_info)
+
+        assert_that(result, has_entries('versions', contains({'version': '0.0.1'})))
 
 
 class TestInstallationSchema(TestCase):
