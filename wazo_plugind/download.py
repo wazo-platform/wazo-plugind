@@ -59,7 +59,7 @@ class _MarketDownloader(object):
 
     def _find_matching_plugin(self, ctx):
         plugin_db = PluginDB(ctx.config)
-        market_proxy = db.MarketProxy(**self._market_config)
+        market_proxy = db.MarketProxy(self._market_config)
         market_db = db.MarketDB(market_proxy, ctx.wazo_version, plugin_db)
         plugin_info = market_db.get(**ctx.install_args)
         required_version = ctx.install_args.get('version')
