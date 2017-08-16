@@ -1,13 +1,17 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+from contextlib import contextmanager
 from unittest import TestCase
-from hamcrest import assert_that, calling, contains, empty, equal_to, raises
-from mock import Mock, patch
+from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, not_, raises
+from mock import ANY, Mock, patch
 
 from ..config import _DEFAULT_CONFIG
-from ..db import (iin, normalize_caseless, MarketDB, MarketProxy, Plugin, _version_less_than)
+from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB,
+                  _version_less_than)
 from ..exceptions import InvalidSortParamException
+
+CURRENT_WAZO_VERSION = '17.12'
 
 
 class TestVersionLessThan(TestCase):
@@ -18,6 +22,171 @@ class TestVersionLessThan(TestCase):
         assert_that(_version_less_than(None, '17.10'), equal_to(True))
         assert_that(_version_less_than('17.10', None), equal_to(False))
         assert_that(_version_less_than('', None), equal_to(True))
+
+
+class TestMarketPluginUpdater(TestCase):
+
+    def setUp(self):
+        self.uninstalled_plugin = Mock()
+        self.uninstalled_plugin.is_installed.return_value = False
+        self.plugin_db = Mock(PluginDB)
+        self.plugin_db.get_plugin.return_value = self.uninstalled_plugin
+        self.updater = MarketPluginUpdater(self.plugin_db, current_wazo_version=CURRENT_WAZO_VERSION)
+
+    def test_that_install_related_fields_are_removed(self):
+        # The method and options fields are for plugind only and should not be exposed to the
+        # UI
+        plugin_info = {
+            'name': 'foo',
+            'namespace': 'foobar',
+            'versions': [
+                {
+                    'version': '0.0.1',
+                    'method': 'git',
+                    'options': {
+                        'ref': 'v0.0.1',
+                        'url': 'the://foo/bar.url',
+                    },
+                },
+            ],
+        }
+
+        result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('versions', contains(not_(has_entries('method', 'git',
+                                                                              'options', ANY)))))
+
+    def test_that_the_installed_version_is_added(self):
+        plugin_info = {
+            'name': 'foo',
+            'namespace': 'foobar',
+        }
+
+        with self.installed_plugin('foobar', 'foo', '0.0.1'):
+            result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('installed_version', '0.0.1'))
+
+    def test_upgradable_field_with_min_version_too_high(self):
+        plugin_info = {
+            'namespace': 'foobar',
+            'name': 'foo',
+            'versions': [
+                {
+                    'min_wazo_version': '17.13',
+                },
+            ],
+        }
+
+        result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('versions', contains(has_entries('upgradable', False))))
+
+    def test_upgradable_field_with_min_version_that_is_ok(self):
+        plugin_info = {
+            'namespace': 'foobar',
+            'name': 'foo',
+            'versions': [
+                {
+                    'min_wazo_version': CURRENT_WAZO_VERSION,
+                },
+            ],
+        }
+
+        result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('versions', contains(has_entries('upgradable', True))))
+
+    def test_upgradable_field_with_max_version_too_low(self):
+        plugin_info = {
+            'namespace': 'foobar',
+            'name': 'foo',
+            'versions': [
+                {
+                    'max_wazo_version': '17.11',
+                },
+            ],
+        }
+
+        result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('versions', contains(has_entries('upgradable', False))))
+
+    def test_upgradable_field_with_max_version_that_is_ok(self):
+        plugin_info = {
+            'namespace': 'foobar',
+            'name': 'foo',
+            'versions': [
+                {
+                    'max_wazo_version': CURRENT_WAZO_VERSION,
+                },
+            ],
+        }
+
+        result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('versions', contains(has_entries('upgradable', True))))
+
+    def test_upgradable_with_an_old_version(self):
+        plugin_info = {
+            'namespace': 'foobar',
+            'name': 'foo',
+            'versions': [
+                {
+                    'version': '0.0.1'
+                },
+            ],
+        }
+
+        with self.installed_plugin('foobar', 'foo', '0.0.2'):
+            result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('versions', contains(has_entries('upgradable', False))))
+
+    def test_upgradable_with_the_same_version(self):
+        plugin_info = {
+            'namespace': 'foobar',
+            'name': 'foo',
+            'versions': [
+                {
+                    'version': '0.0.1'
+                },
+            ],
+        }
+
+        with self.installed_plugin('foobar', 'foo', '0.0.1'):
+            result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('versions', contains(has_entries('upgradable', False))))
+
+    def test_upgradable_with_a_newer_version(self):
+        plugin_info = {
+            'namespace': 'foobar',
+            'name': 'foo',
+            'versions': [
+                {
+                    'version': '0.0.2'
+                },
+            ],
+        }
+
+        with self.installed_plugin('foobar', 'foo', '0.0.1'):
+            result = self.updater.update(plugin_info)
+
+        assert_that(result, has_entries('versions', contains(has_entries('upgradable', True))))
+
+    @contextmanager
+    def installed_plugin(self, namespace, name, version):
+        metadata = {'name': name, 'namespace': namespace, 'version': version}
+
+        mocked_plugin = Mock(Plugin, namespace=namespace, name=name)
+        mocked_plugin.metadata.return_value = metadata
+
+        self.plugin_db.get_plugin.return_value = mocked_plugin
+
+        yield
+
+        self.plugin_db.get_plugin.return_value = self.uninstalled_plugin
 
 
 class TestPlugin(TestCase):

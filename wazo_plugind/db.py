@@ -74,8 +74,54 @@ class MarketProxy(object):
             return result['items']
         except HTTPError as e:
             logger.info('Failed to fetch plugins from the market %s', e.response.status_code)
+
+
+class MarketPluginUpdater(object):
+
+    def __init__(self, plugin_db, current_wazo_version, include_install_data=False):
+        self._plugin_db = plugin_db
+        self._current_wazo_version = current_wazo_version
+        self._include_install_data = include_install_data
+
+    def update(self, plugin_info):
+        namespace, name = plugin_info['namespace'], plugin_info['name']
+        plugin = self._plugin_db.get_plugin(namespace, name)
+
+        self._add_installed_version(plugin_info, plugin)
+        self._add_upgradable_field(plugin_info, plugin)
+        self._remove_install_fields(plugin_info)
+
+        return plugin_info
+
+    def _add_installed_version(self, plugin_info, plugin):
+        installed_version = plugin.metadata()['version'] if plugin.is_installed() else None
+        plugin_info['installed_version'] = installed_version
+
+    def _add_upgradable_field(self, plugin_info, plugin):
+        for version_info in plugin_info.get('versions', []):
+            version_info['upgradable'] = True
+
+            min_wazo_version = version_info.get('min_wazo_version', self._current_wazo_version)
+            max_wazo_version = version_info.get('max_wazo_version', self._current_wazo_version)
+            proposed_version = version_info.get('version')
+
+            if _version_less_than(self._current_wazo_version, min_wazo_version):
+                version_info['upgradable'] = False
+            elif _version_less_than(max_wazo_version, self._current_wazo_version):
+                version_info['upgradable'] = False
+            elif plugin.is_installed():
+                installed_version = plugin.metadata()['version']
+                if not _version_less_than(installed_version, proposed_version):
+                    version_info['upgradable'] = False
+
+    def _remove_install_fields(self, plugin_info):
+        # TODO: remove this method and remove fields in the http route using marshmallow
+        if self._include_install_data:
             return
-        self._content = response.json()['items']
+
+        for version_info in plugin_info.get('versions', []):
+            version_info.pop('method', None)
+            version_info.pop('options', None)
 
 
 class MarketDB(object):
