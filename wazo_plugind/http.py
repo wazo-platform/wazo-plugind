@@ -85,6 +85,15 @@ class Market(_AuthentificatedResource):
         super().add_resource(api, *args, **kwargs)
 
 
+class MarketItem(_AuthentificatedResource):
+
+    api_path = '/market/<namespace>/<name>'
+
+    @required_acl('plugind.market.read')
+    def get(self, namespace, name):
+        return {}
+
+
 class Plugins(_AuthentificatedResource):
 
     api_path = '/plugins'
@@ -211,6 +220,7 @@ def new_app(config, *args, **kwargs):
     MultiAPI(False,  APIv02).add_resource(Swagger)
     MultiAPI(APIv01, APIv02).add_resource(Config)
     MultiAPI(APIv01, APIv02).add_resource(Market)
+    MultiAPI(False,  APIv02).add_resource(MarketItem)
     MultiAPI(APIv01, APIv02).add_resource(PluginsItem)
     MultiAPI(False,  APIv02).add_resource(Plugins)
     MultiAPI(APIv01,  False).add_resource(PluginsV01)
