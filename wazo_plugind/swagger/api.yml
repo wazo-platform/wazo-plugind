@@ -63,6 +63,29 @@ paths:
           description: "The plugin list"
           schema:
             $ref: '#/definitions/GetMarketResult'
+  /market/{namespace}/{name}:
+    get:
+      tags:
+        - plugin
+        - market
+      summary: Fetch the information about a plugin from the market
+      description: |
+        **Required ACL:** `plugind.market.read`
+
+        Allow the administrator to view a plugins information from the market.
+        ---
+      parameters:
+        - $ref: '#/parameters/namespace'
+        - $ref: '#/parameters/name'
+      responses:
+        '200':
+          description: "The plugin's information"
+          schema:
+            $ref: '#/definitions/MarketPluginList'
+        '400':
+          $ref: '#/responses/InvalidRequest'
+        '404':
+          $ref: '#/responses/NotFoundError'
   /plugins:
     get:
       tags:
