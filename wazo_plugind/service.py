@@ -56,7 +56,11 @@ class PluginService(object):
         return self._plugin_db.list_()
 
     def get_from_market(self, market_proxy, namespace, name):
-        raise NotImplementedError()
+        market_db = self._new_market_db(market_proxy)
+        results = market_db.list_(namespace=namespace, name=name)
+        for result in results:
+            return result
+        raise PluginNotFoundException(namespace, name)
 
     def list_from_market(self, market_proxy, *args, **kwargs):
         market_db = self._new_market_db(market_proxy)
