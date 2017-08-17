@@ -36,6 +36,10 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
             client_args['version'] = version
         return Client('localhost', **client_args)
 
+    def get_market(self, namespace, name, **kwargs):
+        client = self.get_client(**kwargs)
+        return client.market.get(namespace, name)
+
     def get_plugin(self, namespace, name, **kwargs):
         client = self.get_client(**kwargs)
         return client.plugins.get(namespace, name)
