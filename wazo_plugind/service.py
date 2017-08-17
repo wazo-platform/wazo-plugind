@@ -56,6 +56,9 @@ class PluginService(object):
     def list_(self):
         return self._plugin_db.list_()
 
+    def get_from_market(self, market_proxy, namespace, name):
+        raise NotImplementedError()
+
     def list_from_market(self, market_proxy, *args, **kwargs):
         current_wazo_version = self._wazo_version_finder.get_version()
         market_db = db.MarketDB(market_proxy, current_wazo_version, self._plugin_db)

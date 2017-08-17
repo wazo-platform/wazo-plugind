@@ -91,7 +91,12 @@ class MarketItem(_AuthentificatedResource):
 
     @required_acl('plugind.market.read')
     def get(self, namespace, name):
-        return {}
+        return self.plugin_service.get_from_market(namespace, name)
+
+    @classmethod
+    def add_resource(cls, api, *args, **kwargs):
+        cls.plugin_service = kwargs['plugin_service']
+        super().add_resource(api, *args, **kwargs)
 
 
 class Plugins(_AuthentificatedResource):

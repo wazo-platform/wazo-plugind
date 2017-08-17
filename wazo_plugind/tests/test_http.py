@@ -82,10 +82,23 @@ class TestMarket(HTTPAppTestCase):
         self.plugin_service.list_from_market.assert_called_once_with(
             ANY, namespace='foobar', direction=ANY, limit=ANY, offset=ANY, order=ANY, search=ANY)
 
-    def get(self, **kwargs):
-        result = self.app.get('/0.1/market',
-                              query_string=kwargs,
-                              headers={'content-type': 'application/json'})
+    def test_get_by_namespace_and_name(self):
+        self.plugin_service.get_from_market.side_effect = PluginNotFoundException('namespace', 'name')
+
+        status_code, response = self.get('namespace', 'name')
+
+        assert_that(status_code, equal_to(404))
+
+    def get(self, *args, **kwargs):
+        base_url = '/0.2/market'
+        headers = {'content-type': 'application/json'}
+
+        if args:
+            url = '{}/{}/{}'.format(base_url, *args)
+        else:
+            url = base_url
+
+        result = self.app.get(url, query_string=kwargs, headers=headers)
         return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
 
 
