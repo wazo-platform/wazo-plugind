@@ -18,6 +18,9 @@ class TestMarket(BaseIntegrationTest):
         assert_that(calling(self.get_market).with_args('official', 'admin-ui-conference', token='invalid-token'),
                     raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
 
+        assert_that(calling(self.get_market).with_args('foobar', 'foobar'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
+
     def test_that_no_filter_returns_all_plugins(self):
         response = self.search()
 
