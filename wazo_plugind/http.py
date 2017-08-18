@@ -12,7 +12,10 @@ from xivo import http_helpers
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
 
-from .schema import MarketListRequestSchema, PluginInstallSchema, PluginInstallSchemaV01
+from .schema import (
+    MarketListRequestSchema, MarketListResultSchema,
+    PluginInstallSchema, PluginInstallSchemaV01
+)
 from .exceptions import InvalidInstallParamException, InvalidListParamException
 
 logger = logging.getLogger(__name__)
@@ -68,8 +71,10 @@ class Market(_AuthentificatedResource):
             list_params[key] = value
 
         market_proxy = self.plugin_service.new_market_proxy()
+        plugin_list = self.plugin_service.list_from_market(market_proxy, **list_params)
+        items, _ = MarketListResultSchema().load(plugin_list, many=True)
         return {
-            'items': self.plugin_service.list_from_market(market_proxy, **list_params),
+            'items': items,
             'total': self.plugin_service.count_from_market(market_proxy, **list_params),
             'filtered': self.plugin_service.count_from_market(market_proxy, filtered=True, **list_params)
         }

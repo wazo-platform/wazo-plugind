@@ -170,7 +170,7 @@ class _PackageBuilder(object):
         )
 
     def validate(self, ctx):
-        validator = helpers.Validator.new_from_config(ctx.config)
+        validator = helpers.Validator.new_from_config(ctx.config, ctx.wazo_version)
         validator.validate(ctx.metadata)
         return ctx
 
@@ -182,13 +182,14 @@ class _PackageBuilder(object):
 
     def install_dependencies(self, ctx):
         dependencies = ctx.metadata.get('depends', [])
+        current_wazo_version = ctx.wazo_version
         for dependency in dependencies:
             ctx.log(logger.info, 'installing dependency %s', dependency)
-            self.install_dependency(dependency)
+            self.install_dependency(dependency, current_wazo_version)
         return ctx
 
-    def install_dependency(self, dep):
-        ctx = Context(self._config, method='market', install_args=dep)
+    def install_dependency(self, dep, current_wazo_version):
+        ctx = Context(self._config, method='market', install_args=dep, wazo_version=current_wazo_version)
         self._package_install_fn(ctx)
 
     def update(self, ctx):

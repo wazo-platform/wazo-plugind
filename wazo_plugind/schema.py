@@ -10,6 +10,8 @@ from xivo.mallow.validate import Regexp
 from .config import _MAX_PLUGIN_FORMAT_VERSION
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
+_PLUGIN_NAME_REGEXP = r'^[a-z0-9-]+$'
+_PLUGIN_NAMESPACE_REGEXP = r'^[a-z0-9]+$'
 
 
 def new_plugin_metadata_schema(current_version):
@@ -17,8 +19,8 @@ def new_plugin_metadata_schema(current_version):
 
         version_fields = ['version', 'max_wazo_version', 'min_wazo_version']
 
-        name = fields.String(validate=Regexp(r'^[a-z0-9-]+$'), required=True)
-        namespace = fields.String(validate=Regexp(r'^[a-z0-9]+$'), required=True)
+        name = fields.String(validate=Regexp(_PLUGIN_NAME_REGEXP), required=True)
+        namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
         version = fields.String(required=True)
         plugin_format_version = fields.Integer(validate=Range(min=0,
                                                               max=_MAX_PLUGIN_FORMAT_VERSION),
@@ -58,7 +60,6 @@ class MarketInstallOptionsSchema(Schema):
     namespace = fields.String(validate=Length(min=1), required=True)
     name = fields.String(validate=Length(min=1), required=True)
     version = fields.String()
-    url = fields.String(validate=Length(min=1))
 
 
 class MarketListRequestSchema(BaseSchema):
@@ -69,6 +70,32 @@ class MarketListRequestSchema(BaseSchema):
     offset = fields.Integer(validate=Range(min=0), missing=0)
     search = fields.String(missing=None)
     installed = fields.Boolean()
+
+
+class MarketVersionResultSchema(BaseSchema):
+
+    upgradable = fields.Boolean(required=True)
+    version = fields.String(required=True)
+    min_wazo_version = fields.String()
+    max_wazo_version = fields.String()
+
+
+class MarketListResultSchema(BaseSchema):
+
+    homepage = fields.String()
+    color = fields.String()
+    display_name = fields.String()
+    name = fields.String(validate=Regexp(_PLUGIN_NAME_REGEXP), required=True)
+    namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
+    tags = fields.List(fields.String)
+    author = fields.String()
+    versions = fields.Nested(MarketVersionResultSchema, many=True, required=True)
+    screenshots = fields.List(fields.String)
+    icon = fields.String()
+    description = fields.String()
+    short_description = fields.String()
+    license = fields.String()
+    installed_version = fields.String(missing=None)
 
 
 class OptionField(fields.Field):

@@ -7,17 +7,12 @@ import re
 import yaml
 from unidecode import unidecode
 from distutils.version import StrictVersion
-import requests
+from requests import HTTPError
+from wazo_market_client import Client as MarketClient
 from .exceptions import InvalidSortParamException, InvalidPackageNameException
 from . import debian
 
 logger = logging.getLogger(__name__)
-
-_VERSION_COLUMNS = [
-    'version',
-    'min_wazo_version',
-    'max_wazo_version',
-]
 
 
 class AlwaysLast(object):
@@ -59,28 +54,64 @@ class MarketProxy(object):
     """
 
     def __init__(self, market_config):
-        self._market_url = market_config['url']
-        self._verify = market_config['verify_certificate']
+        self._client = MarketClient(**market_config)
         self._content = {}
 
     def get_content(self):
         if not self._content:
-            self._fetch_plugin_list()
+            self._content = self._fetch_plugin_list()
         return self._content
 
     def _fetch_plugin_list(self):
-        response = requests.get(self._market_url, verify=self._verify)
-        if response.status_code != 200:
-            logger.info('Failed to fetch plugins from the market %s', response.status_code)
-            return
-        self._content = response.json()['items']
+        try:
+            result = self._client.plugins.list()
+            return result['items']
+        except HTTPError as e:
+            logger.info('Failed to fetch plugins from the market %s', e.response.status_code)
+
+
+class MarketPluginUpdater(object):
+
+    def __init__(self, plugin_db, current_wazo_version):
+        self._plugin_db = plugin_db
+        self._current_wazo_version = current_wazo_version
+
+    def update(self, plugin_info):
+        namespace, name = plugin_info['namespace'], plugin_info['name']
+        plugin = self._plugin_db.get_plugin(namespace, name)
+
+        self._add_installed_version(plugin_info, plugin)
+        self._add_upgradable_field(plugin_info, plugin)
+
+        return plugin_info
+
+    def _add_installed_version(self, plugin_info, plugin):
+        installed_version = plugin.metadata()['version'] if plugin.is_installed() else None
+        plugin_info['installed_version'] = installed_version
+
+    def _add_upgradable_field(self, plugin_info, plugin):
+        for version_info in plugin_info.get('versions', []):
+            version_info['upgradable'] = True
+
+            min_wazo_version = version_info.get('min_wazo_version', self._current_wazo_version)
+            max_wazo_version = version_info.get('max_wazo_version', self._current_wazo_version)
+            proposed_version = version_info.get('version')
+
+            if _version_less_than(self._current_wazo_version, min_wazo_version):
+                version_info['upgradable'] = False
+            elif _version_less_than(max_wazo_version, self._current_wazo_version):
+                version_info['upgradable'] = False
+            elif plugin.is_installed():
+                installed_version = plugin.metadata()['version']
+                if not _version_less_than(installed_version, proposed_version):
+                    version_info['upgradable'] = False
 
 
 class MarketDB(object):
 
-    def __init__(self, market_proxy, plugin_db=None):
+    def __init__(self, market_proxy, current_wazo_version, plugin_db=None):
         self._market_proxy = market_proxy
-        self._plugin_db = plugin_db
+        self._updater = MarketPluginUpdater(plugin_db, current_wazo_version)
 
     def count(self, *args, **kwargs):
         content = self._market_proxy.get_content()
@@ -90,17 +121,15 @@ class MarketDB(object):
             content = list(self._filter(content, **kwargs))
         return len(content)
 
-    def get(self, namespace, name, version=None):
+    def get(self, namespace, name):
         filters = dict(
             namespace=namespace,
             name=name,
         )
-        if version:
-            filters['version'] = version
 
         content = self._market_proxy.get_content()
+        content = self._add_local_values(content)
         content = self._strict_filter(content, **filters)
-        content = self._sort(content, order='version', direction='desc')
 
         if not content:
             raise LookupError('No such plugin {}'.format(filters))
@@ -120,15 +149,8 @@ class MarketDB(object):
         return content
 
     def _add_local_values(self, content):
-        if not self._plugin_db:
-            return content
-
         for metadata in content:
-            plugin = self._plugin_db.get_plugin(metadata['namespace'], metadata['name'])
-            if plugin.is_installed():
-                metadata['installed_version'] = plugin.metadata()['version']
-            else:
-                metadata['installed_version'] = None
+            self._updater.update(metadata)
         return content
 
     @staticmethod
@@ -166,18 +188,7 @@ class MarketDB(object):
         reverse = direction == 'desc'
 
         def key(element):
-            value = element.get(order, LAST_ITEM)
-            if order in _VERSION_COLUMNS:
-                try:
-                    value_tmp = StrictVersion(value)
-                    value_tmp.version  # raise AttributeError if value is None
-                    value = value_tmp
-                except (ValueError, TypeError, AttributeError):
-                    # Integer raise TypeError
-                    # Unsupported version raise ValueError
-                    # Not a valid version number fallback to alphabetic ordering
-                    value = str(value)
-            return value
+            return element.get(order, LAST_ITEM)
 
         try:
             return sorted(content, key=key, reverse=reverse)
@@ -283,3 +294,29 @@ class InstalledVersionMatcher(object):
 
     def __ne__(self, other):
         return not self == other
+
+
+def _make_comparable_version(version):
+    try:
+        value_tmp = StrictVersion(version)
+        value_tmp.version  # raise AttributeError if value is None
+        version = value_tmp
+    except (ValueError, TypeError, AttributeError):
+        # Integer raise TypeError
+        # Unsupported version raise ValueError
+        # Not a valid version number fallback to alphabetic ordering
+        version = str(version)
+
+    return version
+
+
+def _version_less_than(left, right):
+    if not left:
+        return True
+    if not right:
+        return False
+
+    left = _make_comparable_version(left)
+    right = _make_comparable_version(right)
+
+    return left < right

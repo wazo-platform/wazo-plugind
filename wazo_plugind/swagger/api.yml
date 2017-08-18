@@ -57,7 +57,6 @@ paths:
       - $ref: '#/parameters/search'
       - $ref: '#/parameters/namespace_filter'
       - $ref: '#/parameters/name_filter'
-      - $ref: '#/parameters/version_filter'
       - $ref: '#/parameters/installed_filter'
       responses:
         '200':
@@ -200,12 +199,6 @@ parameters:
     in: query
     type: string
     description: Search by name
-  version_filter:
-    required: false
-    name: version
-    in: query
-    type: string
-    description: Search by version
   installed_filter:
     required: false
     name: installed
@@ -248,7 +241,7 @@ definitions:
       items:
         type: array
         items:
-          $ref: '#/definitions/PluginMetadata'
+          $ref: '#/definitions/MarketPluginList'
         description: A list of plugins
   GetPluginsResult:
     type: object
@@ -267,6 +260,20 @@ definitions:
       uuid:
         type: string
         description: "A UUID associated to this plugin installation"
+  MarketPluginList:
+    type: object
+    properties:
+      namespace:
+        type: string
+        description: "The namespace of the plugin"
+      name:
+        type: string
+        description: "The name of the plugin"
+      versions:
+        type: array
+        items:
+          $ref: '#/definitions/VersionInfo'
+        description: Version specific information
   PluginInstallParameters:
     type: object
     properties:
@@ -291,6 +298,21 @@ definitions:
       version:
         type: string
         description: "The version of the installed version"
+  VersionInfo:
+    type: object
+    properties:
+      version:
+        type: string
+        description: The plugin version
+      max_wazo_version:
+        type: string
+        description: The maximum Wazo version with which this plugin works
+      min_wazo_version:
+        type: string
+        description: The minimum Wazo version with which this plugin works
+      upgradable:
+        type: boolean
+        description: An indication wether installing this version would be an upgrade on not. Unstalled plugins are marked as upgradable.
 responses:
   InvalidRequest:
     description: Invalid request

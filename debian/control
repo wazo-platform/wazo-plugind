@@ -25,6 +25,7 @@ Depends:
  python3-netifaces,
  python3-requests,
  python3-unidecode,
+ wazo-market-client-python3,
  xivo-auth-client-python3,
  xivo-confd-client-python3,
  xivo-bus-python3,

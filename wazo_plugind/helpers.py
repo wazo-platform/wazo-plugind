@@ -8,14 +8,15 @@ import subprocess
 from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
-from . import db
 from .exceptions import (
     PluginAlreadyInstalled,
     PluginValidationException,
 )
+from .db import PluginDB
 from .schema import new_plugin_metadata_schema
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
+
 logger = logging.getLogger(__name__)
 
 
@@ -36,16 +37,15 @@ class Validator(object):
     valid_name = re.compile(r'^[a-z0-9-]+$')
     required_fields = ['name', 'namespace', 'version']
 
-    def __init__(self, plugin_db, wazo_version_finder):
+    def __init__(self, plugin_db, current_wazo_version):
         self._db = plugin_db
-        self._wazo_version_finder = wazo_version_finder
+        self._current_wazo_version = current_wazo_version
 
     def validate(self, metadata):
-        current_version = self._wazo_version_finder.get_version()
-        logger.debug('Using current version %s', current_version)
+        logger.debug('Using current version %s', self._current_wazo_version)
         logger.debug('max_wazo_version: %s', metadata.get('max_wazo_version', 'undefined'))
 
-        body, errors = new_plugin_metadata_schema(current_version).load(metadata)
+        body, errors = new_plugin_metadata_schema(self._current_wazo_version).load(metadata)
         if errors:
             raise PluginValidationException(errors)
         logger.debug('validated metadata: %s', body)
@@ -54,22 +54,24 @@ class Validator(object):
             raise PluginAlreadyInstalled(metadata['namespace'], metadata['name'])
 
     @classmethod
-    def new_from_config(cls, config):
-        plugin_db = db.PluginDB(config)
-        wazo_version_finder = _WazoVersionFinder(config)
-        return cls(plugin_db, wazo_version_finder)
+    def new_from_config(cls, config, current_wazo_version):
+        plugin_db = PluginDB(config)
+        return cls(plugin_db, current_wazo_version)
 
 
-class _WazoVersionFinder(object):
+class WazoVersionFinder(object):
 
     def __init__(self, config):
         self._token = None
         self._config = config
         self._token_renewer = TokenRenewer(AuthClient(**config['auth']))
         self._token_renewer.subscribe_to_token_change(self.set_token)
+        self._version = None
 
     def get_version(self):
-        return os.getenv('WAZO_VERSION') or self._query_for_version()
+        if not self._version:
+            self._version = os.getenv('WAZO_VERSION') or self._query_for_version()
+        return self._version
 
     def set_token(self, token):
         self._token = token
