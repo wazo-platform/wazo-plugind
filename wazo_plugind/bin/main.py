@@ -19,22 +19,19 @@ def main(args):
     conf = config.load_config(args)
 
     xivo_logging.setup_logging(conf['log_file'], FOREGROUND, conf['debug'], conf['log_level'])
-    root_worker = RootWorker()
-    root_worker.run()
+    with RootWorker() as root_worker:
+        if conf['user']:
+            change_user(conf['user'])
 
-    if conf['user']:
-        change_user(conf['user'])
+        try:
+            set_xivo_uuid(conf, logger)
+        except UUIDNotFound:
+            # handled in the controller
+            pass
 
-    try:
-        set_xivo_uuid(conf, logger)
-    except UUIDNotFound:
-        # handled in the controller
-        pass
-
-    controller = Controller(conf, root_worker)
-    with pidfile_context(conf['pid_file'], FOREGROUND):
-        logger.debug('starting')
-        controller.run()
-        logger.debug('controller stopped')
-    root_worker.stop()
-    logger.debug('done')
+        controller = Controller(conf, root_worker)
+        with pidfile_context(conf['pid_file'], FOREGROUND):
+            logger.debug('starting')
+            controller.run()
+            logger.debug('controller stopped')
+        logger.debug('done')

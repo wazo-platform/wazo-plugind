@@ -24,6 +24,13 @@ class BaseWorker(object):
                                                    self._result_queue,
                                                    self._stop_requested))
 
+    def __enter__(self):
+        self.run()
+        return self
+
+    def __exit__(self, *args):
+        self.stop()
+
     def run(self):
         logger.info('starting %s worker', self.name)
         self._process.start()
