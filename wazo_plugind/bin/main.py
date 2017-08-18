@@ -32,9 +32,12 @@ def main(args):
         pass
 
     controller = Controller(conf, root_worker)
-    with pidfile_context(conf['pid_file'], FOREGROUND):
-        logger.debug('starting')
-        controller.run()
-        logger.debug('controller stopped')
+    try:
+        with pidfile_context(conf['pid_file'], FOREGROUND):
+            logger.debug('starting')
+            controller.run()
+            logger.debug('controller stopped')
+    except SystemExit:
+        pass
     root_worker.stop()
     logger.debug('done')
