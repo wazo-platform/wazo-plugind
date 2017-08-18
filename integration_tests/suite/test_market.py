@@ -2,7 +2,9 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from hamcrest import assert_that, contains, empty, equal_to, has_entries, is_
+from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, has_property, is_
+from requests import HTTPError
+from xivo_test_helpers.hamcrest.raises import raises
 from .test_api import BaseIntegrationTest
 
 PLUGIN_COUNT = 24
@@ -11,6 +13,17 @@ PLUGIN_COUNT = 24
 class TestMarket(BaseIntegrationTest):
 
     asset = 'market'
+
+    def test_get(self):
+        assert_that(calling(self.get_market).with_args('official', 'admin-ui-conference', token='invalid-token'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 401))))
+
+        assert_that(calling(self.get_market).with_args('foobar', 'foobar'),
+                    raises(HTTPError).matching(has_property('response', has_property('status_code', 404))))
+
+        result = self.get_market('official', 'admin-ui-conference')
+        assert_that(result, has_entries('name', 'admin-ui-conference',
+                                        'namespace', 'official'))
 
     def test_that_no_filter_returns_all_plugins(self):
         response = self.search()

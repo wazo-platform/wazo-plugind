@@ -32,8 +32,7 @@ class PluginService(object):
         return self._plugin_db.count()
 
     def count_from_market(self, market_proxy, *args, **kwargs):
-        current_wazo_version = self._wazo_version_finder.get_version()
-        market_db = db.MarketDB(market_proxy, current_wazo_version, self._plugin_db)
+        market_db = self._new_market_db(market_proxy)
         return market_db.count(*args, **kwargs)
 
     def create(self, method, **kwargs):
@@ -56,9 +55,15 @@ class PluginService(object):
     def list_(self):
         return self._plugin_db.list_()
 
+    def get_from_market(self, market_proxy, namespace, name):
+        market_db = self._new_market_db(market_proxy)
+        results = market_db.list_(namespace=namespace, name=name)
+        for result in results:
+            return result
+        raise PluginNotFoundException(namespace, name)
+
     def list_from_market(self, market_proxy, *args, **kwargs):
-        current_wazo_version = self._wazo_version_finder.get_version()
-        market_db = db.MarketDB(market_proxy, current_wazo_version, self._plugin_db)
+        market_db = self._new_market_db(market_proxy)
         return market_db.list_(*args, **kwargs)
 
     def delete(self, namespace, name):
@@ -72,6 +77,10 @@ class PluginService(object):
         ctx = ctx.with_fields(package_name=plugin.debian_package_name)
         self._executor.submit(task.execute, ctx)
         return ctx.uuid
+
+    def _new_market_db(self, market_proxy):
+        current_wazo_version = self._wazo_version_finder.get_version()
+        return db.MarketDB(market_proxy, current_wazo_version, self._plugin_db)
 
     @classmethod
     def from_config(cls, config, *args, **kwargs):

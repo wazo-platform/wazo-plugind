@@ -3,12 +3,12 @@
 
 from unittest import TestCase
 from hamcrest import assert_that, calling, equal_to, has_properties
-from mock import Mock, sentinel as s
+from mock import Mock, patch, sentinel as s
 from xivo_test_helpers.hamcrest.raises import raises
 
-from ..db import Plugin
+from ..db import MarketDB, Plugin
 from ..config import _DEFAULT_CONFIG
-from ..exceptions import APIException
+from ..exceptions import APIException, PluginNotFoundException
 from ..service import PluginService
 
 
@@ -28,6 +28,24 @@ class TestPluginService(TestCase):
             plugin_db=self._plugin_db,
             wazo_version_finder=self._version_finder,
         )
+
+    def test_get_from_market(self):
+        market_db = Mock(MarketDB)
+        market_db.list_.return_value = [s.expected_result]
+
+        with patch.object(self._service, '_new_market_db', return_value=market_db):
+            result = self._service.get_from_market(s.market_proxy, 'namespace', 'name')
+
+        assert_that(result, equal_to(s.expected_result))
+        market_db.list_.assert_called_once_with(namespace='namespace', name='name')
+
+    def test_get_from_market_no_matching_plugin(self):
+        market_db = Mock(MarketDB)
+        market_db.list_.return_value = []
+
+        with patch.object(self._service, '_new_market_db', return_value=market_db):
+            assert_that(calling(self._service.get_from_market).with_args(s.market_proxy, 'namespace', 'name'),
+                        raises(PluginNotFoundException))
 
     def test_get_plugin_metadata(self):
         namespace, name = 'foobar', 'someplugin'
