@@ -112,11 +112,7 @@ class TestPluginInstallationV01(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def test_when_it_works(self):
-        try:
-            self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False)
-        except HTTPError:
-            # We don't care wether it was installed or not
-            pass
+        self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False, ignore_errors=True)
 
         result = self.install_plugin(url='file:///data/git/repo', method='git', version='0.1')
 
@@ -141,11 +137,7 @@ class TestPluginInstallation(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def test_when_it_works(self):
-        try:
-            self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False)
-        except HTTPError:
-            # We don't care wether it was installed or not
-            pass
+        self.uninstall_plugin(namespace='plugindtests', name='foobar', _async=False, ignore_errors=True)
 
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 

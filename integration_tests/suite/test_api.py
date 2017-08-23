@@ -3,6 +3,7 @@
 
 import os
 import time
+from requests import HTTPError
 from hamcrest import assert_that, has_entry, has_entries, has_items
 from xivo_test_helpers import until
 from xivo_test_helpers.bus import BusClient
@@ -67,20 +68,26 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return client.plugins.list()
 
     def uninstall_plugin(self, namespace, name, **kwargs):
+        ignore_errors = kwargs.pop('ignore_errors', False)
         is_async = kwargs.pop('_async', True)
         client = self.get_client(*kwargs)
-        result = client.plugins.uninstall(namespace, name)
-        if is_async:
-            return result
 
-        while True:
-            messages = self.msg_accumulator.accumulate()
-            for message in messages:
-                if message['data']['uuid'] != result['uuid']:
-                    continue
-                if message['data']['status'] in ['completed', 'error']:
-                    return result
-            time.sleep(0.25)
+        try:
+            result = client.plugins.uninstall(namespace, name)
+            if is_async:
+                return result
+
+            while True:
+                messages = self.msg_accumulator.accumulate()
+                for message in messages:
+                    if message['data']['uuid'] != result['uuid']:
+                        continue
+                    if message['data']['status'] in ['completed', 'error']:
+                        return result
+                time.sleep(0.25)
+        except HTTPError:
+            if not ignore_errors:
+                raise
 
     def new_message_accumulator(self, routing_key):
         port = self.service_port(5672, service_name='rabbitmq')

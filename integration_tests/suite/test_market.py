@@ -53,6 +53,8 @@ class TestMarket(BaseIntegrationTest):
         ))
 
     def test_market_installation(self):
+        self.uninstall_plugin(namespace='markettests', name='foobar', _async=False, ignore_errors=True)
+
         self.install_plugin(method='market', options={'namespace': 'markettests',
                                                       'name': 'foobar'}, _async=False)
 
@@ -65,6 +67,8 @@ class TestMarket(BaseIntegrationTest):
         assert_that(package_success_exists, is_(True), 'package_success was not created')
 
     def test_market_installation_with_a_version_field(self):
+        self.uninstall_plugin(namespace='markettests', name='foobar', _async=False, ignore_errors=True)
+
         self.install_plugin(method='market', options={'namespace': 'markettests',
                                                       'name': 'foobar',
                                                       'version': '0.0.1'}, _async=False)
