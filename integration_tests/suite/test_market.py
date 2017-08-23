@@ -64,6 +64,19 @@ class TestMarket(BaseIntegrationTest):
         assert_that(install_success_exists, is_(True), 'install_success was not created')
         assert_that(package_success_exists, is_(True), 'package_success was not created')
 
+    def test_market_installation_with_a_version_field(self):
+        self.install_plugin(method='market', options={'namespace': 'markettests',
+                                                      'name': 'foobar',
+                                                      'version': '0.0.1'}, _async=False)
+
+        build_success_exists = self.exists_in_container('/tmp/results/build_success')
+        package_success_exists = self.exists_in_container('/tmp/results/package_success')
+        install_success_exists = self.exists_in_container('/tmp/results/install_success')
+
+        assert_that(build_success_exists, is_(True), 'build_success was not created or copied')
+        assert_that(install_success_exists, is_(True), 'install_success was not created')
+        assert_that(package_success_exists, is_(True), 'package_success was not created')
+
     def test_installed_version_field(self):
         ns, name = 'markettests', 'foobar'
 
