@@ -61,8 +61,8 @@ class _MarketDownloader(object):
         plugin_db = PluginDB(ctx.config)
         market_proxy = db.MarketProxy(self._market_config)
         market_db = db.MarketDB(market_proxy, ctx.wazo_version, plugin_db)
+        required_version = ctx.install_args.pop('version', None)
         plugin_info = market_db.get(**ctx.install_args)
-        required_version = ctx.install_args.get('version')
 
         # If a version is specified, it has to be that version
         if required_version:
