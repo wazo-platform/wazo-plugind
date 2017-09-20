@@ -8,7 +8,7 @@ import yaml
 from threading import Thread
 from .context import Context
 from . import bus, debian, download, helpers
-from .exceptions import PluginAlreadyInstalled, PluginValidationException
+from .exceptions import CommandExecutionFailed, PluginAlreadyInstalled, PluginValidationException
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
@@ -77,6 +77,11 @@ class PackageAndInstallTask(object):
                 self._publisher.install(ctx, step)
                 ctx = fn(ctx)
 
+        except CommandExecutionFailed as e:
+            ctx.log(logger.info, 'an external command failed during the plugin installation: %s', e)
+            self._builder.clean(ctx)
+            details = {'step': step}
+            self._publisher.install_error(ctx, 'install_error', 'Installation error', details=details)
         except PluginAlreadyInstalled:
             ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
             self._builder.clean(ctx)
