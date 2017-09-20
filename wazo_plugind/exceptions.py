@@ -4,6 +4,16 @@
 from xivo.rest_api_helpers import APIException
 
 
+class CommandExecutionFailed(Exception):
+
+    def __init__(self, command, return_code):
+        self._command = command
+        self._return_code = return_code
+
+    def __str__(self):
+        return '{} returned {}'.format(self._command, self._return_code)
+
+
 class UnsupportedDownloadMethod(APIException):
 
     def __init__(self):

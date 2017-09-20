@@ -9,6 +9,7 @@ from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 from .exceptions import (
+    CommandExecutionFailed,
     PluginAlreadyInstalled,
     PluginValidationException,
 )
@@ -28,6 +29,8 @@ def exec_and_log(stdout_logger, stderr_logger, *args, **kwargs):
         stdout_logger('%s\n==== STDOUT ====\n%s==== END ====', cmd, out.decode('utf8'))
     if err:
         stdout_logger('%s\n==== STDERR====\n%s==== END ====', cmd, err.decode('utf8'))
+    if p.returncode != 0:
+        raise CommandExecutionFailed(args[0], p.returncode)
     return p
 
 
