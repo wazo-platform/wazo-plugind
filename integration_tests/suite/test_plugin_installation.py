@@ -333,3 +333,17 @@ class TestPluginInstallation(BaseIntegrationTest):
         ssh_key_installed = self.exists_in_container('/root/.ssh/authorized_keys2')
 
         assert_that(ssh_key_installed, equal_to(True))
+
+    def test_a_plugin_with_a_failing_build_step(self):
+        result = self.install_plugin(url='file:///data/git/failing_build', method='git')
+
+        errors = {
+            u'error_id': u'install_error',
+            u'message': u'Installation error',
+            u'resource': u'plugins',
+            u'details': {
+                u'step': 'building',
+            },
+        }
+
+        self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
