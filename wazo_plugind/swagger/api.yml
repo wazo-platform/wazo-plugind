@@ -20,12 +20,12 @@ consumes:
 produces:
 - application/json
 securityDefinitions:
-  xivo_auth_token:
+  wazo_auth_token:
     type: apiKey
     name: X-Auth-Token
     in: header
 security:
-  - xivo_auth_token: []
+  - wazo_auth_token: []
 paths:
   /config:
     get:
