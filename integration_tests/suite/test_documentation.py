@@ -19,6 +19,7 @@ class TestDocumentation(BaseIntegrationTest):
         self.validate_api(api_url)
 
     def validate_api(self, url):
-        validator_url = u'http://localhost:18080/debug'
+        validator_port = self.service_port(8080, 'swagger-validator')
+        validator_url = 'http://localhost:{port}/debug'.format(port=validator_port)
         response = requests.get(validator_url, params={'url': url})
         assert_that(response.json(), empty(), pprint.pformat(response.json()))
