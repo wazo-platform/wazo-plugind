@@ -4,7 +4,11 @@
 import os
 import logging
 from . import db
-from .exceptions import InvalidInstallParamException, UnsupportedDownloadMethod
+from .exceptions import (
+    InvalidInstallParamException,
+    UnsupportedDownloadMethod,
+    DependencyAlreadyInstalledException,
+)
 from .helpers import exec_and_log
 from .schema import PluginInstallSchema
 from .db import PluginDB
@@ -40,6 +44,10 @@ class _MarketDownloader(object):
 
     def download(self, ctx):
         version_info = self._find_matching_plugin(ctx)
+        if not version_info:
+            ctx.log(logger.debug, 'Ignoring dependency not upgradable: %s', ctx.install_args)
+            raise DependencyAlreadyInstalledException()
+
         for key, value in self._defaults.items():
             if key not in version_info:
                 version_info[key] = value

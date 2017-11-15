@@ -111,3 +111,7 @@ class PluginAlreadyInstalled(Exception):
 
     def __init__(self, namespace, name):
         super().__init__(self._fmt.format(namespace, name))
+
+
+class DependencyAlreadyInstalledException(Exception):
+    pass

@@ -8,7 +8,12 @@ import yaml
 from threading import Thread
 from .context import Context
 from . import bus, debian, download, helpers
-from .exceptions import CommandExecutionFailed, PluginAlreadyInstalled, PluginValidationException
+from .exceptions import (
+    CommandExecutionFailed,
+    DependencyAlreadyInstalledException,
+    PluginAlreadyInstalled,
+    PluginValidationException,
+)
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
@@ -91,6 +96,9 @@ class PackageAndInstallTask(object):
             details = dict(e.details)
             details['install_args'] = dict(ctx.install_args)
             self._publisher.install_error(ctx, e.error_id, e.message, details=e.details)
+        except DependencyAlreadyInstalledException:
+            self._builder.clean(ctx)
+            self._publisher.install(ctx, 'completed')
         except Exception:
             debug_enabled = ctx.config['debug']
             ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
