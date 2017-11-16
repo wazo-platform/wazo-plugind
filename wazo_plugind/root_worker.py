@@ -7,6 +7,7 @@ import os
 import sys
 from multiprocessing import Event, Process, Queue
 from queue import Empty
+from threading import Lock
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ class BaseWorker(object):
         self._command_queue = Queue()
         self._result_queue = Queue()
         self._stop_requested = Event()
+        self._command_queue_lock = Lock()
         self._process = Process(target=_run, args=(self._command_queue,
                                                    self._result_queue,
                                                    self._stop_requested))
@@ -60,8 +62,9 @@ class BaseWorker(object):
             # shutdown the current thread execution so that executor.shutdown does not block
             sys.exit(1)
 
-        self._command_queue.put((cmd, args, kwargs))
-        return self._result_queue.get()
+        with self._command_queue_lock:
+            self._command_queue.put((cmd, args, kwargs))
+            return self._result_queue.get()
 
 
 class RootWorker(BaseWorker):
