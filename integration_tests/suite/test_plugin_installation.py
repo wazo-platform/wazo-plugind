@@ -62,6 +62,23 @@ class TestPluginDependencies(BaseIntegrationTest):
         assert_that(three_is_installed, equal_to(True), 'three should be installed')
         assert_that(four_is_installed, equal_to(True), 'four should be installed')
 
+    def test_that_a_satisfied_dependency_does_not_block_the_install(self):
+        self.install_plugin(url=None, method='market', options={'namespace': 'dependency',
+                                                                'name': 'two'}, _async=False)
+
+        self.msg_accumulator.reset()
+
+        self.install_plugin(url=None, method='market', options={'namespace': 'dependency',
+                                                                'name': 'one'}, _async=False)
+
+        def bus_received_all_completed():
+            received = self.msg_accumulator.accumulate()
+            completed = [msg['data']['uuid'] for msg in received if msg['data']['status'] == 'completed']
+            nb_completed = len(completed)
+            assert_that(nb_completed, equal_to(4))
+
+        until.assert_(bus_received_all_completed, tries=20, interval=0.5)
+
     def test_given_dependency_error_when_install_then_error(self):
         result = self.install_plugin(url=None, method='market', options={'namespace': 'dependencynotfound',
                                                                          'name': 'one'}, _async=False)
