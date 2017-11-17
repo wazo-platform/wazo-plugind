@@ -18,7 +18,7 @@ from mock import ANY
 from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
-from .test_api import BaseIntegrationTest
+from .test_api import autoremove, BaseIntegrationTest
 
 
 class TestPluginList(BaseIntegrationTest):
@@ -48,6 +48,10 @@ class TestPluginDependencies(BaseIntegrationTest):
 
     asset = 'dependency'
 
+    @autoremove('dependency', 'one')
+    @autoremove('dependency', 'two')
+    @autoremove('dependency', 'three')
+    @autoremove('dependency', 'four')
     def test_that_dependencies_are_installed(self):
         self.install_plugin(url=None, method='market', options={'namespace': 'dependency',
                                                                 'name': 'one'}, _async=False)
@@ -62,6 +66,10 @@ class TestPluginDependencies(BaseIntegrationTest):
         assert_that(three_is_installed, equal_to(True), 'three should be installed')
         assert_that(four_is_installed, equal_to(True), 'four should be installed')
 
+    @autoremove('dependency', 'one')
+    @autoremove('dependency', 'two')
+    @autoremove('dependency', 'three')
+    @autoremove('dependency', 'four')
     def test_that_a_satisfied_dependency_does_not_block_the_install(self):
         self.install_plugin(url=None, method='market', options={'namespace': 'dependency',
                                                                 'name': 'two'}, _async=False)
@@ -79,11 +87,12 @@ class TestPluginDependencies(BaseIntegrationTest):
 
         until.assert_(bus_received_all_completed, tries=20, interval=0.5)
 
+    @autoremove('dependency', 'three')
     def test_given_dependency_error_when_install_then_error(self):
         result = self.install_plugin(url=None, method='market', options={'namespace': 'dependencynotfound',
                                                                          'name': 'one'}, _async=False)
 
-        one_is_installed = self._is_installed('wazo-plugind-one-dependency')
+        one_is_installed = self._is_installed('wazo-plugind-one-dependencynotfound')
         three_is_installed = self._is_installed('wazo-plugind-three-dependency')
 
         assert_that(one_is_installed, equal_to(False), 'one should not be installed')

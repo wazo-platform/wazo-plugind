@@ -3,6 +3,7 @@
 
 import os
 import time
+from functools import wraps
 from requests import HTTPError
 from hamcrest import assert_that, has_entry, has_entries, has_items
 from xivo_test_helpers import until
@@ -11,6 +12,22 @@ from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_plugind_client import Client
 
 VALID_TOKEN = 'valid-token'
+
+
+def autoremove(namespace, plugin):
+    def decorator(f):
+        @wraps(f)
+        def decorated(self, *args, **kwargs):
+            try:
+                result = f(self, *args, **kwargs)
+            finally:
+                try:
+                    self.uninstall_plugin(namespace, plugin)
+                except HTTPError:
+                    pass
+            return result
+        return decorated
+    return decorator
 
 
 class BaseIntegrationTest(AssetLaunchingTestCase):
