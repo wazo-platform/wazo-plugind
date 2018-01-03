@@ -31,7 +31,7 @@ class Controller(object):
         self._listen_addr = config['rest_api']['https']['listen']
         self._listen_port = config['rest_api']['https']['port']
         self._cors_config = config['rest_api']['cors']
-        ssl_cert_file = config['rest_api']['https']['certificate']
+        self._ssl_cert_file = config['rest_api']['https']['certificate']
         ssl_key_file = config['rest_api']['https']['private_key']
         self._consul_config = config['consul']
         self._service_discovery_config = config['service_discovery']
@@ -44,7 +44,7 @@ class Controller(object):
 
         flask_app = http.new_app(config, plugin_service=plugin_service)
         flask_app.after_request(http_helpers.log_request)
-        wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(ssl_cert_file, ssl_key_file)
+        wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(self._ssl_cert_file, ssl_key_file)
         wsgi_app = ReverseProxied(ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': flask_app})))
         self._server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         for route in http_helpers.list_routes(flask_app):
@@ -61,7 +61,7 @@ class Controller(object):
                 self._consul_config,
                 self._service_discovery_config,
                 self._bus_config,
-                partial(self_check, self._listen_port),
+                partial(self_check, self._listen_port, self._ssl_cert_file),
         ):
             try:
                 self._server.start()

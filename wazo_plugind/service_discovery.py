@@ -1,14 +1,15 @@
 # Copyright 2017 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from http import client
+import requests
 
 
-def self_check(port):
-    conn = client.HTTPSConnection('localhost', port, timeout=1)
+def self_check(port, certificate):
+    url = 'https://localhost:{}/0.1/config'.format(port)
     try:
-        conn.request('GET', '/0.1/config')
-    except (client.HTTPException, ConnectionRefusedError):
+        return requests.get(url,
+                            headers={'accept': 'application/json'},
+                            verify=certificate,
+                            timeout=1).status_code == 401
+    except Exception:
         return False
-    response = conn.getresponse()
-    return response.status == 401
