@@ -1,6 +1,6 @@
 [Unit]
 Description=wazo-plugind server
-After=network.target
+After=network.target consul.target
 Before=monit.service
 
 [Service]
