@@ -7,7 +7,7 @@ WORKDIR /usr/src/wazo-plugind
 
 RUN true \
     && apt-get update \
-    && apt-get -yqq install gdebi-core apt-utils \
+    && apt-get -yqq install apt-utils fakeroot gdebi-core git \
     && pip install pyparsing \
     && pip install appdirs \
     && pip install -r requirements.txt \
