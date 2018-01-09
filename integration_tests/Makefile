@@ -7,7 +7,7 @@ test-setup: build-plugind create-git pull-images ;
 
 pull-images:
 	docker pull wazopbx/xivo-auth-mock
-	docker pull python:3.4.2
+	docker pull python:3.5.3
 	docker pull n3llyb0y/wait
 	docker pull rabbitmq
 	docker pull consul
