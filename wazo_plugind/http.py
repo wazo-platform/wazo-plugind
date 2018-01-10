@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+import requests
 
 from flask import Flask, make_response, request
 from flask_cors import CORS
@@ -16,7 +17,7 @@ from .schema import (
     MarketListRequestSchema, MarketListResultSchema,
     PluginInstallSchema, PluginInstallSchemaV01
 )
-from .exceptions import InvalidInstallParamException, InvalidListParamException
+from .exceptions import InvalidInstallParamException, InvalidListParamException, MarketNotFoundException
 
 logger = logging.getLogger(__name__)
 
@@ -71,7 +72,10 @@ class Market(_AuthentificatedResource):
             list_params[key] = value
 
         market_proxy = self.plugin_service.new_market_proxy()
-        plugin_list = self.plugin_service.list_from_market(market_proxy, **list_params)
+        try:
+            plugin_list = self.plugin_service.list_from_market(market_proxy, **list_params)
+        except requests.exceptions.ConnectionError:
+            raise MarketNotFoundException
         items, _ = MarketListResultSchema().load(plugin_list, many=True)
         return {
             'items': items,
