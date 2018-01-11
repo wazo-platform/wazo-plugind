@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from contextlib import contextmanager
@@ -22,6 +22,8 @@ class TestVersionLessThan(TestCase):
         assert_that(_version_less_than(None, '17.10'), equal_to(True))
         assert_that(_version_less_than('17.10', None), equal_to(False))
         assert_that(_version_less_than('', None), equal_to(True))
+        assert_that(_version_less_than('1.0.0', '1.0.0-1'), equal_to(True))
+        assert_that(_version_less_than('1.0.1', '1.0.0-1'), equal_to(False))
 
 
 class TestMarketPluginUpdater(TestCase):
