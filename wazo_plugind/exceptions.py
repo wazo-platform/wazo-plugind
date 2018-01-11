@@ -115,3 +115,13 @@ class PluginAlreadyInstalled(Exception):
 
 class DependencyAlreadyInstalledException(Exception):
     pass
+
+
+class MarketNotFoundException(APIException):
+
+    def __init__(self):
+        super().__init__(status_code=503,
+                         message='Market Service Unavailable',
+                         error_id='market_service_unavailable',
+                         resource='market',
+                         details={})
