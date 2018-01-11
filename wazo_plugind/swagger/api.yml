@@ -109,6 +109,11 @@ paths:
 
         Allow the administrator to install a plugin on the server.
       parameters:
+        - name: reinstall
+          required: False
+          in: query
+          type: boolean
+          description: Whit this option the plugin will be reinstalled if it is already installed
         - name: body
           required: True
           in: body

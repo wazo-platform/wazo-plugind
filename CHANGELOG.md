@@ -1,6 +1,12 @@
 Changelog
 =========
 
+18.03
+------
+
+* It is now possible to force the reinstallation of a plugin on `POST /plugins`
+
+
 18.02
 ------
 

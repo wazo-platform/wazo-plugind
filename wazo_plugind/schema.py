@@ -123,3 +123,8 @@ class PluginInstallSchema(BaseSchema):
 
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
     options = OptionField(missing=dict)
+
+
+class PluginInstallQueryStringSchema(BaseSchema):
+
+    reinstall = fields.Boolean(default=False, missing=False)

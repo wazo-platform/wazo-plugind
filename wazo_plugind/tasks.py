@@ -184,8 +184,9 @@ class _PackageBuilder(object):
         )
 
     def validate(self, ctx):
-        validator = Validator.new_from_config(ctx.config, ctx.wazo_version)
+        validator = Validator.new_from_config(ctx.config, ctx.wazo_version, ctx.install_params)
         validator.validate(ctx.metadata)
+        ctx.install_params['reinstall'] = False
         return ctx
 
     def install(self, ctx):
@@ -212,6 +213,7 @@ class _PackageBuilder(object):
             self._config,
             method='market',
             install_args=dep,
+            install_params={'reinstall': False},
             wazo_version=current_wazo_version,
         )
         self._package_install_fn(ctx)

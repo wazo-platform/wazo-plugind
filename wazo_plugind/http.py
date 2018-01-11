@@ -16,10 +16,12 @@ from xivo.rest_api_helpers import handle_api_exception
 from .schema import (
     MarketListRequestSchema,
     MarketListResultSchema,
+    PluginInstallQueryStringSchema,
     PluginInstallSchema,
 )
 from .exceptions import (
     InvalidInstallParamException,
+    InvalidInstallQueryStringException,
     InvalidListParamException,
     MarketNotFoundException,
 )
@@ -126,11 +128,15 @@ class Plugins(_AuthentificatedResource):
         if errors:
             raise InvalidInstallParamException(errors)
 
-        method, options = body['method'], body['options']
-        return self._post(method, options)
+        params, errors = PluginInstallQueryStringSchema().load(request.args)
+        if errors:
+            raise InvalidInstallQueryStringException(errors)
 
-    def _post(self, method, options):
-        uuid = self.plugin_service.create(method, **options)
+        method, options = body['method'], body['options']
+        return self._post(method, options, params)
+
+    def _post(self, method, options, params):
+        uuid = self.plugin_service.create(method, params, **options)
 
         return {'uuid': uuid}
 

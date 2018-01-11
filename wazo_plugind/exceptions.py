@@ -93,6 +93,16 @@ class InvalidInstallParamException(APIException, _MarshmallowDetailFormatter):
                          details=self.format_details(errors))
 
 
+class InvalidInstallQueryStringException(APIException, _MarshmallowDetailFormatter):
+
+    def __init__(self, errors):
+        super().__init__(status_code=400,
+                         message='Invalid data',
+                         error_id='invalid_data',
+                         resource='plugins',
+                         details=self.format_details(errors))
+
+
 class PluginValidationException(Exception, _MarshmallowDetailFormatter):
 
     error_id = 'validation_error'
