@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -6,7 +6,7 @@ import os
 import re
 import yaml
 from unidecode import unidecode
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 from requests import HTTPError
 from wazo_market_client import Client as MarketClient
 from .exceptions import InvalidSortParamException, InvalidPackageNameException
@@ -298,12 +298,11 @@ class InstalledVersionMatcher(object):
 
 def _make_comparable_version(version):
     try:
-        value_tmp = StrictVersion(version)
+        value_tmp = LooseVersion(version)
         value_tmp.version  # raise AttributeError if value is None
         version = value_tmp
-    except (ValueError, TypeError, AttributeError):
+    except (TypeError, AttributeError):
         # Integer raise TypeError
-        # Unsupported version raise ValueError
         # Not a valid version number fallback to alphabetic ordering
         version = str(version)
 
