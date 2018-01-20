@@ -4,12 +4,12 @@
 import requests
 
 
-def self_check(port, certificate):
+def self_check(port):
     url = 'https://localhost:{}/0.2/config'.format(port)
     try:
         return requests.get(url,
                             headers={'accept': 'application/json'},
-                            verify=certificate,
+                            verify=False,
                             timeout=1).status_code == 401
     except Exception:
         return False

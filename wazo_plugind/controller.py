@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -61,7 +61,7 @@ class Controller(object):
                 self._consul_config,
                 self._service_discovery_config,
                 self._bus_config,
-                partial(self_check, self._listen_port, self._ssl_cert_file),
+                partial(self_check, self._listen_port),
         ):
             try:
                 self._server.start()
