@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import json
@@ -7,7 +7,6 @@ from functools import wraps
 from hamcrest import assert_that, equal_to, has_entries
 from mock import ANY, Mock, patch, sentinel
 from unittest import TestCase
-from uuid import uuid4
 
 from ..exceptions import PluginNotFoundException
 from ..service import PluginService
@@ -193,87 +192,6 @@ class TestPlugins(HTTPAppTestCase):
                         'details', {'options': {'url': {'constraint_id': 'required',
                                                         'constraint': 'required',
                                                         'message': ANY}}}))
-
-
-class TestPluginsV01(HTTPAppTestCase):
-
-    def test_that_invalid_values_in_fields_return_a_400(self):
-        self.plugin_service.create.return_value = None
-        bodies = [
-            {'method': 'git', 'url': ''},
-            {'method': '', 'url': 'http://...'},
-            {'method': 'git'},
-            None,
-            {'url': 42, 'method': None},
-        ]
-        details = [
-            {'url': {'constraint_id': 'length',
-                     'constraint': {'min': 1, 'max': None},
-                     'message': ANY}},
-            {'method': {'constraint_id': 'enum',
-                        'constraint': {'choices': ['git', 'market']},
-                        'message': ANY}},
-            {'url': {'constraint_id': 'required',
-                     'constraint': 'required',
-                     'message': ANY}},
-            {'method': {'constraint_id': 'required',
-                        'constraint': 'required',
-                        'message': ANY},
-             'url': {'constraint_id': 'required',
-                     'constraint': 'required',
-                     'message': ANY}},
-            {'method': {'constraint_id': 'not_null',
-                        'constraint': 'not_null',
-                        'message': ANY},
-             'url': {'constraint_id': 'type',
-                     'constraint': 'string',
-                     'message': ANY}},
-        ]
-
-        for body, detail in zip(bodies, details):
-            status_code, result = self.post(body, version='0.1')
-            assert_that(status_code, equal_to(400), 'body was {}'.format(body))
-            assert_that(result, has_entries(
-                'error_id', 'invalid_data',
-                'message', 'Invalid data',
-                'resource', 'plugins',
-                'details', detail,
-            ))
-
-    def test_that_market_can_be_used_without_an_url(self):
-        options = {'namespace': 'foo', 'name': 'bar'}
-        self.post({'method': 'market', 'options': options}, version='0.1')
-
-        self.plugin_service.create.assert_called_once_with('market', **options)
-
-    def test_on_succes_returns_result_from_service_v01(self):
-        url, method = 'url', 'git'
-        body = {
-            'url': url,
-            'method': method,
-        }
-        self.plugin_service.create.return_value = uuid = str(uuid4())
-
-        status_code, data = self.post(body, version='0.1')
-
-        assert_that(status_code, equal_to(200))
-        assert_that(data, equal_to({'uuid': uuid}))
-        self.plugin_service.create.assert_called_once_with(method, ref='master', url='url')
-
-    def test_on_succes_returns_result_from_service_with_options_v01(self):
-        url, method, branch = 'url', 'git', 'foobar'
-        body = {
-            'url': url,
-            'method': method,
-            'options': {'ref': branch},
-        }
-        self.plugin_service.create.return_value = uuid = str(uuid4())
-
-        status_code, data = self.post(body, version='0.1')
-
-        assert_that(status_code, equal_to(200))
-        assert_that(data, equal_to({'uuid': uuid}))
-        self.plugin_service.create.assert_called_once_with(method, ref=branch, url=url)
 
 
 class TestMultiAPI(TestCase):
