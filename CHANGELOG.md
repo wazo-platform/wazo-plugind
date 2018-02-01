@@ -1,6 +1,12 @@
 Changelog
 =========
 
+18.02
+------
+
+API version 0.1 has been removed
+
+
 17.12
 -----
 
