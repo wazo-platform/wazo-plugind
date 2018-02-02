@@ -28,11 +28,7 @@ class Comparator:
         if not required_version:
             return True
 
-        end = required_version
-        while end:
-            operator, end = _extract_operator(end)
-            extracted_version, end = _extract_version(end)
-
+        for operator, extracted_version in _operator_version(required_version):
             if not self._cmp_versions(operator, version, extracted_version):
                 return False
 
@@ -67,15 +63,11 @@ class Debianizer:
     _debian_package_name_version_fmt = 'wazo-plugind-{name}-{namespace} ({operator} {version})'
 
     def debianize(self, dependency):
-        version_string = dependency.get('version', '').replace(' ', '')
+        version_string = dependency.get('version', '')
         if not version_string:
             yield self._debian_package_name_fmt.format(**dependency)
 
-        end = version_string
-        while end:
-            operator, end = _extract_operator(end)
-            version, end = _extract_version(end)
-
+        for operator, version in _operator_version(version_string):
             # TODO what to do if the operator is invalid? ex <> or !> KeyError at the moment
             yield self._debian_package_name_version_fmt.format(
                 operator=self._operator_map[operator],
@@ -83,6 +75,14 @@ class Debianizer:
                 name=dependency['name'],
                 namespace=dependency['namespace'],
             )
+
+
+def _operator_version(end):
+    end = end.replace(' ', '')
+    while end:
+        operator, end = _extract_operator(end)
+        version, end = _extract_version(end)
+        yield operator, version
 
 
 def _extract_operator(s):
