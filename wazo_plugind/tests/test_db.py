@@ -4,7 +4,7 @@
 from contextlib import contextmanager
 from unittest import TestCase
 from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, raises
-from mock import Mock, patch
+from mock import Mock, patch, sentinel as s
 
 from ..config import _DEFAULT_CONFIG
 from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB,
@@ -190,79 +190,16 @@ class TestPlugin(TestCase):
             assert_that(plugin.is_installed(), equal_to(False))
 
     def test_is_installed_with_version(self):
-        namespace, name, version = 'foo', 'bar', '0.0.1'
-
+        namespace, name, required_version = 'foo', 'bar', '>0.0.1,<3'
         plugin = Plugin(_DEFAULT_CONFIG, name, namespace)
 
-        with patch.object(plugin, 'metadata', return_value={'version': '0.0.2'}):
-            assert_that(plugin.is_installed(version), equal_to(False))
-
-        with patch.object(plugin, 'metadata', return_value={'version': version}):
-            assert_that(plugin.is_installed(version), equal_to(True))
-
-    def test_is_installed_with_version_comparison(self):
-        namespace, name = 'foo', 'bar'
-        installed_version = '1.5.2-5'
-
-        tests = {
-            # Same version
-            '1.5.2-5': True,
-            '>1.5.2-5': False,
-            '> 1.5.2-5': False,
-            '>=1.5.2-5': True,
-            '>= 1.5.2-5': True,
-            '<1.5.2-5': False,
-            '< 1.5.2-5': False,
-            '<=1.5.2-5': True,
-            '<= 1.5.2-5': True,
-            '==1.5.2-5': True,
-            '== 1.5.2-5': True,
-            '=1.5.2-5': True,
-            '= 1.5.2-5': True,
-
-            # Smaller version
-            '1.5.1': False,
-            '>1.5.1': True,
-            '> 1.5.1': True,
-            '>=1.5.1': True,
-            '>= 1.5.1': True,
-            '<1.5.1': False,
-            '< 1.5.1': False,
-            '<=1.5.1': False,
-            '<= 1.5.1': False,
-            '==1.5.1': False,
-            '== 1.5.1': False,
-            '=1.5.1': False,
-            '= 1.5.1': False,
-
-            # Bigger version
-            '1.5.2-42': False,
-            '>1.5.2-42': False,
-            '> 1.5.2-42': False,
-            '>=1.5.2-42': False,
-            '>= 1.5.2-42': False,
-            '<1.5.2-42': True,
-            '< 1.5.2-42': True,
-            '<=1.5.2-42': True,
-            '<= 1.5.2-42': True,
-            '==1.5.2-42': False,
-            '== 1.5.2-42': False,
-            '=1.5.2-42': False,
-            '= 1.5.2-42': False,
-
-            # multiple
-            '>= 1, < 1.5': False,
-            '= 1, < 1.5': False,
-            '>= 1, < 1.6': True,
-            '< 1, > 1.6': False,
-            '>= 1, < 1.6, ==42': False,
-            '>= 1, < 1.6, ==1.5.2-5': True,
-        }
-
-        plugin = Plugin(_DEFAULT_CONFIG, name, namespace)
-        with patch.object(plugin, 'metadata', return_value={'version': installed_version}):
-            for version, expected in tests.items():
-                assert_that(plugin.is_installed(version), equal_to(expected), version)
+        with patch.object(plugin, 'metadata', return_value={'version': s.version}):
+            with patch.object(plugin, '_comparator') as version_comparator:
+                assert_that(
+                    plugin.is_installed(required_version),
+                    equal_to(version_comparator.satisfies.return_value),
+                )
+                version_comparator.satisfies.assert_called_once_with(s.version, required_version)
 
 
 class TestIIn(TestCase):
