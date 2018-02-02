@@ -9,6 +9,7 @@ from unidecode import unidecode
 from distutils.version import LooseVersion
 from requests import HTTPError
 from wazo_market_client import Client as MarketClient
+from wazo_plugind.helpers import version
 from .exceptions import InvalidSortParamException, InvalidPackageNameException
 from . import debian
 
@@ -247,6 +248,7 @@ class Plugin(object):
             config['default_metadata_filename'],
         )
         self._metadata = None
+        self._comparator = version.Comparator()
 
     def is_installed(self, version=None):
         try:
@@ -259,8 +261,7 @@ class Plugin(object):
         if version is None:
             return True
 
-        installed_version = LooseVersion(metadata['version'])
-        return self._cmp_version_string(installed_version, version.replace(' ', ''))
+        return self._comparator.satisfies(metadata['version'], version)
 
     def metadata(self):
         if not self._metadata:
@@ -268,47 +269,6 @@ class Plugin(object):
                 self._metadata = yaml.load(f)
 
         return self._metadata
-
-    def _cmp_version_string(self, installed_version, s):
-        if not s:
-            return True
-
-        operator, end = self._extract_operator(s)
-        version, end = self._extract_version(end)
-
-        current = self._cmp_versions(operator, installed_version, version)
-        return current and self._cmp_version_string(installed_version, end)
-
-    @staticmethod
-    def _cmp_versions(operator, left, right):
-        if operator == '>':
-            return left > right
-        if operator == '>=':
-            return left >= right
-        elif operator == '<':
-            return left < right
-        elif operator == '<=':
-            return left <= right
-        else:
-            return left == right
-
-    @staticmethod
-    def _extract_version(s):
-        if ',' not in s:
-            return s, None
-
-        version, end = s.split(',', 1)
-        return LooseVersion(version), end or None
-
-    @staticmethod
-    def _extract_operator(s):
-        operator_chars = ['=', '>', '<']
-        for i, c in enumerate(s):
-            if c in operator_chars:
-                continue
-            operator = s[:i]
-            end = s[i:]
-            return operator, end
 
     @staticmethod
     def _extract_namespace_and_name(package_name_prefix, package_name):
