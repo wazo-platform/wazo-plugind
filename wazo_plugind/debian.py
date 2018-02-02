@@ -66,7 +66,8 @@ class Generator(object):
 
         deps = ctx.metadata.get('debian_depends', [])
         for dependency in depends:
-            deps = deps + self._version_debianizer.debianize(dependency)
+            for deb_dep in self._version_debianizer.debianize(dependency):
+                deps.append(deb_dep)
         ctx.metadata['debian_depends'] = deps
 
         return ctx

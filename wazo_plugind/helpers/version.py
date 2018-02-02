@@ -65,26 +65,20 @@ class Debianizer:
     def debianize(self, dependency):
         version_string = dependency.get('version', '').replace(' ', '')
         if not version_string:
-            return [self._debian_package_name_fmt.format(**dependency)]
+            yield self._debian_package_name_fmt.format(**dependency)
 
-        def _format_version(accumulator, version_string):
-            if not version_string:
-                return accumulator
-
-            operator, end = _extract_operator(version_string)
+        end = version_string
+        while end:
+            operator, end = _extract_operator(end)
             version, end = _extract_version(end)
 
             # TODO what to do if the operator is invalid? ex <> or !> KeyError at the moment
-            debian_constraint = self._debian_package_name_version_fmt.format(
+            yield self._debian_package_name_version_fmt.format(
                 operator=self._operator_map[operator],
                 version=version,
                 name=dependency['name'],
                 namespace=dependency['namespace'],
             )
-            accumulator.append(debian_constraint)
-            return _format_version(accumulator, end)
-
-        return _format_version(list(), version_string)
 
 
 def _extract_operator(s):
