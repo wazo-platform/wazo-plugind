@@ -7,23 +7,10 @@ from hamcrest import assert_that, calling, contains, empty, equal_to, has_entrie
 from mock import Mock, patch, sentinel as s
 
 from ..config import _DEFAULT_CONFIG
-from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB,
-                  _version_less_than)
+from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB)
 from ..exceptions import InvalidSortParamException
 
 CURRENT_WAZO_VERSION = '17.12'
-
-
-class TestVersionLessThan(TestCase):
-
-    def test_less_than(self):
-        assert_that(_version_less_than('17.10', '17.10'), equal_to(False))
-        assert_that(_version_less_than('17.09', '17.10'), equal_to(True))
-        assert_that(_version_less_than(None, '17.10'), equal_to(True))
-        assert_that(_version_less_than('17.10', None), equal_to(False))
-        assert_that(_version_less_than('', None), equal_to(True))
-        assert_that(_version_less_than('1.0.0', '1.0.0-1'), equal_to(True))
-        assert_that(_version_less_than('1.0.1', '1.0.0-1'), equal_to(False))
 
 
 class TestMarketPluginUpdater(TestCase):

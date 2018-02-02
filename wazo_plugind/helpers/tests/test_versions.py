@@ -73,3 +73,12 @@ class TestComparator(TestCase):
         for required_version, expected in tests.items():
             result = self.comparator.satisfies(installed_version, required_version)
             assert_that(result, equal_to(expected), required_version)
+
+    def test_less_than(self):
+        assert_that(self.comparator.less_than('17.10', '17.10'), equal_to(False))
+        assert_that(self.comparator.less_than('17.09', '17.10'), equal_to(True))
+        assert_that(self.comparator.less_than(None, '17.10'), equal_to(True))
+        assert_that(self.comparator.less_than('17.10', None), equal_to(False))
+        assert_that(self.comparator.less_than('', None), equal_to(True))
+        assert_that(self.comparator.less_than('1.0.0', '1.0.0-1'), equal_to(True))
+        assert_that(self.comparator.less_than('1.0.1', '1.0.0-1'), equal_to(False))
