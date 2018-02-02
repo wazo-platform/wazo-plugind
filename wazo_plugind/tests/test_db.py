@@ -200,6 +200,70 @@ class TestPlugin(TestCase):
         with patch.object(plugin, 'metadata', return_value={'version': version}):
             assert_that(plugin.is_installed(version), equal_to(True))
 
+    def test_is_installed_with_version_comparison(self):
+        namespace, name = 'foo', 'bar'
+        installed_version = '1.5.2-5'
+
+        tests = {
+            # Same version
+            '1.5.2-5': True,
+            '>1.5.2-5': False,
+            '> 1.5.2-5': False,
+            '>=1.5.2-5': True,
+            '>= 1.5.2-5': True,
+            '<1.5.2-5': False,
+            '< 1.5.2-5': False,
+            '<=1.5.2-5': True,
+            '<= 1.5.2-5': True,
+            '==1.5.2-5': True,
+            '== 1.5.2-5': True,
+            '=1.5.2-5': True,
+            '= 1.5.2-5': True,
+
+            # Smaller version
+            '1.5.1': False,
+            '>1.5.1': True,
+            '> 1.5.1': True,
+            '>=1.5.1': True,
+            '>= 1.5.1': True,
+            '<1.5.1': False,
+            '< 1.5.1': False,
+            '<=1.5.1': False,
+            '<= 1.5.1': False,
+            '==1.5.1': False,
+            '== 1.5.1': False,
+            '=1.5.1': False,
+            '= 1.5.1': False,
+
+            # Bigger version
+            '1.5.2-42': False,
+            '>1.5.2-42': False,
+            '> 1.5.2-42': False,
+            '>=1.5.2-42': False,
+            '>= 1.5.2-42': False,
+            '<1.5.2-42': True,
+            '< 1.5.2-42': True,
+            '<=1.5.2-42': True,
+            '<= 1.5.2-42': True,
+            '==1.5.2-42': False,
+            '== 1.5.2-42': False,
+            '=1.5.2-42': False,
+            '= 1.5.2-42': False,
+
+            # multiple
+            '>= 1, < 1.5': False,
+            '= 1, < 1.5': False,
+            '>= 1, < 1.6': True,
+            '< 1, > 1.6': False,
+            '>= 1, < 1.6, ==42': False,
+            '>= 1, < 1.6, ==1.5.2-5': True,
+        }
+
+        plugin = Plugin(_DEFAULT_CONFIG, name, namespace)
+        with patch.object(plugin, 'metadata', return_value={'version': installed_version}):
+            for version, expected in tests.items():
+                assert_that(plugin.is_installed(version), equal_to(expected), version)
+
 
 class TestIIn(TestCase):
 
