@@ -28,8 +28,8 @@ class Comparator:
         if not required_version:
             return True
 
-        operator, end = self._extract_operator(required_version)
-        extracted_version, end = self._extract_version(end)
+        operator, end = _extract_operator(required_version)
+        extracted_version, end = _extract_version(end)
 
         current = self._cmp_versions(operator, version, extracted_version)
         return current and self._cmp_version_string(version, end)
@@ -47,23 +47,62 @@ class Comparator:
         else:
             return left == right
 
-    @staticmethod
-    def _extract_version(s):
-        if ',' not in s:
-            return s, None
 
-        version, end = s.split(',', 1)
-        return _make_comparable_version(version), end or None
+class Debianizer:
 
-    @staticmethod
-    def _extract_operator(s):
-        operator_chars = ['=', '>', '<']
-        for i, c in enumerate(s):
-            if c in operator_chars:
-                continue
-            operator = s[:i]
-            end = s[i:]
-            return operator, end
+    _operator_map = {
+        '': '=',
+        '=': '=',
+        '==': '=',
+        '>=': '>=',
+        '>': '>>',
+        '<': '<<',
+        '<=': '<=',
+    }
+    _debian_package_name_fmt = 'wazo-plugind-{name}-{namespace}'
+    _debian_package_name_version_fmt = 'wazo-plugind-{name}-{namespace} ({operator} {version})'
+
+    def debianize(self, dependency):
+        version_string = dependency.get('version', '').replace(' ', '')
+        if not version_string:
+            return [self._debian_package_name_fmt.format(**dependency)]
+
+        def _format_version(accumulator, version_string):
+            if not version_string:
+                return accumulator
+
+            operator, end = _extract_operator(version_string)
+            version, end = _extract_version(end)
+
+            # TODO what to do if the operator is invalid? ex <> or !> KeyError at the moment
+            debian_constraint = self._debian_package_name_version_fmt.format(
+                operator=self._operator_map[operator],
+                version=version,
+                name=dependency['name'],
+                namespace=dependency['namespace'],
+            )
+            accumulator.append(debian_constraint)
+            return _format_version(accumulator, end)
+
+        return _format_version(list(), version_string)
+
+
+def _extract_operator(s):
+    operator_chars = ['=', '>', '<']
+    for i, c in enumerate(s):
+        if c in operator_chars:
+            continue
+        operator = s[:i]
+        end = s[i:]
+        return operator, end
+
+
+def _extract_version(s):
+    if ',' not in s:
+        return s, None
+
+    version, end = s.split(',', 1)
+    return _make_comparable_version(version), end or None
 
 
 def _make_comparable_version(version):
