@@ -1,13 +1,15 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
 from hamcrest import assert_that, calling, has_properties
 from mock import ANY, Mock, patch
 from xivo_test_helpers.hamcrest.raises import raises
-from ..helpers import Validator
-from ..config import _MAX_PLUGIN_FORMAT_VERSION
-from .. import exceptions
+
+from wazo_plugind import exceptions
+from wazo_plugind.config import _MAX_PLUGIN_FORMAT_VERSION
+
+from ..validator import Validator
 
 CURRENT_WAZO_VERSION = '17.10'
 

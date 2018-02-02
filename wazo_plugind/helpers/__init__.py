@@ -3,19 +3,12 @@
 
 import logging
 import os
-import re
 import subprocess
 from xivo.token_renewer import TokenRenewer
 from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 
-from wazo_plugind.exceptions import (
-    CommandExecutionFailed,
-    PluginAlreadyInstalled,
-    PluginValidationException,
-)
-from wazo_plugind.db import PluginDB
-from wazo_plugind.schema import new_plugin_metadata_schema
+from wazo_plugind.exceptions import CommandExecutionFailed
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
 
@@ -33,34 +26,6 @@ def exec_and_log(stdout_logger, stderr_logger, *args, **kwargs):
     if p.returncode != 0:
         raise CommandExecutionFailed(args[0], p.returncode)
     return p
-
-
-class Validator(object):
-
-    valid_namespace = re.compile(r'^[a-z0-9]+$')
-    valid_name = re.compile(r'^[a-z0-9-]+$')
-    required_fields = ['name', 'namespace', 'version']
-
-    def __init__(self, plugin_db, current_wazo_version):
-        self._db = plugin_db
-        self._current_wazo_version = current_wazo_version
-
-    def validate(self, metadata):
-        logger.debug('Using current version %s', self._current_wazo_version)
-        logger.debug('max_wazo_version: %s', metadata.get('max_wazo_version', 'undefined'))
-
-        body, errors = new_plugin_metadata_schema(self._current_wazo_version).load(metadata)
-        if errors:
-            raise PluginValidationException(errors)
-        logger.debug('validated metadata: %s', body)
-
-        if self._db.is_installed(metadata['namespace'], metadata['name'], metadata['version']):
-            raise PluginAlreadyInstalled(metadata['namespace'], metadata['name'])
-
-    @classmethod
-    def new_from_config(cls, config, current_wazo_version):
-        plugin_db = PluginDB(config)
-        return cls(plugin_db, current_wazo_version)
 
 
 class WazoVersionFinder(object):

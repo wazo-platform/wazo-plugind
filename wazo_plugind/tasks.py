@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -7,7 +7,7 @@ import shutil
 import yaml
 from threading import Thread
 from .context import Context
-from . import bus, debian, download, helpers
+from . import bus, debian, download
 from .exceptions import (
     CommandExecutionFailed,
     DependencyAlreadyInstalledException,
@@ -15,6 +15,7 @@ from .exceptions import (
     PluginValidationException,
 )
 from .helpers import exec_and_log
+from .helpers.validator import Validator
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +184,7 @@ class _PackageBuilder(object):
         )
 
     def validate(self, ctx):
-        validator = helpers.Validator.new_from_config(ctx.config, ctx.wazo_version)
+        validator = Validator.new_from_config(ctx.config, ctx.wazo_version)
         validator.validate(ctx.metadata)
         return ctx
 
