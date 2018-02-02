@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
@@ -9,7 +9,7 @@ from .exceptions import (
     UnsupportedDownloadMethod,
     DependencyAlreadyInstalledException,
 )
-from .helpers import exec_and_log
+from .helpers import exec_and_log, version
 from .schema import PluginInstallSchema
 from .db import PluginDB
 
@@ -41,6 +41,7 @@ class _MarketDownloader(object):
     def __init__(self, config, downloader):
         self._market_config = config['market']
         self._downloader = downloader
+        self._comparator = version.Comparator()
 
     def download(self, ctx):
         version_info = self._find_matching_plugin(ctx)
@@ -65,6 +66,16 @@ class _MarketDownloader(object):
 
         return self._downloader.download(ctx)
 
+    def _already_satisfied(self, plugin_info, required_version):
+        installed_version = plugin_info.get('installed_version')
+        if not installed_version:
+            return False
+
+        if not required_version:
+            return True
+
+        return self._comparator.satisfies(installed_version, required_version)
+
     def _find_matching_plugin(self, ctx):
         plugin_db = PluginDB(ctx.config)
         market_proxy = db.MarketProxy(self._market_config)
@@ -72,16 +83,20 @@ class _MarketDownloader(object):
         required_version = ctx.install_args.pop('version', None)
         plugin_info = market_db.get(**ctx.install_args)
 
-        # If a version is specified, it has to be that version
-        if required_version:
-            return self._find_matching_version(plugin_info, required_version)
-        # Otherwise, use the first version available
-        else:
+        if self._already_satisfied(plugin_info, required_version):
+            raise DependencyAlreadyInstalledException()
+
+        if not required_version:
             return self._find_first_upgradable_version(plugin_info)
+
+        return self._find_matching_version(plugin_info, required_version)
 
     def _find_matching_version(self, plugin_info, required_version):
         for version_info in plugin_info.get('versions', []):
-            if version_info['version'] == required_version:
+            if not version_info['upgradable']:
+                continue
+
+            if self._comparator.satisfies(version_info.get('version'), required_version):
                 return version_info
 
     def _find_first_upgradable_version(self, plugin_info):
