@@ -28,11 +28,15 @@ class Comparator:
         if not required_version:
             return True
 
-        operator, end = _extract_operator(required_version)
-        extracted_version, end = _extract_version(end)
+        end = required_version
+        while end:
+            operator, end = _extract_operator(end)
+            extracted_version, end = _extract_version(end)
 
-        current = self._cmp_versions(operator, version, extracted_version)
-        return current and self._cmp_version_string(version, end)
+            if not self._cmp_versions(operator, version, extracted_version):
+                return False
+
+        return True
 
     @staticmethod
     def _cmp_versions(operator, left, right):
