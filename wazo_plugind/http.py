@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -7,15 +7,15 @@ import requests
 from flask import Flask, make_response, request
 from flask_cors import CORS
 from flask_restful import Api, Resource
-from functools import wraps
 from pkg_resources import resource_string
 from xivo import http_helpers
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
 
 from .schema import (
-    MarketListRequestSchema, MarketListResultSchema,
-    PluginInstallSchema, PluginInstallSchemaV01
+    MarketListRequestSchema,
+    MarketListResultSchema,
+    PluginInstallSchema,
 )
 from .exceptions import InvalidInstallParamException, InvalidListParamException, MarketNotFoundException
 
@@ -135,22 +135,6 @@ class Plugins(_AuthentificatedResource):
         super().add_resource(api, *args, **kwargs)
 
 
-class PluginsV01(Plugins):
-
-    @required_acl('plugind.plugins.create')
-    def post(self):
-        body, errors = PluginInstallSchemaV01().load(request.get_json())
-        if errors:
-            raise InvalidInstallParamException(errors)
-
-        method, options = body['method'], body['options']
-        url = body.get('url')
-        if url:
-            options['url'] = url
-
-        return self._post(method, options)
-
-
 class PluginsItem(_AuthentificatedResource):
 
     api_path = '/plugins/<namespace>/<name>'
@@ -209,14 +193,6 @@ class MultiAPI():
                 api.add_resource(resource)
 
 
-def log_v01_deprecated(func):
-    @wraps(func)
-    def decorated(*args, **kwargs):
-        logger.info('HTTP API version 0.1 is still being used. Upgrading to 0.2 is recommended')
-        return func(*args, **kwargs)
-    return decorated
-
-
 def new_app(config, *args, **kwargs):
     cors_config = config['rest_api']['cors']
     auth_verifier.set_config(config['auth'])
@@ -224,16 +200,13 @@ def new_app(config, *args, **kwargs):
     app.config.update(config)
     app.after_request(http_helpers.log_request)
 
-
-    APIv01 = PlugindAPI(app, config, prefix='/0.1', decorators=[log_v01_deprecated], *args, endpoint_prefix='v01', **kwargs)
     APIv02 = PlugindAPI(app, config, prefix='/0.2', *args, endpoint_prefix='v02', **kwargs)
-    MultiAPI(False,  APIv02).add_resource(Swagger)
-    MultiAPI(APIv01, APIv02).add_resource(Config)
-    MultiAPI(APIv01, APIv02).add_resource(Market)
-    MultiAPI(False,  APIv02).add_resource(MarketItem)
-    MultiAPI(APIv01, APIv02).add_resource(PluginsItem)
-    MultiAPI(False,  APIv02).add_resource(Plugins)
-    MultiAPI(APIv01,  False).add_resource(PluginsV01)
+    MultiAPI(APIv02).add_resource(Swagger)
+    MultiAPI(APIv02).add_resource(Config)
+    MultiAPI(APIv02).add_resource(Market)
+    MultiAPI(APIv02).add_resource(MarketItem)
+    MultiAPI(APIv02).add_resource(PluginsItem)
+    MultiAPI(APIv02).add_resource(Plugins)
 
     if cors_config.pop('enabled', False):
         CORS(app, **cors_config)

@@ -1,7 +1,7 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from marshmallow import pre_load, Schema, validates_schema, ValidationError
+from marshmallow import pre_load, Schema
 from xivo.mallow import fields
 from xivo.mallow.validate import OneOf
 from xivo.mallow.validate import Length
@@ -117,43 +117,3 @@ class PluginInstallSchema(BaseSchema):
 
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
     options = OptionField(missing=dict)
-
-
-# API 0.1 schema
-class GitInstallOptionsSchemaV01(Schema):
-
-    ref = fields.String(missing='master', validate=Length(min=1))
-
-
-class MarketInstallOptionsSchemaV01(Schema):
-
-    namespace = fields.String(validate=Length(min=1), required=True)
-    name = fields.String(validate=Length(min=1), required=True)
-    version = fields.String()
-
-
-class OptionFieldV01(OptionField):
-
-    _options = {
-        'git': fields.Nested(GitInstallOptionsSchemaV01),
-        'market': fields.Nested(MarketInstallOptionsSchemaV01),
-    }
-
-
-class PluginInstallSchemaV01(BaseSchema):
-
-    _method_optional_url = ['market']
-
-    url = fields.String(validate=Length(min=1))
-    method = fields.String(validate=OneOf(['git', 'market']), required=True)
-    options = OptionFieldV01(missing=dict)
-
-    @validates_schema
-    def validate_url(self, data):
-        method = data.get('method')
-        if method in self._method_optional_url:
-            return
-
-        url = data.get('url')
-        if not url:
-            raise ValidationError([self.fields['url'].default_error_messages['required']], ['url'])
