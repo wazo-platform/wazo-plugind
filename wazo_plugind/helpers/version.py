@@ -1,14 +1,25 @@
 # Copyright 2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
+import logging
+import re
+
 from distutils.version import LooseVersion
+
+from wazo_plugind import exceptions
+
+logger = logging.getLogger(__name__)
+VERSION_RE = re.compile(r'^\s?([=<>]*)\s?([0-9\-.a-b~]+)\s?$')
 
 
 class Comparator:
 
     def satisfies(self, version, required_version):
         version = _make_comparable_version(version)
-        required_version = required_version.replace(' ', '')
+        try:
+            required_version = required_version.replace(' ', '')
+        except AttributeError:
+            raise exceptions.InvalidVersionException(required_version)
 
         return self._cmp_version_string(version, required_version)
 
@@ -64,43 +75,27 @@ class Debianizer:
 
     def debianize(self, dependency):
         version_string = dependency.get('version', '')
-        if not version_string:
+        if version_string:
+            for operator, version in _operator_version(version_string):
+                yield self._debian_package_name_version_fmt.format(
+                    operator=self._operator_map[operator],
+                    version=version,
+                    name=dependency['name'],
+                    namespace=dependency['namespace'],
+                )
+        else:
             yield self._debian_package_name_fmt.format(**dependency)
 
-        for operator, version in _operator_version(version_string):
-            # TODO what to do if the operator is invalid? ex <> or !> KeyError at the moment
-            yield self._debian_package_name_version_fmt.format(
-                operator=self._operator_map[operator],
-                version=version,
-                name=dependency['name'],
-                namespace=dependency['namespace'],
-            )
 
-
-def _operator_version(end):
-    end = end.replace(' ', '')
-    while end:
-        operator, end = _extract_operator(end)
-        version, end = _extract_version(end)
-        yield operator, version
-
-
-def _extract_operator(s):
-    operator_chars = ['=', '>', '<']
-    for i, c in enumerate(s):
-        if c in operator_chars:
-            continue
-        operator = s[:i]
-        end = s[i:]
-        return operator, end
-
-
-def _extract_version(s):
-    if ',' not in s:
-        return s, None
-
-    version, end = s.split(',', 1)
-    return _make_comparable_version(version), end or None
+def _operator_version(version_string):
+    versions = version_string.split(',')
+    for s in versions:
+        result = VERSION_RE.match(s)
+        if not result:
+            logger.info('parsing an invalid version: %s', version_string)
+            raise exceptions.InvalidVersionException(version_string)
+        operator, version = result.groups()
+        yield operator, _make_comparable_version(version)
 
 
 def _make_comparable_version(version):

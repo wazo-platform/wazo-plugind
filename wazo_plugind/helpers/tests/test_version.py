@@ -1,9 +1,16 @@
 # Copyright 2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-from hamcrest import assert_that, equal_to, contains
+from hamcrest import (
+    assert_that,
+    calling,
+    equal_to,
+    contains,
+    raises,
+)
 from unittest import TestCase
 
+from wazo_plugind import exceptions
 from .. import version
 
 
@@ -74,6 +81,18 @@ class TestComparator(TestCase):
             result = self.comparator.satisfies(installed_version, required_version)
             assert_that(result, equal_to(expected), required_version)
 
+        invalid_version = '!~ 1.5.2'
+        assert_that(
+            calling(self.comparator.satisfies).with_args(installed_version, invalid_version),
+            raises(exceptions.InvalidVersionException),
+        )
+
+        invalid_version = None
+        assert_that(
+            calling(self.comparator.satisfies).with_args(installed_version, invalid_version),
+            raises(exceptions.InvalidVersionException),
+        )
+
     def test_less_than(self):
         assert_that(self.comparator.less_than('17.10', '17.10'), equal_to(False))
         assert_that(self.comparator.less_than('17.09', '17.10'), equal_to(True))
@@ -132,4 +151,11 @@ class TestDebianizer(TestCase):
                 '{} ({} {})'.format(debian_package, '>=', '1.5.5'),
                 '{} ({} {})'.format(debian_package, '<<', '2'),
             )
+        )
+
+        # calling(list) is used to consume the generator and actually raise the exception
+        plugin_info['version'] = '~= 1.5.12'
+        assert_that(
+            calling(list).with_args(self.debianizer.debianize(plugin_info)),
+            raises(exceptions.InvalidVersionException),
         )

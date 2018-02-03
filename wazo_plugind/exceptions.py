@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from xivo.rest_api_helpers import APIException
@@ -29,6 +29,14 @@ class InvalidPackageNameException(Exception):
 
     def __init__(self, name):
         super().__init__(self._fmt.format(name))
+
+
+class InvalidVersionException(Exception):
+
+    _fmt = 'invalid version {}'
+
+    def __init__(self, version_string):
+        super().__init__(self._fmt.format(version_string))
 
 
 class InvalidSortParamException(APIException):
