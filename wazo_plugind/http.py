@@ -18,7 +18,11 @@ from .schema import (
     MarketListResultSchema,
     PluginInstallSchema,
 )
-from .exceptions import InvalidInstallParamException, InvalidListParamException, MarketNotFoundException
+from .exceptions import (
+    InvalidInstallParamException,
+    InvalidListParamException,
+    MarketNotFoundException,
+)
 
 logger = logging.getLogger(__name__)
 
