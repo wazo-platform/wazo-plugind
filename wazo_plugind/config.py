@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import argparse
@@ -9,7 +9,7 @@ from xivo.config_helper import parse_config_file, read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
 
-_MAX_PLUGIN_FORMAT_VERSION = 1
+_MAX_PLUGIN_FORMAT_VERSION = 2
 _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTPS_PORT = 9503
 _DEFAULT_CERT_FILE = '/usr/share/xivo-certs/server.crt'
