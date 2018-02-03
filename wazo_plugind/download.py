@@ -84,6 +84,7 @@ class _MarketDownloader(object):
         plugin_info = market_db.get(**ctx.install_args)
 
         if self._already_satisfied(plugin_info, required_version):
+            ctx.log(logger.info, '%s already satisfies %s', plugin_info, required_version)
             raise DependencyAlreadyInstalledException()
 
         if not required_version:

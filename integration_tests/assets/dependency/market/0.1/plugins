@@ -1,6 +1,32 @@
 {
   "items": [
     {
+        "name": "a",
+        "namespace": "s1",
+        "versions": [
+            {
+                "method": "git",
+                "version": "0.0.1",
+                "options": {
+                    "url": "file:///data/git/s1a"
+                }
+            }
+        ]
+    },
+    {
+        "name": "b",
+        "namespace": "s1",
+        "versions": [
+            {
+                "method": "git",
+                "version": "1.6",
+                "options": {
+                    "url": "file:///data/git/s1b_v1.6"
+                }
+            }
+        ]
+    },
+    {
       "name": "one",
       "namespace": "dependency",
       "versions": [

@@ -3,6 +3,7 @@
 
 import os
 import time
+
 from functools import wraps
 from requests import HTTPError
 from hamcrest import assert_that, has_entry, has_entries, has_items

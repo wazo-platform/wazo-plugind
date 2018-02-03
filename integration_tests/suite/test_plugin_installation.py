@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from hamcrest import (
@@ -47,6 +47,21 @@ class TestPluginList(BaseIntegrationTest):
 class TestPluginDependencies(BaseIntegrationTest):
 
     asset = 'dependency'
+
+    @autoremove('s1', 'a')
+    @autoremove('s1', 'b')
+    def test_dependency_operator(self):
+        self.install_plugin(
+            method='market',
+            options=dict(namespace='s1', name='a'),
+            _async=False,
+        )
+
+        a_is_installed = self._is_installed('wazo-plugind-a-s1')
+        b_is_installed = self._is_installed('wazo-plugind-b-s1')
+
+        assert_that(a_is_installed, equal_to(True), 'a should be installed')
+        assert_that(b_is_installed, equal_to(True), 'b should be installed')
 
     @autoremove('dependency', 'one')
     @autoremove('dependency', 'two')
