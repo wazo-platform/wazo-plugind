@@ -1,7 +1,8 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
+import os
 from xivo import xivo_logging
 from xivo.config_helper import set_xivo_uuid, UUIDNotFound
 from xivo.daemonize import pidfile_context
@@ -19,6 +20,9 @@ def main(args):
     conf = config.load_config(args)
 
     xivo_logging.setup_logging(conf['log_file'], FOREGROUND, conf['debug'], conf['log_level'])
+
+    os.chdir(conf['home_dir'])
+
     with RootWorker() as root_worker:
         if conf['user']:
             change_user(conf['user'])
