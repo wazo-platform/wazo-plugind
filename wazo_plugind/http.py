@@ -9,6 +9,7 @@ from flask_cors import CORS
 from flask_restful import Api, Resource
 from pkg_resources import resource_string
 from xivo import http_helpers
+from xivo.http_helpers import add_logger
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
 
@@ -197,6 +198,7 @@ def new_app(config, *args, **kwargs):
     cors_config = config['rest_api']['cors']
     auth_verifier.set_config(config['auth'])
     app = Flask('wazo_plugind')
+    add_logger(app, logger)
     app.config.update(config)
     app.after_request(http_helpers.log_request)
 
