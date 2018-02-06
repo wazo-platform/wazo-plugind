@@ -84,6 +84,29 @@ class TestPluginDependencies(BaseIntegrationTest):
         assert_that(a_is_installed, equal_to(True), 'a should be installed')
         assert_that(b_is_installed, equal_to(True), 'b should be installed')
 
+    @autoremove('s2', 'a')
+    @autoremove('s2', 'b')
+    def test_dependency_operator_with_a_conflict(self):
+        self.install_plugin(
+            method='market',
+            options=dict(namespace='s2', name='b', version='1.6'),
+            _async=False,
+        )
+
+        self.install_plugin(
+            method='market',
+            options=dict(namespace='s3', name='a'),
+            _async=False,
+        )
+
+        a_is_installed = self._is_installed('wazo-plugind-a-s3')
+        b_is_installed_14 = self._is_installed('wazo-plugind-b-s2', version='1.4')
+        b_is_installed_16 = self._is_installed('wazo-plugind-b-s2', version='1.6')
+
+        assert_that(a_is_installed, equal_to(False), 'a should not be installed')
+        assert_that(b_is_installed_14, equal_to(False), 'b should not be installed in version 1.4')
+        assert_that(b_is_installed_16, equal_to(True), 'b should be installed in version 1.6')
+
     @autoremove('dependency', 'one')
     @autoremove('dependency', 'two')
     @autoremove('dependency', 'three')

@@ -80,8 +80,10 @@ class _MarketDownloader(object):
         plugin_db = PluginDB(ctx.config)
         market_proxy = db.MarketProxy(self._market_config)
         market_db = db.MarketDB(market_proxy, ctx.wazo_version, plugin_db)
-        required_version = ctx.install_args.pop('version', None)
-        plugin_info = market_db.get(**ctx.install_args)
+        required_version = ctx.install_args.get('version')
+        search_params = dict(ctx.install_args)
+        search_params.pop('version', None)
+        plugin_info = market_db.get(**search_params)
 
         if self._already_satisfied(plugin_info, required_version):
             ctx.log(logger.info, '%s already satisfies %s', plugin_info, required_version)

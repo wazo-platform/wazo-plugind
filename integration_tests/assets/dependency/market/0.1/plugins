@@ -60,6 +60,19 @@
         ]
     },
     {
+        "name": "a",
+        "namespace": "s3",
+        "versions": [
+            {
+                "method": "git",
+                "version": "0.0.1",
+                "options": {
+                    "url": "file:///data/git/s3a"
+                }
+            }
+        ]
+    },
+    {
       "name": "one",
       "namespace": "dependency",
       "versions": [

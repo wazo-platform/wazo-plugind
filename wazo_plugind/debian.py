@@ -3,9 +3,12 @@
 
 import os
 import subprocess
+import logging
 import jinja2
 
 from wazo_plugind.helpers import version
+
+logger = logging.getLogger(__name__)
 
 
 class PackageDB(object):
@@ -69,6 +72,8 @@ class Generator(object):
             for deb_dep in self._version_debianizer.debianize(dependency):
                 deps.append(deb_dep)
         ctx.metadata['debian_depends'] = deps
+        ctx.log(logger.debug, 'Depends:\n%s', depends)
+        ctx.log(logger.debug, 'Generated debian depends:\n%s', ctx.metadata['debian_depends'])
 
         return ctx
 
@@ -89,7 +94,9 @@ class Generator(object):
         file_path = os.path.join(ctx.debian_dir, filename)
         template = self._env.get_template(self._template_files[filename])
         with open(file_path, 'w') as f:
-            f.write(template.render(ctx.template_context))
+            content = template.render(ctx.template_context)
+            ctx.log(logger.debug, 'generated %s\n%s', file_path, content)
+            f.write(content)
 
         mod = self._generated_files_mod.get(filename)
         if mod:

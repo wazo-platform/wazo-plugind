@@ -1,0 +1,8 @@
+namespace: s3
+name: a
+version: 0.0.1
+plugin_format_version: 2
+depends:
+  - namespace: s2
+    name: b
+    version: ">= 1.4, < 1.6"
