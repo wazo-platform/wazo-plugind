@@ -5,6 +5,9 @@ create-git:
 
 test-setup: build-plugind create-git pull-images ;
 
+egg-info:
+	cd .. && python setup.py egg_info
+
 pull-images:
 	docker pull wazopbx/xivo-auth-mock
 	docker pull python:3.5.3
