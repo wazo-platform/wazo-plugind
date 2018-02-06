@@ -27,6 +27,39 @@
         ]
     },
     {
+        "name": "a",
+        "namespace": "s2",
+        "versions": [
+            {
+                "method": "git",
+                "version": "0.0.1",
+                "options": {
+                    "url": "file:///data/git/s2a"
+                }
+            }
+        ]
+    },
+    {
+        "name": "b",
+        "namespace": "s2",
+        "versions": [
+            {
+                "method": "git",
+                "version": "1.4",
+                "options": {
+                    "url": "file:///data/git/s2b_v1.4"
+                }
+            },
+            {
+                "method": "git",
+                "version": "1.6",
+                "options": {
+                    "url": "file:///data/git/s2b_v1.6"
+                }
+            }
+        ]
+    },
+    {
       "name": "one",
       "namespace": "dependency",
       "versions": [

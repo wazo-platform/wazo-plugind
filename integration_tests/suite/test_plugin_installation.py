@@ -50,7 +50,7 @@ class TestPluginDependencies(BaseIntegrationTest):
 
     @autoremove('s1', 'a')
     @autoremove('s1', 'b')
-    def test_dependency_operator(self):
+    def test_dependency_operator_nothing_installed(self):
         self.install_plugin(
             method='market',
             options=dict(namespace='s1', name='a'),
@@ -59,6 +59,27 @@ class TestPluginDependencies(BaseIntegrationTest):
 
         a_is_installed = self._is_installed('wazo-plugind-a-s1')
         b_is_installed = self._is_installed('wazo-plugind-b-s1')
+
+        assert_that(a_is_installed, equal_to(True), 'a should be installed')
+        assert_that(b_is_installed, equal_to(True), 'b should be installed')
+
+    @autoremove('s2', 'a')
+    @autoremove('s2', 'b')
+    def test_dependency_operator_dependency_should_be_upgraded(self):
+        self.install_plugin(
+            method='market',
+            options=dict(namespace='s2', name='b', version='1.4'),
+            _async=False,
+        )
+
+        self.install_plugin(
+            method='market',
+            options=dict(namespace='s2', name='a'),
+            _async=False,
+        )
+
+        a_is_installed = self._is_installed('wazo-plugind-a-s2')
+        b_is_installed = self._is_installed('wazo-plugind-b-s2', version='1.6')
 
         assert_that(a_is_installed, equal_to(True), 'a should be installed')
         assert_that(b_is_installed, equal_to(True), 'b should be installed')
