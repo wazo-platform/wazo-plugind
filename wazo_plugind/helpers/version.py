@@ -9,7 +9,7 @@ from distutils.version import LooseVersion
 from wazo_plugind import exceptions
 
 logger = logging.getLogger(__name__)
-VERSION_RE = re.compile(r'^\s?([=<>]{0,2})\s?([0-9\-.a-b~]+)\s?$')
+VERSION_RE = re.compile(r'^\s*([=<>]{0,2})\s*([0-9\-.a-b~]+)\s*$')
 _DEBIAN_OPERATOR_MAP = {
     '': '=',
     '=': '=',
