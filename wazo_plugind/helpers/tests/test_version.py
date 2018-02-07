@@ -113,6 +113,7 @@ class TestComparator(TestCase):
         assert_that(self.comparator.less_than('', None), equal_to(True))
         assert_that(self.comparator.less_than('1.0.0', '1.0.0-1'), equal_to(True))
         assert_that(self.comparator.less_than('1.0.1', '1.0.0-1'), equal_to(False))
+        assert_that(self.comparator.less_than('1.0.0-2', '1.0.0-10'), equal_to(True))
 
 
 class TestDebianizer(TestCase):
