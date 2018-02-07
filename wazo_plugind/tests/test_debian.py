@@ -50,7 +50,7 @@ class TestPackageDB(TestCase):
             (random_string(5, 30), random_string(3, 15)),
             (random_string(5, 30), section),
         ]
-        expected = [name for name, section in itemgetter(1, 2, 6)(packages_and_sections)]
+        expected = [name for name, _ in itemgetter(1, 2, 6)(packages_and_sections)]
 
         def generator():
             for package, section in packages_and_sections:

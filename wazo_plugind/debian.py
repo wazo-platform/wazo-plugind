@@ -3,7 +3,12 @@
 
 import os
 import subprocess
+import logging
 import jinja2
+
+from wazo_plugind.helpers import version
+
+logger = logging.getLogger(__name__)
 
 
 class PackageDB(object):
@@ -39,8 +44,7 @@ class Generator(object):
     _debian_dir = 'DEBIAN'
     _generated_files = ['control', 'postinst', 'prerm', 'postrm']
     _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755, 'postrm': 0o755}
-    _debian_package_name_fmt = 'wazo-plugind-{name}-{namespace}'
-    _debian_package_name_version_fmt = 'wazo-plugind-{name}-{namespace} (= {version})'
+    _version_debianizer = version.Debianizer()
 
     def __init__(self, jinja_env=None, template_files=None, section=None,
                  metadata_dir=None, rules_path=None, backup_rules_dir=None):
@@ -63,17 +67,13 @@ class Generator(object):
         if not isinstance(depends, (list, tuple)):
             return ctx
 
-        debian_dependencies = ctx.metadata.get('debian_depends', [])
+        deps = ctx.metadata.get('debian_depends', [])
         for dependency in depends:
-            if 'version' in dependency:
-                fmt = self._debian_package_name_version_fmt
-            else:
-                fmt = self._debian_package_name_fmt
-
-            debian_package_name = fmt.format(**dependency)
-            debian_dependencies.append(debian_package_name)
-
-        ctx.metadata['debian_depends'] = debian_dependencies
+            for deb_dep in self._version_debianizer.debianize(dependency):
+                deps.append(deb_dep)
+        ctx.metadata['debian_depends'] = deps
+        ctx.log(logger.debug, 'Depends:\n%s', depends)
+        ctx.log(logger.debug, 'Generated debian depends:\n%s', ctx.metadata['debian_depends'])
 
         return ctx
 
@@ -94,7 +94,9 @@ class Generator(object):
         file_path = os.path.join(ctx.debian_dir, filename)
         template = self._env.get_template(self._template_files[filename])
         with open(file_path, 'w') as f:
-            f.write(template.render(ctx.template_context))
+            content = template.render(ctx.template_context)
+            ctx.log(logger.debug, 'generated %s\n%s', file_path, content)
+            f.write(content)
 
         mod = self._generated_files_mod.get(filename)
         if mod:

@@ -1,8 +1,9 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
 import time
+
 from functools import wraps
 from requests import HTTPError
 from hamcrest import assert_that, has_entry, has_entries, has_items
@@ -134,11 +135,17 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                 return True
         return False
 
-    def _is_installed(self, search):
-        installed_packages = self.docker_exec(['dpkg-query', '-W', '-f=${binary:Package}\n'])
-        for debian_package in installed_packages.split('\n'):
+    def _is_installed(self, search, version=None):
+        installed_packages = self.docker_exec(['dpkg-query', '-W', '-f=${binary:Package} ${Version}\n'])
+        for line in installed_packages.split('\n'):
+            if not line:
+                continue
+
+            debian_package, installed_version = line.split(' ', 1)
             if debian_package == search:
-                return True
+                if not version:
+                    return True
+                return version == installed_version
         return False
 
     def assert_status_received(self, msg_accumulator, operation, uuid, status, exclusive=False, **kwargs):

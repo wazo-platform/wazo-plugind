@@ -36,6 +36,7 @@ class HTTPAppTestCase(TestCase):
         config = {'rest_api': {'cors': {'enabled': False}},
                   'auth': {'host': 'foobar'}}
         self.plugin_service = Mock(PluginService)
+        self.plugin_service.create.return_value = {'create': 'return_value'}
         self.app = new_app(config, plugin_service=self.plugin_service).test_client()
 
     def get_plugin(self, namespace, name, version=API_VERSION):

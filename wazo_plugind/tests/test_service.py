@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from unittest import TestCase
@@ -44,8 +44,10 @@ class TestPluginService(TestCase):
         market_db.list_.return_value = []
 
         with patch.object(self._service, '_new_market_db', return_value=market_db):
-            assert_that(calling(self._service.get_from_market).with_args(s.market_proxy, 'namespace', 'name'),
-                        raises(PluginNotFoundException))
+            assert_that(
+                calling(self._service.get_from_market).with_args(s.market_proxy, 'namespace', 'name'),
+                raises(PluginNotFoundException),
+            )
 
     def test_get_plugin_metadata(self):
         namespace, name = 'foobar', 'someplugin'
@@ -61,9 +63,11 @@ class TestPluginService(TestCase):
         uninstalled_plugin = Mock(is_installed=Mock(return_value=False))
         self._plugin_db.get_plugin.return_value = uninstalled_plugin
 
-        assert_that(calling(self._service.get_plugin_metadata).with_args(s.namespace, s.name),
-                    raises(APIException).matching(
-                        has_properties('status_code', 404,
-                                       'id_', 'plugin_not_found',
-                                       'resource', 'plugins')
-                    ))
+        assert_that(
+            calling(self._service.get_plugin_metadata).with_args(s.namespace, s.name),
+            raises(APIException).matching(
+                has_properties('status_code', 404,
+                               'id_', 'plugin_not_found',
+                               'resource', 'plugins')
+            ),
+        )

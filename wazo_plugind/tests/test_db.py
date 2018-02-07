@@ -4,26 +4,13 @@
 from contextlib import contextmanager
 from unittest import TestCase
 from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, raises
-from mock import Mock, patch
+from mock import Mock, patch, sentinel as s
 
 from ..config import _DEFAULT_CONFIG
-from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB,
-                  _version_less_than)
+from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB)
 from ..exceptions import InvalidSortParamException
 
 CURRENT_WAZO_VERSION = '17.12'
-
-
-class TestVersionLessThan(TestCase):
-
-    def test_less_than(self):
-        assert_that(_version_less_than('17.10', '17.10'), equal_to(False))
-        assert_that(_version_less_than('17.09', '17.10'), equal_to(True))
-        assert_that(_version_less_than(None, '17.10'), equal_to(True))
-        assert_that(_version_less_than('17.10', None), equal_to(False))
-        assert_that(_version_less_than('', None), equal_to(True))
-        assert_that(_version_less_than('1.0.0', '1.0.0-1'), equal_to(True))
-        assert_that(_version_less_than('1.0.1', '1.0.0-1'), equal_to(False))
 
 
 class TestMarketPluginUpdater(TestCase):
@@ -190,15 +177,16 @@ class TestPlugin(TestCase):
             assert_that(plugin.is_installed(), equal_to(False))
 
     def test_is_installed_with_version(self):
-        namespace, name, version = 'foo', 'bar', '0.0.1'
-
+        namespace, name, required_version = 'foo', 'bar', '>0.0.1,<3'
         plugin = Plugin(_DEFAULT_CONFIG, name, namespace)
 
-        with patch.object(plugin, 'metadata', return_value={'version': '0.0.2'}):
-            assert_that(plugin.is_installed(version), equal_to(False))
-
-        with patch.object(plugin, 'metadata', return_value={'version': version}):
-            assert_that(plugin.is_installed(version), equal_to(True))
+        with patch.object(plugin, 'metadata', return_value={'version': s.version}):
+            with patch.object(plugin, '_comparator') as version_comparator:
+                assert_that(
+                    plugin.is_installed(required_version),
+                    equal_to(version_comparator.satisfies.return_value),
+                )
+                version_comparator.satisfies.assert_called_once_with(s.version, required_version)
 
 
 class TestIIn(TestCase):

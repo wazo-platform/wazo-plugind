@@ -6,9 +6,9 @@ import os
 import re
 import yaml
 from unidecode import unidecode
-from distutils.version import LooseVersion
 from requests import HTTPError
 from wazo_market_client import Client as MarketClient
+from wazo_plugind.helpers import version
 from .exceptions import InvalidSortParamException, InvalidPackageNameException
 from . import debian
 
@@ -75,6 +75,7 @@ class MarketPluginUpdater(object):
     def __init__(self, plugin_db, current_wazo_version):
         self._plugin_db = plugin_db
         self._current_wazo_version = current_wazo_version
+        self._comparator = version.Comparator()
 
     def update(self, plugin_info):
         namespace, name = plugin_info['namespace'], plugin_info['name']
@@ -97,13 +98,13 @@ class MarketPluginUpdater(object):
             max_wazo_version = version_info.get('max_wazo_version', self._current_wazo_version)
             proposed_version = version_info.get('version')
 
-            if _version_less_than(self._current_wazo_version, min_wazo_version):
+            if self._comparator.less_than(self._current_wazo_version, min_wazo_version):
                 version_info['upgradable'] = False
-            elif _version_less_than(max_wazo_version, self._current_wazo_version):
+            elif self._comparator.less_than(max_wazo_version, self._current_wazo_version):
                 version_info['upgradable'] = False
             elif plugin.is_installed():
                 installed_version = plugin.metadata()['version']
-                if not _version_less_than(installed_version, proposed_version):
+                if not self._comparator.less_than(installed_version, proposed_version):
                     version_info['upgradable'] = False
 
 
@@ -247,6 +248,7 @@ class Plugin(object):
             config['default_metadata_filename'],
         )
         self._metadata = None
+        self._comparator = version.Comparator()
 
     def is_installed(self, version=None):
         try:
@@ -259,7 +261,7 @@ class Plugin(object):
         if version is None:
             return True
 
-        return version == metadata['version']
+        return self._comparator.satisfies(metadata['version'], version)
 
     def metadata(self):
         if not self._metadata:
@@ -294,28 +296,3 @@ class InstalledVersionMatcher(object):
 
     def __ne__(self, other):
         return not self == other
-
-
-def _make_comparable_version(version):
-    try:
-        value_tmp = LooseVersion(version)
-        value_tmp.version  # raise AttributeError if value is None
-        version = value_tmp
-    except (TypeError, AttributeError):
-        # Integer raise TypeError
-        # Not a valid version number fallback to alphabetic ordering
-        version = str(version)
-
-    return version
-
-
-def _version_less_than(left, right):
-    if not left:
-        return True
-    if not right:
-        return False
-
-    left = _make_comparable_version(left)
-    right = _make_comparable_version(right)
-
-    return left < right
