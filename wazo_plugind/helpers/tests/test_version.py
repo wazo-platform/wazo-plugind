@@ -81,6 +81,18 @@ class TestComparator(TestCase):
             result = self.comparator.satisfies(installed_version, required_version)
             assert_that(result, equal_to(expected), required_version)
 
+        invalid_version = '>>> 1.5.2'
+        assert_that(
+            calling(self.comparator.satisfies).with_args(installed_version, invalid_version),
+            raises(exceptions.InvalidVersionException),
+        )
+
+        invalid_version = '<> 1.5.2'
+        assert_that(
+            calling(self.comparator.satisfies).with_args(installed_version, invalid_version),
+            raises(exceptions.InvalidVersionException),
+        )
+
         invalid_version = '!~ 1.5.2'
         assert_that(
             calling(self.comparator.satisfies).with_args(installed_version, invalid_version),

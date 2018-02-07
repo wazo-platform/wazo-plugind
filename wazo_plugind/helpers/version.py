@@ -9,7 +9,16 @@ from distutils.version import LooseVersion
 from wazo_plugind import exceptions
 
 logger = logging.getLogger(__name__)
-VERSION_RE = re.compile(r'^\s?([=<>]*)\s?([0-9\-.a-b~]+)\s?$')
+VERSION_RE = re.compile(r'^\s?([=<>]{0,2})\s?([0-9\-.a-b~]+)\s?$')
+_DEBIAN_OPERATOR_MAP = {
+    '': '=',
+    '=': '=',
+    '==': '=',
+    '>=': '>=',
+    '>': '>>',
+    '<': '<<',
+    '<=': '<=',
+}
 
 
 class Comparator:
@@ -61,15 +70,6 @@ class Comparator:
 
 class Debianizer:
 
-    _operator_map = {
-        '': '=',
-        '=': '=',
-        '==': '=',
-        '>=': '>=',
-        '>': '>>',
-        '<': '<<',
-        '<=': '<=',
-    }
     _debian_package_name_fmt = 'wazo-plugind-{name}-{namespace}'
     _debian_package_name_version_fmt = 'wazo-plugind-{name}-{namespace} ({operator} {version})'
 
@@ -78,7 +78,7 @@ class Debianizer:
         if version_string:
             for operator, version in _operator_version(version_string):
                 yield self._debian_package_name_version_fmt.format(
-                    operator=self._operator_map[operator],
+                    operator=_DEBIAN_OPERATOR_MAP[operator],
                     version=version,
                     name=dependency['name'],
                     namespace=dependency['namespace'],
@@ -95,6 +95,8 @@ def _operator_version(version_string):
             logger.info('parsing an invalid version: %s', version_string)
             raise exceptions.InvalidVersionException(version_string)
         operator, version = result.groups()
+        if operator not in _DEBIAN_OPERATOR_MAP:
+            raise exceptions.InvalidVersionException(s)
         yield operator, _make_comparable_version(version)
 
 
