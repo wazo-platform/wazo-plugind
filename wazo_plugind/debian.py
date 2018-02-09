@@ -45,6 +45,7 @@ class Generator(object):
     _generated_files = ['control', 'postinst', 'prerm', 'postrm']
     _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755, 'postrm': 0o755}
     _version_debianizer = version.Debianizer()
+    _debian_package_name_fmt = 'wazo-plugind-{name}-{namespace}'
 
     def __init__(self, jinja_env=None, template_files=None, section=None,
                  metadata_dir=None, rules_path=None, backup_rules_dir=None):
@@ -69,8 +70,8 @@ class Generator(object):
 
         deps = ctx.metadata.get('debian_depends', [])
         for dependency in depends:
-            for deb_dep in self._version_debianizer.debianize(dependency):
-                deps.append(deb_dep)
+            deb_dep = self._debian_package_name_fmt.format(**dependency)
+            deps.append(deb_dep)
         ctx.metadata['debian_depends'] = deps
         ctx.log(logger.debug, 'Depends:\n%s', depends)
         ctx.log(logger.debug, 'Generated debian depends:\n%s', ctx.metadata['debian_depends'])
