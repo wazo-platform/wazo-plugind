@@ -1,12 +1,10 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import os
 import subprocess
 import logging
 import jinja2
-
-from wazo_plugind.helpers import version
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +42,6 @@ class Generator(object):
     _debian_dir = 'DEBIAN'
     _generated_files = ['control', 'postinst', 'prerm', 'postrm']
     _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755, 'postrm': 0o755}
-    _version_debianizer = version.Debianizer()
     _debian_package_name_fmt = 'wazo-plugind-{name}-{namespace}'
 
     def __init__(self, jinja_env=None, template_files=None, section=None,

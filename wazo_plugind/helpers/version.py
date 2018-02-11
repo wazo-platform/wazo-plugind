@@ -68,25 +68,6 @@ class Comparator:
             return left == right
 
 
-class Debianizer:
-
-    _debian_package_name_fmt = 'wazo-plugind-{name}-{namespace}'
-    _debian_package_name_version_fmt = 'wazo-plugind-{name}-{namespace} ({operator} {version})'
-
-    def debianize(self, dependency):
-        version_string = dependency.get('version', '')
-        if version_string:
-            for operator, version in _operator_version(version_string):
-                yield self._debian_package_name_version_fmt.format(
-                    operator=_DEBIAN_OPERATOR_MAP[operator],
-                    version=version,
-                    name=dependency['name'],
-                    namespace=dependency['namespace'],
-                )
-        else:
-            yield self._debian_package_name_fmt.format(**dependency)
-
-
 def _operator_version(version_string):
     versions = version_string.split(',')
     for s in versions:
