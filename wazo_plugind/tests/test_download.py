@@ -24,10 +24,21 @@ class TestMarketDownloader(TestCase):
         tests = [
             (not_installed, False),
             (old_installed, False),
+            (new_installed, False),
+            (matching_installed, True),
+        ]
+
+        for plugin_info, expected in tests:
+            result = self.downloader._already_satisfied(plugin_info, '1.5.1')
+            assert_that(result, equal_to(expected), plugin_info)
+
+        tests = [
+            (not_installed, False),
+            (old_installed, True),
             (new_installed, True),
             (matching_installed, True),
         ]
 
         for plugin_info, expected in tests:
-            result = self.downloader._already_satisfied(plugin_info, '>= 1.5.1')
+            result = self.downloader._already_satisfied(plugin_info, None)
             assert_that(result, equal_to(expected), plugin_info)
