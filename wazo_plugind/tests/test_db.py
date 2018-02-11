@@ -177,16 +177,13 @@ class TestPlugin(TestCase):
             assert_that(plugin.is_installed(), equal_to(False))
 
     def test_is_installed_with_version(self):
-        namespace, name, required_version = 'foo', 'bar', '>0.0.1,<3'
+        namespace, name, version = 'foo', 'bar', '0.0.1'
         plugin = Plugin(_DEFAULT_CONFIG, name, namespace)
 
-        with patch.object(plugin, 'metadata', return_value={'version': s.version}):
-            with patch.object(plugin, '_comparator') as version_comparator:
-                assert_that(
-                    plugin.is_installed(required_version),
-                    equal_to(version_comparator.satisfies.return_value),
-                )
-                version_comparator.satisfies.assert_called_once_with(s.version, required_version)
+        with patch.object(plugin, 'metadata', return_value={'version': version}):
+            assert_that(plugin.is_installed(version), equal_to(True))
+            assert_that(plugin.is_installed('0.0.2'), equal_to(False))
+            assert_that(plugin.is_installed('0.0.1-5'), equal_to(False))
 
 
 class TestIIn(TestCase):

@@ -261,7 +261,7 @@ class Plugin(object):
         if version is None:
             return True
 
-        return self._comparator.satisfies(metadata['version'], version)
+        return metadata['version'] == version
 
     def metadata(self):
         if not self._metadata:
