@@ -199,13 +199,14 @@ class _PackageBuilder(object):
         current_wazo_version = ctx.wazo_version
         for dependency in dependencies:
             ctx.log(logger.info, 'installing dependency %s', dependency)
-            self.install_dependency(dependency, current_wazo_version)
+            self.install_dependency(ctx, dependency, current_wazo_version)
         return ctx
 
-    def install_dependency(self, dep, current_wazo_version):
+    def install_dependency(self, ctx, dep, current_wazo_version):
         body, errors = schema.DependencyMetadataSchema().load(dep)
         if errors:
-            raise Exception(errors)  # Use a real exception
+            ctx.log(logger.info, 'invalid dependency %s skipping', dep)
+            return
 
         ctx = Context(
             self._config,
