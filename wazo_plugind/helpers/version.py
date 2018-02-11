@@ -1,36 +1,10 @@
 # Copyright 2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
-import logging
-import re
-
 from distutils.version import LooseVersion
-
-from wazo_plugind import exceptions
-
-logger = logging.getLogger(__name__)
-VERSION_RE = re.compile(r'^\s*([=<>]{0,2})\s*([0-9\-.a-b~]+)\s*$')
-_DEBIAN_OPERATOR_MAP = {
-    '': '=',
-    '=': '=',
-    '==': '=',
-    '>=': '>=',
-    '>': '>>',
-    '<': '<<',
-    '<=': '<=',
-}
 
 
 class Comparator:
-
-    def satisfies(self, version, required_version):
-        version = _make_comparable_version(version)
-        try:
-            required_version = required_version.replace(' ', '')
-        except AttributeError:
-            raise exceptions.InvalidVersionException(required_version)
-
-        return self._cmp_version_string(version, required_version)
 
     @staticmethod
     def less_than(left, right):
@@ -43,42 +17,6 @@ class Comparator:
         right = _make_comparable_version(right)
 
         return left < right
-
-    def _cmp_version_string(self, version, required_version):
-        if not required_version:
-            return True
-
-        for operator, extracted_version in _operator_version(required_version):
-            if not self._cmp_versions(operator, version, extracted_version):
-                return False
-
-        return True
-
-    @staticmethod
-    def _cmp_versions(operator, left, right):
-        if operator == '>':
-            return left > right
-        if operator == '>=':
-            return left >= right
-        elif operator == '<':
-            return left < right
-        elif operator == '<=':
-            return left <= right
-        else:
-            return left == right
-
-
-def _operator_version(version_string):
-    versions = version_string.split(',')
-    for s in versions:
-        result = VERSION_RE.match(s)
-        if not result:
-            logger.info('parsing an invalid version: %s', version_string)
-            raise exceptions.InvalidVersionException(version_string)
-        operator, version = result.groups()
-        if operator not in _DEBIAN_OPERATOR_MAP:
-            raise exceptions.InvalidVersionException(s)
-        yield operator, _make_comparable_version(version)
 
 
 def _make_comparable_version(version):
