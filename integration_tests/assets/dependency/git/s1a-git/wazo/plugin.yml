@@ -1,7 +1,0 @@
-namespace: s1
-name: a
-version: 0.0.1
-depends:
-  - namespace: s1
-    name: b
-    version: ">= 1.5"
