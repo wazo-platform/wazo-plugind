@@ -49,6 +49,12 @@ class BaseSchema(Schema):
         return data or {}
 
 
+class DependencyMetadataSchema(Schema):
+
+    namespace = fields.String(validate=Length(min=1), required=True)
+    name = fields.String(validate=Length(min=1), required=True)
+
+
 class GitInstallOptionsSchema(Schema):
 
     ref = fields.String(missing='master', validate=Length(min=1))

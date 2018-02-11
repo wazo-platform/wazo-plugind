@@ -7,7 +7,7 @@ import shutil
 import yaml
 from threading import Thread
 from .context import Context
-from . import bus, debian, download
+from . import bus, debian, download, schema
 from .exceptions import (
     CommandExecutionFailed,
     DependencyAlreadyInstalledException,
@@ -203,7 +203,16 @@ class _PackageBuilder(object):
         return ctx
 
     def install_dependency(self, dep, current_wazo_version):
-        ctx = Context(self._config, method='market', install_args=dep, wazo_version=current_wazo_version)
+        body, errors = schema.DependencyMetadataSchema().load(dep)
+        if errors:
+            raise Exception(errors)  # Use a real exception
+
+        ctx = Context(
+            self._config,
+            method='market',
+            install_args=dep,
+            wazo_version=current_wazo_version,
+        )
         self._package_install_fn(ctx)
 
     def update(self, ctx):
