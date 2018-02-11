@@ -75,7 +75,6 @@ class MarketPluginUpdater(object):
     def __init__(self, plugin_db, current_wazo_version):
         self._plugin_db = plugin_db
         self._current_wazo_version = current_wazo_version
-        self._comparator = version.Comparator()
 
     def update(self, plugin_info):
         namespace, name = plugin_info['namespace'], plugin_info['name']
@@ -98,13 +97,13 @@ class MarketPluginUpdater(object):
             max_wazo_version = version_info.get('max_wazo_version', self._current_wazo_version)
             proposed_version = version_info.get('version')
 
-            if self._comparator.less_than(self._current_wazo_version, min_wazo_version):
+            if version.less_than(self._current_wazo_version, min_wazo_version):
                 version_info['upgradable'] = False
-            elif self._comparator.less_than(max_wazo_version, self._current_wazo_version):
+            elif version.less_than(max_wazo_version, self._current_wazo_version):
                 version_info['upgradable'] = False
             elif plugin.is_installed():
                 installed_version = plugin.metadata()['version']
-                if not self._comparator.less_than(installed_version, proposed_version):
+                if not version.less_than(installed_version, proposed_version):
                     version_info['upgradable'] = False
 
 
@@ -248,7 +247,6 @@ class Plugin(object):
             config['default_metadata_filename'],
         )
         self._metadata = None
-        self._comparator = version.Comparator()
 
     def is_installed(self, version=None):
         try:

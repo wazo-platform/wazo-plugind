@@ -4,19 +4,16 @@
 from distutils.version import LooseVersion
 
 
-class Comparator:
+def less_than(left, right):
+    if not left:
+        return True
+    if not right:
+        return False
 
-    @staticmethod
-    def less_than(left, right):
-        if not left:
-            return True
-        if not right:
-            return False
+    left = _make_comparable_version(left)
+    right = _make_comparable_version(right)
 
-        left = _make_comparable_version(left)
-        right = _make_comparable_version(right)
-
-        return left < right
+    return left < right
 
 
 def _make_comparable_version(version):
