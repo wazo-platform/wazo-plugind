@@ -43,6 +43,9 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     def tearDown(self):
         self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
 
+    def docker_exec(self, *args, **kwargs):
+        return super().docker_exec(*args, **kwargs).decode('utf-8')
+
     def get_client(self, token=VALID_TOKEN, version=None):
         port = self.service_port(9503)
         client_args = {
@@ -153,7 +156,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
 
         def match():
             expected_data = ['status', status, 'uuid', uuid]
-            for key, value in kwargs.iteritems():
+            for key, value in kwargs.items():
                 expected_data.append(key)
                 expected_data.append(value)
 
