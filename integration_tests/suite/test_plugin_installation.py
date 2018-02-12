@@ -261,56 +261,56 @@ class TestPluginInstallation(BaseIntegrationTest):
         result = self.install_plugin(url='/data/git/max_version', method='git')
 
         errors = {
-            u'error_id': u'validation_error',
-            u'message': u'Validation error',
-            u'resource': u'plugins',
-            u'details': {
-                u'max_wazo_version': {
-                    u'message': ANY,
-                    u'constraint': ANY,
-                    u'constraint_id': u'range'}}}
+            'error_id': 'validation_error',
+            'message': 'Validation error',
+            'resource': 'plugins',
+            'details': {
+                'max_wazo_version': {
+                    'message': ANY,
+                    'constraint': ANY,
+                    'constraint_id': 'range'}}}
         self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
     def test_with_a_min_version_too_high(self):
         result = self.install_plugin(url='/data/git/min_version', method='git')
 
         errors = {
-            u'error_id': u'validation_error',
-            u'message': u'Validation error',
-            u'resource': u'plugins',
-            u'details': {
-                u'min_wazo_version': {
-                    u'message': ANY,
-                    u'constraint': ANY,
-                    u'constraint_id': u'range'}}}
+            'error_id': 'validation_error',
+            'message': 'Validation error',
+            'resource': 'plugins',
+            'details': {
+                'min_wazo_version': {
+                    'message': ANY,
+                    'constraint': ANY,
+                    'constraint_id': 'range'}}}
         self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
     def test_with_invalid_namespace(self):
         result = self.install_plugin(url='/data/git/fail_namespace', method='git')
 
         errors = {
-            u'error_id': u'validation_error',
-            u'message': u'Validation error',
-            u'resource': u'plugins',
-            u'details': {
-                u'namespace': {
-                    u'message': ANY,
-                    u'constraint': u'^[a-z0-9]+$',
-                    u'constraint_id': u'regex'}}}
+            'error_id': 'validation_error',
+            'message': 'Validation error',
+            'resource': 'plugins',
+            'details': {
+                'namespace': {
+                    'message': ANY,
+                    'constraint': '^[a-z0-9]+$',
+                    'constraint_id': 'regex'}}}
         self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
     def test_with_invalid_name(self):
         result = self.install_plugin(url='/data/git/fail_name', method='git')
 
         errors = {
-            u'error_id': u'validation_error',
-            u'message': u'Validation error',
-            u'resource': u'plugins',
-            u'details': {
-                u'name': {
-                    u'message': ANY,
-                    u'constraint': u'^[a-z0-9-]+$',
-                    u'constraint_id': u'regex'}}}
+            'error_id': 'validation_error',
+            'message': 'Validation error',
+            'resource': 'plugins',
+            'details': {
+                'name': {
+                    'message': ANY,
+                    'constraint': '^[a-z0-9-]+$',
+                    'constraint_id': 'regex'}}}
         self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors)
 
     def test_that_an_unauthorized_token_return_401(self):
@@ -339,11 +339,11 @@ class TestPluginInstallation(BaseIntegrationTest):
         result = self.install_plugin(url='file:///data/git/failing_build', method='git')
 
         errors = {
-            u'error_id': u'install_error',
-            u'message': u'Installation error',
-            u'resource': u'plugins',
-            u'details': {
-                u'step': 'building',
+            'error_id': 'install_error',
+            'message': 'Installation error',
+            'resource': 'plugins',
+            'details': {
+                'step': 'building',
             },
         }
 
