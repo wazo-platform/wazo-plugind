@@ -65,7 +65,10 @@ class _MarketDownloader:
 
         return self._downloader.download(ctx)
 
-    def _already_satisfied(self, plugin_info, required_version):
+    def _already_satisfied(self, ctx, plugin_info, required_version):
+        if ctx.install_params['reinstall']:
+            return False
+
         installed_version = plugin_info.get('installed_version')
         if not installed_version:
             return False
@@ -84,7 +87,7 @@ class _MarketDownloader:
         search_params.pop('version', None)
         plugin_info = market_db.get(**search_params)
 
-        if self._already_satisfied(plugin_info, required_version):
+        if self._already_satisfied(ctx, plugin_info, required_version):
             ctx.log(logger.info, '%s already satisfies %s', plugin_info, required_version)
             raise DependencyAlreadyInstalledException()
 

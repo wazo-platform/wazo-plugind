@@ -45,7 +45,7 @@ class PluginService:
             install_params=params,
             wazo_version=wazo_version,
         )
-        ctx.log(logger.info, 'installing %s...', options)
+        ctx.log(logger.info, 'installing %s with params %s...', options, params)
         self._executor.submit(task.execute, ctx)
         return ctx.uuid
 

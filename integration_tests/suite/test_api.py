@@ -67,11 +67,12 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return client.plugins.get(namespace, name)
 
     def install_plugin(self, url=None, method=None, **kwargs):
+        reinstall = kwargs.pop('reinstall', None)
         is_async = kwargs.pop('_async', True)
         options = kwargs.pop('options', None)
         client = self.get_client(**kwargs)
 
-        result = client.plugins.install(url, method, options)
+        result = client.plugins.install(url, method, options, reinstall=reinstall)
         if is_async:
             return result
 
@@ -182,5 +183,5 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                 self.fail('{} is not at the top of the accumulator, received {}'.format(status, first))
 
         aux = exclusive_match if exclusive else match
-        until.assert_(aux, tries=120, interval=0.5,
+        until.assert_(aux, tries=40, interval=0.5,
                       message='The bus message should have been received: {}'.format(status))
