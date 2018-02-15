@@ -4,7 +4,7 @@
 from contextlib import contextmanager
 from unittest import TestCase
 from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, raises
-from mock import Mock, patch, sentinel as s
+from mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
 from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB)
