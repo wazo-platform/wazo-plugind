@@ -16,7 +16,7 @@ from .db import PluginDB
 logger = logging.getLogger(__name__)
 
 
-class _GitDownloader(object):
+class _GitDownloader:
 
     def __init__(self, config):
         self._download_dir = config['download_dir']
@@ -34,7 +34,7 @@ class _GitDownloader(object):
         return ctx.with_fields(download_path=filename)
 
 
-class _MarketDownloader(object):
+class _MarketDownloader:
 
     _defaults = {'method': 'git'}
 
@@ -107,7 +107,7 @@ class _MarketDownloader(object):
                 return version_info
 
 
-class _UndefinedDownloader(object):
+class _UndefinedDownloader:
 
     def __init__(self, config):
         pass
@@ -116,7 +116,7 @@ class _UndefinedDownloader(object):
         raise UnsupportedDownloadMethod()
 
 
-class Downloader(object):
+class Downloader:
 
     def __init__(self, config):
         self._downloaders = {

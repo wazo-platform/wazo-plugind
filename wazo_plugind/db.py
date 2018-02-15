@@ -15,7 +15,7 @@ from . import debian
 logger = logging.getLogger(__name__)
 
 
-class AlwaysLast(object):
+class AlwaysLast:
 
     def __lt__(self, other):
         return False
@@ -42,7 +42,7 @@ def iin(left, right):
     return normalize_caseless(left) in normalize_caseless(right)
 
 
-class MarketProxy(object):
+class MarketProxy:
     """The MarketProxy is an interface to the plugin market
 
     The proxy should be used during the execution of an HTTP request. It will fetch the content
@@ -70,7 +70,7 @@ class MarketProxy(object):
             logger.info('Failed to fetch plugins from the market %s', e.response.status_code)
 
 
-class MarketPluginUpdater(object):
+class MarketPluginUpdater:
 
     def __init__(self, plugin_db, current_wazo_version):
         self._plugin_db = plugin_db
@@ -107,7 +107,7 @@ class MarketPluginUpdater(object):
                     version_info['upgradable'] = False
 
 
-class MarketDB(object):
+class MarketDB:
 
     def __init__(self, market_proxy, current_wazo_version, plugin_db=None):
         self._market_proxy = market_proxy
@@ -206,7 +206,7 @@ class MarketDB(object):
         return [metadata for metadata in content if match(metadata)]
 
 
-class PluginDB(object):
+class PluginDB:
 
     def __init__(self, config):
         self._config = config
@@ -234,7 +234,7 @@ class PluginDB(object):
         return result
 
 
-class Plugin(object):
+class Plugin:
 
     def __init__(self, config, namespace, name):
         self.namespace = namespace
@@ -283,7 +283,7 @@ class Plugin(object):
         return cls(config, namespace, name)
 
 
-class InstalledVersionMatcher(object):
+class InstalledVersionMatcher:
 
     def __init__(self, installed):
         self._installed = installed

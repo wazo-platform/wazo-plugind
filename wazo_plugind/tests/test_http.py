@@ -14,7 +14,7 @@ from ..service import PluginService
 API_VERSION = '0.2'
 
 
-class AuthVerifierMock(object):
+class AuthVerifierMock:
 
     def set_config(self, *args, **kwargs):
         pass

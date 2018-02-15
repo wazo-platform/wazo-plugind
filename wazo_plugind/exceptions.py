@@ -52,7 +52,7 @@ class InvalidSortParamException(APIException):
                                            'message': self._fmt.format(column)}})
 
 
-class _MarshmallowDetailFormatter(object):
+class _MarshmallowDetailFormatter:
 
     def format_details(self, errors):
         return {

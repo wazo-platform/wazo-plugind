@@ -9,7 +9,7 @@ import jinja2
 logger = logging.getLogger(__name__)
 
 
-class PackageDB(object):
+class PackageDB:
 
     _package_and_section_format = "${binary:Package} ${Section}\n"
 
@@ -37,7 +37,7 @@ class PackageDB(object):
             yield line
 
 
-class Generator(object):
+class Generator:
 
     _debian_dir = 'DEBIAN'
     _generated_files = ['control', 'postinst', 'prerm', 'postrm']

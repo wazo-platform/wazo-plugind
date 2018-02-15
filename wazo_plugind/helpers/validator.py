@@ -14,7 +14,7 @@ from wazo_plugind.exceptions import (
 logger = logging.getLogger(__name__)
 
 
-class Validator(object):
+class Validator:
 
     valid_namespace = re.compile(r'^[a-z0-9]+$')
     valid_name = re.compile(r'^[a-z0-9-]+$')

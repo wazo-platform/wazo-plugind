@@ -23,7 +23,7 @@ def _signal_handler(signum, frame):
     sys.exit(0)
 
 
-class Controller(object):
+class Controller:
 
     def __init__(self, config, root_worker):
         self._executor = ThreadPoolExecutor(max_workers=10)  # Make it configurable

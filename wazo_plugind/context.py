@@ -8,7 +8,7 @@ from functools import partial
 logger = logging.getLogger(__name__)
 
 
-class Context(object):
+class Context:
 
     def __init__(self, config, **kwargs):
         self.uuid = str(uuid4())

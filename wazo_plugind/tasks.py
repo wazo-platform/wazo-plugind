@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 _publisher = None
 
 
-class UninstallTask(object):
+class UninstallTask:
 
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
@@ -51,7 +51,7 @@ class UninstallTask(object):
             self._publisher.uninstall_error(ctx, error_id, message)
 
 
-class PackageAndInstallTask(object):
+class PackageAndInstallTask:
 
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
@@ -121,7 +121,7 @@ def get_publisher(config):
     return _publisher
 
 
-class _PackageRemover(object):
+class _PackageRemover:
 
     def __init__(self, config, root_worker):
         self._config = config
@@ -134,7 +134,7 @@ class _PackageRemover(object):
         return ctx
 
 
-class _PackageBuilder(object):
+class _PackageBuilder:
 
     def __init__(self, config, root_worker, package_install_fn):
         self._config = config
