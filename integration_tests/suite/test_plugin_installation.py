@@ -106,7 +106,7 @@ class TestPluginDependencies(BaseIntegrationTest):
                         'status': 'error',
                         'errors': has_entries({
                             'details': has_entries({
-                                'install_args': has_entries({
+                                'install_options': has_entries({
                                     'url': 'file:///data/git/dependencynotfound-one',
                                 })
                             })
@@ -119,7 +119,7 @@ class TestPluginDependencies(BaseIntegrationTest):
                         'status': 'error',
                         'errors': has_entries({
                             'details': has_entries({
-                                'install_args': has_entries({
+                                'install_options': has_entries({
                                     'name': 'not-found',
                                     'namespace': 'dependency',
                                 })

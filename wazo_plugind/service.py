@@ -35,17 +35,17 @@ class PluginService(object):
         market_db = self._new_market_db(market_proxy)
         return market_db.count(*args, **kwargs)
 
-    def create(self, method, params, **kwargs):
+    def create(self, method, params, options):
         task = PackageAndInstallTask(self._config, self._root_worker)
         wazo_version = self._wazo_version_finder.get_version()
         ctx = Context(
             self._config,
             method=method,
-            install_args=kwargs,
+            install_options=options,
             install_params=params,
             wazo_version=wazo_version,
         )
-        ctx.log(logger.info, 'installing %s...', kwargs)
+        ctx.log(logger.info, 'installing %s...', options)
         self._executor.submit(task.execute, ctx)
         return ctx.uuid
 

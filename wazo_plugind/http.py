@@ -132,13 +132,9 @@ class Plugins(_AuthentificatedResource):
         if errors:
             raise InvalidInstallQueryStringException(errors)
 
-        method, options = body['method'], body['options']
-        return self._post(method, options, params)
+        uuid = self.plugin_service.create(body['method'], params, body['options'])
 
-    def _post(self, method, options, params):
-        uuid = self.plugin_service.create(method, params, **options)
-
-        return {'uuid': uuid}
+        return dict(uuid=uuid)
 
     @classmethod
     def add_resource(cls, api, *args, **kwargs):

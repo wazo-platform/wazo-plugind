@@ -95,7 +95,7 @@ class PackageAndInstallTask(object):
         except PluginValidationException as e:
             ctx.log(logger.info, 'Plugin validation exception %s', e.details)
             details = dict(e.details)
-            details['install_args'] = dict(ctx.install_args)
+            details['install_options'] = dict(ctx.install_options)
             self._publisher.install_error(ctx, e.error_id, e.message, details=e.details)
         except DependencyAlreadyInstalledException:
             self._builder.clean(ctx)
@@ -105,7 +105,7 @@ class PackageAndInstallTask(object):
             ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
             error_id = '{}_error'.format(step)
             message = '{} Error'.format(step.capitalize())
-            details = {'install_args': dict(ctx.install_args)}
+            details = {'install_options': dict(ctx.install_options)}
             self._publisher.install_error(ctx, error_id, message, details=details)
             self._builder.clean(ctx)
 
@@ -212,7 +212,7 @@ class _PackageBuilder(object):
         ctx = Context(
             self._config,
             method='market',
-            install_args=dep,
+            install_options=dep,
             install_params={'reinstall': False},
             wazo_version=current_wazo_version,
         )

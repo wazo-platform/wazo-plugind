@@ -144,13 +144,13 @@ class TestPlugins(HTTPAppTestCase):
         options = {'name': 'foo', 'namespace': 'bar'}
         self.post({'method': 'market', 'options': options})
 
-        self.plugin_service.create.assert_called_once_with('market', {'reinstall': False}, **options)
+        self.plugin_service.create.assert_called_once_with('market', {'reinstall': False}, options)
 
     def test_market_install_with_all_arguments(self):
         options = {'name': 'foo', 'namespace': 'bar', 'version': '0.0.1'}
         self.post({'method': 'market', 'options': options})
 
-        self.plugin_service.create.assert_called_once_with('market', {'reinstall': False}, **options)
+        self.plugin_service.create.assert_called_once_with('market', {'reinstall': False}, options)
 
     def test_market_install_with_no_name_and_namespace(self):
         status_code, response = self.post({'method': 'market', 'options': {}})
@@ -172,13 +172,17 @@ class TestPlugins(HTTPAppTestCase):
         options = {'url': 'http://'}
         self.post({'method': 'git', 'options': options})
 
-        self.plugin_service.create.assert_called_once_with('git', {'reinstall': False}, ref='master', **options)
+        self.plugin_service.create.assert_called_once_with(
+            'git',
+            {'reinstall': False},
+            dict(ref='master', **options),
+        )
 
     def test_git_install_with_a_branch_name(self):
         options = {'url': 'http://', 'ref': 'foobar'}
         self.post({'method': 'git', 'options': options})
 
-        self.plugin_service.create.assert_called_once_with('git', {'reinstall': False}, **options)
+        self.plugin_service.create.assert_called_once_with('git', {'reinstall': False}, options)
 
     def test_git_install_with_no_url(self):
         options = {'ref': 'foobar'}
