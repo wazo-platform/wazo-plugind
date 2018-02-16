@@ -1,6 +1,13 @@
 Changelog
 =========
 
+18.03
+------
+
+* It is now possible to force the reinstallation of a plugin on `POST /plugins`
+  with query parameter `reinstall=True`.
+
+
 18.02
 ------
 

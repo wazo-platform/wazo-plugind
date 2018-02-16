@@ -13,7 +13,7 @@ from .helpers import exec_and_log
 logger = logging.getLogger(__name__)
 
 
-class BaseWorker(object):
+class BaseWorker:
 
     name = 'base'
 
@@ -81,7 +81,7 @@ class RootWorker(BaseWorker):
         return self.send_cmd_and_wait('uninstall', *args, **kwargs)
 
 
-class _CommandExecutor(object):
+class _CommandExecutor:
 
     def execute(self, cmd, *args, **kwargs):
         fn = getattr(self, cmd, None)

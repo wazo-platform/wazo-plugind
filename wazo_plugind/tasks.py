@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 _publisher = None
 
 
-class UninstallTask(object):
+class UninstallTask:
 
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
@@ -51,7 +51,7 @@ class UninstallTask(object):
             self._publisher.uninstall_error(ctx, error_id, message)
 
 
-class PackageAndInstallTask(object):
+class PackageAndInstallTask:
 
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
@@ -95,7 +95,7 @@ class PackageAndInstallTask(object):
         except PluginValidationException as e:
             ctx.log(logger.info, 'Plugin validation exception %s', e.details)
             details = dict(e.details)
-            details['install_args'] = dict(ctx.install_args)
+            details['install_options'] = dict(ctx.install_options)
             self._publisher.install_error(ctx, e.error_id, e.message, details=e.details)
         except DependencyAlreadyInstalledException:
             self._builder.clean(ctx)
@@ -105,7 +105,7 @@ class PackageAndInstallTask(object):
             ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
             error_id = '{}_error'.format(step)
             message = '{} Error'.format(step.capitalize())
-            details = {'install_args': dict(ctx.install_args)}
+            details = {'install_options': dict(ctx.install_options)}
             self._publisher.install_error(ctx, error_id, message, details=details)
             self._builder.clean(ctx)
 
@@ -121,7 +121,7 @@ def get_publisher(config):
     return _publisher
 
 
-class _PackageRemover(object):
+class _PackageRemover:
 
     def __init__(self, config, root_worker):
         self._config = config
@@ -134,7 +134,7 @@ class _PackageRemover(object):
         return ctx
 
 
-class _PackageBuilder(object):
+class _PackageBuilder:
 
     def __init__(self, config, root_worker, package_install_fn):
         self._config = config
@@ -184,8 +184,9 @@ class _PackageBuilder(object):
         )
 
     def validate(self, ctx):
-        validator = Validator.new_from_config(ctx.config, ctx.wazo_version)
+        validator = Validator.new_from_config(ctx.config, ctx.wazo_version, ctx.install_params)
         validator.validate(ctx.metadata)
+        ctx.install_params['reinstall'] = False
         return ctx
 
     def install(self, ctx):
@@ -211,7 +212,8 @@ class _PackageBuilder(object):
         ctx = Context(
             self._config,
             method='market',
-            install_args=dep,
+            install_options=dep,
+            install_params={'reinstall': False},
             wazo_version=current_wazo_version,
         )
         self._package_install_fn(ctx)

@@ -28,7 +28,7 @@ def exec_and_log(stdout_logger, stderr_logger, *args, **kwargs):
     return p
 
 
-class WazoVersionFinder(object):
+class WazoVersionFinder:
 
     def __init__(self, config):
         self._token = None

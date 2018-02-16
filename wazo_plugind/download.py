@@ -16,13 +16,13 @@ from .db import PluginDB
 logger = logging.getLogger(__name__)
 
 
-class _GitDownloader(object):
+class _GitDownloader:
 
     def __init__(self, config):
         self._download_dir = config['download_dir']
 
     def download(self, ctx):
-        url, ref = ctx.install_args['url'], ctx.install_args['ref']
+        url, ref = ctx.install_options['url'], ctx.install_options['ref']
         filename = os.path.join(self._download_dir, ctx.uuid)
 
         cmd = ['git', 'clone', '--branch', ref, '--depth', '1', url, filename]
@@ -34,7 +34,7 @@ class _GitDownloader(object):
         return ctx.with_fields(download_path=filename)
 
 
-class _MarketDownloader(object):
+class _MarketDownloader:
 
     _defaults = {'method': 'git'}
 
@@ -45,7 +45,7 @@ class _MarketDownloader(object):
     def download(self, ctx):
         version_info = self._find_matching_plugin(ctx)
         if not version_info:
-            ctx.log(logger.debug, 'Ignoring dependency not upgradable: %s', ctx.install_args)
+            ctx.log(logger.debug, 'Ignoring dependency not upgradable: %s', ctx.install_options)
             raise DependencyAlreadyInstalledException()
 
         for key, value in self._defaults.items():
@@ -61,11 +61,14 @@ class _MarketDownloader(object):
 
         options = body['options']
         if options:
-            ctx = ctx.with_fields(install_args=options)
+            ctx = ctx.with_fields(install_options=options)
 
         return self._downloader.download(ctx)
 
-    def _already_satisfied(self, plugin_info, required_version):
+    def _already_satisfied(self, ctx, plugin_info, required_version):
+        if ctx.install_params['reinstall']:
+            return False
+
         installed_version = plugin_info.get('installed_version')
         if not installed_version:
             return False
@@ -79,12 +82,12 @@ class _MarketDownloader(object):
         plugin_db = PluginDB(ctx.config)
         market_proxy = db.MarketProxy(self._market_config)
         market_db = db.MarketDB(market_proxy, ctx.wazo_version, plugin_db)
-        required_version = ctx.install_args.get('version')
-        search_params = dict(ctx.install_args)
+        required_version = ctx.install_options.get('version')
+        search_params = dict(ctx.install_options)
         search_params.pop('version', None)
         plugin_info = market_db.get(**search_params)
 
-        if self._already_satisfied(plugin_info, required_version):
+        if self._already_satisfied(ctx, plugin_info, required_version):
             ctx.log(logger.info, '%s already satisfies %s', plugin_info, required_version)
             raise DependencyAlreadyInstalledException()
 
@@ -107,7 +110,7 @@ class _MarketDownloader(object):
                 return version_info
 
 
-class _UndefinedDownloader(object):
+class _UndefinedDownloader:
 
     def __init__(self, config):
         pass
@@ -116,7 +119,7 @@ class _UndefinedDownloader(object):
         raise UnsupportedDownloadMethod()
 
 
-class Downloader(object):
+class Downloader:
 
     def __init__(self, config):
         self._downloaders = {

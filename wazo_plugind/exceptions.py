@@ -52,7 +52,7 @@ class InvalidSortParamException(APIException):
                                            'message': self._fmt.format(column)}})
 
 
-class _MarshmallowDetailFormatter(object):
+class _MarshmallowDetailFormatter:
 
     def format_details(self, errors):
         return {
@@ -84,6 +84,16 @@ class InvalidListParamException(APIException, _MarshmallowDetailFormatter):
 
 
 class InvalidInstallParamException(APIException, _MarshmallowDetailFormatter):
+
+    def __init__(self, errors):
+        super().__init__(status_code=400,
+                         message='Invalid data',
+                         error_id='invalid_data',
+                         resource='plugins',
+                         details=self.format_details(errors))
+
+
+class InvalidInstallQueryStringException(APIException, _MarshmallowDetailFormatter):
 
     def __init__(self, errors):
         super().__init__(status_code=400,

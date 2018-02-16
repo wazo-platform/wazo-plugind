@@ -106,7 +106,7 @@ class TestPluginDependencies(BaseIntegrationTest):
                         'status': 'error',
                         'errors': has_entries({
                             'details': has_entries({
-                                'install_args': has_entries({
+                                'install_options': has_entries({
                                     'url': 'file:///data/git/dependencynotfound-one',
                                 })
                             })
@@ -119,7 +119,7 @@ class TestPluginDependencies(BaseIntegrationTest):
                         'status': 'error',
                         'errors': has_entries({
                             'details': has_entries({
-                                'install_args': has_entries({
+                                'install_options': has_entries({
                                     'name': 'not-found',
                                     'namespace': 'dependency',
                                 })
@@ -209,15 +209,24 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(postinst_success_exists, equal_to(False))
         assert_that(postrm_success_exists, equal_to(True))
 
-    def test_that_installing_twice_completes_with_reinstalling(self):
+    def test_that_installing_twice_completes_without_reinstalling(self):
         self.install_plugin(url='file:///data/git/repo2', method='git', _async=False)
 
         result = self.install_plugin(url='file:///data/git/repo2', method='git')
-
         assert_that(result, has_entries(uuid=uuid_()))
         statuses = ['starting', 'downloading', 'extracting', 'validating', 'completed']
         for status in statuses:
             self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status, exclusive=True)
+
+    def test_that_installing_twice_with_reinstall_option_reinstalls(self):
+        self.install_plugin(url='file:///data/git/repo2', method='git', _async=False)
+
+        result = self.install_plugin(url='file:///data/git/repo2', method='git', reinstall=True)
+        assert_that(result, has_entries(uuid=uuid_()))
+        statuses = ['starting', 'downloading', 'extracting', 'building',
+                    'packaging', 'updating', 'installing', 'completed']
+        for status in statuses:
+            self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status)
 
     def test_when_uninstall_works(self):
         self.install_plugin(url='file:///data/git/repo', method='git', _async=False)

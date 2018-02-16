@@ -67,11 +67,12 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return client.plugins.get(namespace, name)
 
     def install_plugin(self, url=None, method=None, **kwargs):
+        reinstall = kwargs.pop('reinstall', None)
         is_async = kwargs.pop('_async', True)
         options = kwargs.pop('options', None)
         client = self.get_client(**kwargs)
 
-        result = client.plugins.install(url, method, options)
+        result = client.plugins.install(url, method, options, reinstall=reinstall)
         if is_async:
             return result
 

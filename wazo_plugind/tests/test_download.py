@@ -5,7 +5,7 @@ from hamcrest import assert_that, equal_to
 from mock import Mock
 from unittest import TestCase
 
-from wazo_plugind import download
+from wazo_plugind import context, download
 from wazo_plugind.config import _DEFAULT_CONFIG
 
 
@@ -28,8 +28,10 @@ class TestMarketDownloader(TestCase):
             (matching_installed, True),
         ]
 
+        ctx = context.Context(_DEFAULT_CONFIG, install_params={'reinstall': False})
+
         for plugin_info, expected in tests:
-            result = self.downloader._already_satisfied(plugin_info, '1.5.1')
+            result = self.downloader._already_satisfied(ctx, plugin_info, '1.5.1')
             assert_that(result, equal_to(expected), plugin_info)
 
         tests = [
@@ -40,5 +42,5 @@ class TestMarketDownloader(TestCase):
         ]
 
         for plugin_info, expected in tests:
-            result = self.downloader._already_satisfied(plugin_info, None)
+            result = self.downloader._already_satisfied(ctx, plugin_info, None)
             assert_that(result, equal_to(expected), plugin_info)

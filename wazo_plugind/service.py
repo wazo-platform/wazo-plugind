@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 import logging
@@ -11,7 +11,7 @@ from .tasks import PackageAndInstallTask, UninstallTask
 logger = logging.getLogger(__name__)
 
 
-class PluginService(object):
+class PluginService:
 
     def __init__(self, config, status_publisher, root_worker, executor, plugin_db, wazo_version_finder):
         self._build_dir = config['build_dir']
@@ -35,11 +35,17 @@ class PluginService(object):
         market_db = self._new_market_db(market_proxy)
         return market_db.count(*args, **kwargs)
 
-    def create(self, method, **kwargs):
+    def create(self, method, params, options):
         task = PackageAndInstallTask(self._config, self._root_worker)
         wazo_version = self._wazo_version_finder.get_version()
-        ctx = Context(self._config, method=method, install_args=kwargs, wazo_version=wazo_version)
-        ctx.log(logger.info, 'installing %s...', kwargs)
+        ctx = Context(
+            self._config,
+            method=method,
+            install_options=options,
+            install_params=params,
+            wazo_version=wazo_version,
+        )
+        ctx.log(logger.info, 'installing %s with params %s...', options, params)
         self._executor.submit(task.execute, ctx)
         return ctx.uuid
 

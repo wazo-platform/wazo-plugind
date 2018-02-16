@@ -13,7 +13,7 @@ from xivo_bus.resources.plugins.events import (
 logger = logging.getLogger(__name__)
 
 
-class StatusPublisher(object):
+class StatusPublisher:
 
     def __init__(self, publisher):
         self._publisher = publisher
