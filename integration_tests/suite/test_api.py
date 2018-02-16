@@ -183,5 +183,5 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                 self.fail('{} is not at the top of the accumulator, received {}'.format(status, first))
 
         aux = exclusive_match if exclusive else match
-        until.assert_(aux, tries=40, interval=0.5,
+        until.assert_(aux, tries=120, interval=0.5,
                       message='The bus message should have been received: {}'.format(status))
