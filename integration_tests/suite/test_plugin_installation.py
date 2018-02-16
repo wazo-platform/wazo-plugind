@@ -209,7 +209,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(postinst_success_exists, equal_to(False))
         assert_that(postrm_success_exists, equal_to(True))
 
-    def test_that_installing_twice_completes_with_reinstalling(self):
+    def test_that_installing_twice_completes_without_reinstalling(self):
         self.install_plugin(url='file:///data/git/repo2', method='git', _async=False)
 
         result = self.install_plugin(url='file:///data/git/repo2', method='git')
@@ -218,7 +218,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         for status in statuses:
             self.assert_status_received(self.msg_accumulator, 'install', result['uuid'], status, exclusive=True)
 
-    def test_that_installing_twice_with_reinstall_option(self):
+    def test_that_installing_twice_with_reinstall_option_reinstalls(self):
         self.install_plugin(url='file:///data/git/repo2', method='git', _async=False)
 
         result = self.install_plugin(url='file:///data/git/repo2', method='git', reinstall=True)
