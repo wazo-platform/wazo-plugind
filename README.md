@@ -1,6 +1,6 @@
 # wazo-plugind
 
-[![Build Status](https://travis-ci.org/wazo-pbx/wazo-plugind.svg?branch=master)](https://travis-ci.org/wazo-pbx/wazo-plugind)
+[![Build Status](https://jenkins.wazo.community/buildStatus/icon?job=wazo-plugind)](https://jenkins.wazo.community/job/wazo-plugind)
 
 A micro service to manage plugins in the [Wazo PBX](http://wazo.community).
 
