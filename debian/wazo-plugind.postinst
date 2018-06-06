@@ -10,10 +10,11 @@ HOMEDIR="/var/lib/${DAEMONNAME}"
 DOWNLOAD_DIR="${HOMEDIR}/downloads"
 DATA_DIR="/usr/lib/${DAEMONNAME}"
 BACKUP_RULES_DIR="${HOMEDIR}/rules"
-TMP_DIR="${HOMEDIR}/tmp"
 
 case "$1" in
     configure)
+        previous_version="$2"
+
         # add/update user
         if ! getent passwd $USER > /dev/null; then
             echo "Adding system user $USER" 1>&2
@@ -33,13 +34,7 @@ case "$1" in
         mkdir -p "${BACKUP_RULES_DIR}"
         chmod 755 "${BACKUP_RULES_DIR}"
 
-        if dpkg --compare-versions "$2" lt '17.08'; then
-            rm -rf "${HOMEDIR}/plugins"
-        fi
-        if dpkg --compare-versions "$2" lt '17.09'; then
-            rm -rf "${TMP_DIR}"
-        fi
-        if dpkg --compare-versions "$2" lt '17.11'; then
+        if [[ -z "${previous_version}" ]]; then
             ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
                     /etc/nginx/locations/https-enabled/$DAEMONNAME
         fi
