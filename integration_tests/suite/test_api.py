@@ -35,7 +35,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
     service = 'plugind'
-    bus_config = dict(username='guest', password='guest', host='localhost')
+    bus_config = dict(user='guest', password='guest', host='localhost')
 
     def setUp(self):
         self.msg_accumulator = self.new_message_accumulator('plugin.#')
@@ -113,8 +113,8 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
 
     def new_message_accumulator(self, routing_key):
         port = self.service_port(5672, service_name='rabbitmq')
-        bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(port=port, **self.bus_config)
-        return BusClient(bus_url).accumulator(routing_key)
+        bus = BusClient.from_connection_fields(port=port, **self.bus_config)
+        return bus.accumulator(routing_key)
 
     def search(self, *args, **kwargs):
         client = self.get_client()
