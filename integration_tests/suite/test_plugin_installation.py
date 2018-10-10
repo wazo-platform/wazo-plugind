@@ -347,7 +347,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         result = self.install_plugin(url='file:///data/git/failing_build', method='git')
 
         errors = {
-            'error_id': 'install_error',
+            'error_id': 'install-error',
             'message': 'Installation error',
             'resource': 'plugins',
             'details': {

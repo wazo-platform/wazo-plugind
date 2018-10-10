@@ -87,7 +87,7 @@ class PackageAndInstallTask:
             ctx.log(logger.info, 'an external command failed during the plugin installation: %s', e)
             self._builder.clean(ctx)
             details = {'step': step}
-            self._publisher.install_error(ctx, 'install_error', 'Installation error', details=details)
+            self._publisher.install_error(ctx, 'install-error', 'Installation error', details=details)
         except PluginAlreadyInstalled:
             ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
             self._builder.clean(ctx)
@@ -103,7 +103,7 @@ class PackageAndInstallTask:
         except Exception:
             debug_enabled = ctx.config['debug']
             ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
-            error_id = '{}_error'.format(step)
+            error_id = '{}-error'.format(step.replace(' ', '-'))
             message = '{} Error'.format(step.capitalize())
             details = {'install_options': dict(ctx.install_options)}
             self._publisher.install_error(ctx, error_id, message, details=details)
