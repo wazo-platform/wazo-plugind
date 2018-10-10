@@ -33,7 +33,7 @@ class TestValidator(TestCase):
         assert_that(
             calling(validator.validate).with_args(metadata),
             raises(exceptions.PluginValidationException).matching(
-                has_properties('error_id', 'validation_error',
+                has_properties('error_id', 'validation-error',
                                'message', 'Validation error',
                                'details', expected_details)
             ),
@@ -52,7 +52,7 @@ class TestValidator(TestCase):
         assert_that(
             calling(validator.validate).with_args(metadata),
             raises(exceptions.PluginValidationException).matching(
-                has_properties('error_id', 'validation_error',
+                has_properties('error_id', 'validation-error',
                                'message', 'Validation error',
                                'details', expected_details)
             ),
@@ -71,7 +71,7 @@ class TestValidator(TestCase):
         assert_that(
             calling(validator.validate).with_args(metadata),
             raises(exceptions.PluginValidationException).matching(
-                has_properties('error_id', 'validation_error',
+                has_properties('error_id', 'validation-error',
                                'message', 'Validation error',
                                'details', expected_details)
             ),
@@ -89,7 +89,7 @@ class TestValidator(TestCase):
         assert_that(
             calling(validator.validate).with_args(metadata),
             raises(exceptions.PluginValidationException).matching(
-                has_properties('error_id', 'validation_error',
+                has_properties('error_id', 'validation-error',
                                'message', 'Validation error',
                                'details', expected_details)
             ),
@@ -107,7 +107,7 @@ class TestValidator(TestCase):
         assert_that(
             calling(validator.validate).with_args(metadata),
             raises(exceptions.PluginValidationException).matching(
-                has_properties('error_id', 'validation_error',
+                has_properties('error_id', 'validation-error',
                                'message', 'Validation error',
                                'details', expected_details)
             ),
@@ -125,7 +125,7 @@ class TestValidator(TestCase):
         assert_that(
             calling(validator.validate).with_args(metadata),
             raises(exceptions.PluginValidationException).matching(
-                has_properties('error_id', 'validation_error',
+                has_properties('error_id', 'validation-error',
                                'message', 'Validation error',
                                'details', expected_details)
             ),

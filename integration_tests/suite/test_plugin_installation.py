@@ -269,7 +269,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         result = self.install_plugin(url='/data/git/max_version', method='git')
 
         errors = {
-            'error_id': 'validation_error',
+            'error_id': 'validation-error',
             'message': 'Validation error',
             'resource': 'plugins',
             'details': {
@@ -283,7 +283,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         result = self.install_plugin(url='/data/git/min_version', method='git')
 
         errors = {
-            'error_id': 'validation_error',
+            'error_id': 'validation-error',
             'message': 'Validation error',
             'resource': 'plugins',
             'details': {
@@ -297,7 +297,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         result = self.install_plugin(url='/data/git/fail_namespace', method='git')
 
         errors = {
-            'error_id': 'validation_error',
+            'error_id': 'validation-error',
             'message': 'Validation error',
             'resource': 'plugins',
             'details': {
@@ -311,7 +311,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         result = self.install_plugin(url='/data/git/fail_name', method='git')
 
         errors = {
-            'error_id': 'validation_error',
+            'error_id': 'validation-error',
             'message': 'Validation error',
             'resource': 'plugins',
             'details': {

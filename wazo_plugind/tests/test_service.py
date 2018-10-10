@@ -67,7 +67,7 @@ class TestPluginService(TestCase):
             calling(self._service.get_plugin_metadata).with_args(s.namespace, s.name),
             raises(APIException).matching(
                 has_properties('status_code', 404,
-                               'id_', 'plugin_not_found',
+                               'id_', 'plugin-not-found',
                                'resource', 'plugins')
             ),
         )
