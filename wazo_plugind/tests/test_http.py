@@ -122,7 +122,7 @@ class TestPlugins(HTTPAppTestCase):
         status_code, response = self.post({'options': {'url': 'http://'}})
 
         assert_that(status_code, equal_to(400))
-        assert_that(response, has_entries('error_id', 'invalid_data',
+        assert_that(response, has_entries('error_id', 'invalid-data',
                                           'message', 'Invalid data',
                                           'resource', 'plugins',
                                           'details', {'method': {'constraint_id': 'required',
@@ -133,7 +133,7 @@ class TestPlugins(HTTPAppTestCase):
         status_code, response = self.post({'method': 'svn', 'options': {'url': 'http://'}})
 
         assert_that(status_code, equal_to(400))
-        assert_that(response, has_entries('error_id', 'invalid_data',
+        assert_that(response, has_entries('error_id', 'invalid-data',
                                           'message', 'Invalid data',
                                           'resource', 'plugins',
                                           'details', {'method': {'constraint_id': 'enum',
@@ -158,7 +158,7 @@ class TestPlugins(HTTPAppTestCase):
         assert_that(status_code, equal_to(400))
         assert_that(
             response,
-            has_entries('error_id', 'invalid_data',
+            has_entries('error_id', 'invalid-data',
                         'message', 'Invalid data',
                         'resource', 'plugins',
                         'details', {'options': {'name': {'constraint_id': 'required',
@@ -191,7 +191,7 @@ class TestPlugins(HTTPAppTestCase):
         assert_that(status_code, equal_to(400))
         assert_that(
             response,
-            has_entries('error_id', 'invalid_data',
+            has_entries('error_id', 'invalid-data',
                         'message', 'Invalid data',
                         'resource', 'plugins',
                         'details', {'options': {'url': {'constraint_id': 'required',

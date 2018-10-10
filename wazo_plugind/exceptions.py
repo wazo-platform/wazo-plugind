@@ -19,7 +19,7 @@ class UnsupportedDownloadMethod(APIException):
     def __init__(self):
         super().__init__(status_code=501,
                          message='Unsupported download method',
-                         error_id='unsupported_download_method',
+                         error_id='unsupported-download-method',
                          details={})
 
 
@@ -46,7 +46,7 @@ class InvalidSortParamException(APIException):
     def __init__(self, column):
         super().__init__(status_code=400,
                          message='Invalid sort parameters',
-                         error_id='invalid_sort_params',
+                         error_id='invalid-sort-params',
                          resource='market',
                          details={column: {'constraint_id': 'orderable',
                                            'message': self._fmt.format(column)}})
@@ -78,7 +78,7 @@ class InvalidListParamException(APIException, _MarshmallowDetailFormatter):
     def __init__(self, errors):
         super().__init__(status_code=400,
                          message='Invalid data',
-                         error_id='invalid_data',
+                         error_id='invalid-data',
                          resource='plugins',
                          details=self.format_details(errors))
 
@@ -88,7 +88,7 @@ class InvalidInstallParamException(APIException, _MarshmallowDetailFormatter):
     def __init__(self, errors):
         super().__init__(status_code=400,
                          message='Invalid data',
-                         error_id='invalid_data',
+                         error_id='invalid-data',
                          resource='plugins',
                          details=self.format_details(errors))
 
@@ -98,14 +98,14 @@ class InvalidInstallQueryStringException(APIException, _MarshmallowDetailFormatt
     def __init__(self, errors):
         super().__init__(status_code=400,
                          message='Invalid data',
-                         error_id='invalid_data',
+                         error_id='invalid-data',
                          resource='plugins',
                          details=self.format_details(errors))
 
 
 class PluginValidationException(Exception, _MarshmallowDetailFormatter):
 
-    error_id = 'validation_error'
+    error_id = 'validation-error'
     message = 'Validation error'
     details = {}
 
@@ -118,7 +118,7 @@ class PluginNotFoundException(APIException):
     def __init__(self, namespace, name):
         super().__init__(status_code=404,
                          message='Plugin not found {}/{}'.format(namespace, name),
-                         error_id='plugin_not_found',
+                         error_id='plugin-not-found',
                          resource='plugins',
                          details={'name': name, 'namespace': namespace})
 
@@ -140,6 +140,6 @@ class MarketNotFoundException(APIException):
     def __init__(self):
         super().__init__(status_code=503,
                          message='Market Service Unavailable',
-                         error_id='market_service_unavailable',
+                         error_id='market-service-unavailable',
                          resource='market',
                          details={})
