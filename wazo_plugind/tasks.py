@@ -46,7 +46,7 @@ class UninstallTask:
                 ctx = fn(ctx)
         except Exception:
             ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=self._debug_enabled)
-            error_id = '{}_error'.format(step)
+            error_id = '{}-error'.format(step)
             message = '{} Error'.format(step.capitalize())
             self._publisher.uninstall_error(ctx, error_id, message)
 
