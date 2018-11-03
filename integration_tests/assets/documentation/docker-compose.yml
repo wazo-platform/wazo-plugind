@@ -1,33 +1,34 @@
-sync:
-  image: n3llyb0y/wait
-  links:
-    - plugind
-    - swagger-validator
-    - rabbitmq
-  environment:
-    PORTS: "5672 9503 8080"
-    TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
-plugind:
-  image: "wazo-plugind-test"
-  links:
-    - rabbitmq
-  environment:
-    - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
-  volumes:
-    - "../../..:/usr/src/wazo-plugind"
-    - "./etc/wazo-plugind/key.yml:/etc/wazo-plugind/key.yml"
-    - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
-    - "./etc/wazo-plugind/conf.d/disable_service_discovery.yml:/etc/wazo-plugind/conf.d/disable_service_discovery.yml"
-    # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.4/site-packages/xivo"
-  ports:
-    - "9503"
-rabbitmq:
-  image: "rabbitmq"
-  ports:
-    - 5672
-swagger-validator:
-  image: swaggerapi/swagger-validator
-  ports:
-    - "8080"
-  links:
-    - plugind
+version: "3"
+services:
+  sync:
+    image: waisbrot/wait
+    depends_on:
+      - plugind
+      - swagger-validator
+      - rabbitmq
+    environment:
+      TARGETS: "rabbitmq:5672 plugind:9503 swagger-validator:8080"
+      TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
+
+  plugind:
+    image: "wazo-plugind-test"
+    environment:
+      - XIVO_UUID=cd030e68-ace9-4ad4-bc4e-13c8dec67898
+    volumes:
+      - "../../..:/usr/src/wazo-plugind"
+      - "./etc/wazo-plugind/key.yml:/etc/wazo-plugind/key.yml"
+      - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
+      - "./etc/wazo-plugind/conf.d/disable_service_discovery.yml:/etc/wazo-plugind/conf.d/disable_service_discovery.yml"
+      # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.5/site-packages/xivo"
+    ports:
+      - "9503"
+
+  rabbitmq:
+    image: "rabbitmq"
+    ports:
+      - 5672
+
+  swagger-validator:
+    image: swaggerapi/swagger-validator
+    ports:
+      - "8080"
