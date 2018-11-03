@@ -27,8 +27,6 @@ services:
     image: "python:3"
     ports:
       - "8000"
-    volumes:
-      - "./market:/var/www"
     command: ["bash", "-c", "cd /var/www && python -m http.server"]
 
   rabbitmq:
