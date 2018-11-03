@@ -12,7 +12,6 @@ services:
       - WAZO_VERSION=17.10
     volumes:
       - "../..:/usr/src/wazo-plugind"
-      - "./git:/data/git"
       - "./etc/wazo-plugind/key.yml:/etc/wazo-plugind/key.yml"
       - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
       - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"

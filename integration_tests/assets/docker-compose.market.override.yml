@@ -9,6 +9,10 @@ services:
     environment:
       TARGETS: "rabbitmq:5672 market:8000 plugind:9503 auth:9497"
 
+  plugind:
+    volumes:
+      - "./git/git-market:/data/git"
+
   market:
     volumes:
       - "./market/market-market:/var/www"
