@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 set -eu
@@ -15,7 +15,7 @@ for dir in $(find . -name '*-git'); do
     popd
 done
 
-pushd "assets/plugind_only/git/repo"
+pushd "assets/git/git-plugind_only/repo"
 git checkout -b "v2"
 sed -i 's/package_success/package_success_2/' wazo/rules
 sed -i 's/0.0.1/0.0.2/' wazo/plugin.yml
