@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0+
 
 from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, has_property, is_
@@ -11,7 +11,7 @@ PLUGIN_COUNT = 24
 
 class TestMarket(BaseIntegrationTest):
 
-    asset = 'market'
+    asset = 'market-asset'
 
     def test_get(self):
         assert_that(calling(self.get_market).with_args('official', 'admin-ui-conference', token='invalid-token'),
