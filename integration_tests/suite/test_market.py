@@ -11,7 +11,7 @@ PLUGIN_COUNT = 24
 
 class TestMarket(BaseIntegrationTest):
 
-    asset = 'market-asset'
+    asset = 'market'
 
     def test_get(self):
         assert_that(calling(self.get_market).with_args('official', 'admin-ui-conference', token='invalid-token'),
