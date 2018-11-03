@@ -37,6 +37,14 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     service = 'plugind'
     bus_config = dict(user='guest', password='guest', host='localhost')
 
+    @classmethod
+    def _docker_compose_options(cls):
+        return [
+            '--file', os.path.join(cls.assets_root, 'docker-compose.yml'),
+            '--file', os.path.join(cls.assets_root, 'docker-compose.{}.override.yml'.format(cls.asset)),
+            '--project-name', cls.service,
+        ]
+
     def setUp(self):
         self.msg_accumulator = self.new_message_accumulator('plugin.#')
 
