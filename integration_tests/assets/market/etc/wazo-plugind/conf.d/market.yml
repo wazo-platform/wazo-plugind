@@ -1,5 +1,0 @@
-market:
-  host: market
-  port: 8000
-  https: False
-  version: 0.1

@@ -9,12 +9,12 @@ egg-info:
 	cd .. && python setup.py egg_info
 
 pull-images:
-	docker pull wazopbx/xivo-auth-mock
-	docker pull python:3.5.3
-	docker pull n3llyb0y/wait
-	docker pull rabbitmq
 	docker pull consul
+	docker pull python:3.5.3
+	docker pull rabbitmq
 	docker pull swaggerapi/swagger-validator
+	docker pull waisbrot/wait
+	docker pull wazopbx/xivo-auth-mock
 
 build-plugind:
 	docker build -t wazopbx/wazo-plugind ..

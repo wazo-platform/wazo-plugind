@@ -1,0 +1,13 @@
+version: "3"
+services:
+  sync:
+    depends_on:
+      - plugind
+      - auth
+      - rabbitmq
+    environment:
+      TARGETS: "rabbitmq:5672 plugind:9503 auth:9497"
+
+  plugind:
+    volumes:
+      - "./git/git-plugind_only:/data/git"
