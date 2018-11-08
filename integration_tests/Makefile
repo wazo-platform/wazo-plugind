@@ -13,7 +13,7 @@ pull-images:
 	docker pull python:3.5.3
 	docker pull rabbitmq
 	docker pull swaggerapi/swagger-validator
-	docker pull waisbrot/wait
+	docker pull wazopbx/wait
 	docker pull wazopbx/xivo-auth-mock
 
 build-plugind:
