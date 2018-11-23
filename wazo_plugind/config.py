@@ -87,7 +87,7 @@ _DEFAULT_CONFIG = dict(
         'host': 'localhost',
         'port': 9497,
         'verify_certificate': _DEFAULT_CERT_FILE,
-        'key_file': '/var/lib/xivo-auth-keys/wazo-plugind-key.yml',
+        'key_file': '/var/lib/wazo-auth-keys/wazo-plugind-key.yml',
     }
 )
 
