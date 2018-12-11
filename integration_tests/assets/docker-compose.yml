@@ -35,6 +35,6 @@ services:
       - 5672
 
   auth:
-    image: "wazopbx/xivo-auth-mock"
+    image: "wazopbx/wazo-auth-mock"
     ports:
       - "9497"

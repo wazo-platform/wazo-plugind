@@ -14,7 +14,7 @@ pull-images:
 	docker pull rabbitmq
 	docker pull swaggerapi/swagger-validator
 	docker pull wazopbx/wait
-	docker pull wazopbx/xivo-auth-mock
+	docker pull wazopbx/wazo-auth-mock
 
 build-plugind:
 	docker build -t wazopbx/wazo-plugind ..
