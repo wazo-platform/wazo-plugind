@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -264,7 +264,7 @@ class Plugin:
     def metadata(self):
         if not self._metadata:
             with open(self.metadata_filename, 'r') as f:
-                self._metadata = yaml.load(f)
+                self._metadata = yaml.safe_load(f)
 
         return self._metadata
 
