@@ -1,11 +1,11 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import os
 import subprocess
+from wazo_auth_client import Client as AuthClient
 from xivo.token_renewer import TokenRenewer
-from xivo_auth_client import Client as AuthClient
 from xivo_confd_client import Client as ConfdClient
 
 from wazo_plugind.exceptions import CommandExecutionFailed
