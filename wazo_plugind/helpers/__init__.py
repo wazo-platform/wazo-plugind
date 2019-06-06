@@ -5,8 +5,8 @@ import logging
 import os
 import subprocess
 from wazo_auth_client import Client as AuthClient
+from wazo_confd_client import Client as ConfdClient
 from xivo.token_renewer import TokenRenewer
-from xivo_confd_client import Client as ConfdClient
 
 from wazo_plugind.exceptions import CommandExecutionFailed
 
