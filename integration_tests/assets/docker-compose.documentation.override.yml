@@ -3,12 +3,6 @@ services:
   sync:
     depends_on:
       - plugind
-      - swagger-validator
       - rabbitmq
     environment:
-      TARGETS: "rabbitmq:5672 plugind:9503 swagger-validator:8080"
-
-  swagger-validator:
-    image: swaggerapi/swagger-validator
-    ports:
-      - "8080"
+      TARGETS: "rabbitmq:5672 plugind:9503"

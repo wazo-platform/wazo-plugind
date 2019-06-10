@@ -11,7 +11,6 @@ egg-info:
 pull-images:
 	docker pull consul
 	docker pull rabbitmq
-	docker pull swaggerapi/swagger-validator
 	docker pull wazopbx/wait
 	docker pull wazopbx/wazo-auth-mock
 
