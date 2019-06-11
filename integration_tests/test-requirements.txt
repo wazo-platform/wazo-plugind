@@ -1,10 +1,11 @@
-docker-compose
-kombu
-nose
-pyhamcrest
-requests
 git+https://github.com/wazo-pbx/xivo-test-helpers.git
 git+https://github.com/wazo-pbx/xivo-lib-rest-client.git
 git+https://github.com/wazo-pbx/wazo-plugind-client.git
-stevedore
+docker-compose
+kombu
 mock
+nose
+openapi-spec-validator
+pyhamcrest
+requests
+stevedore
