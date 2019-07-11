@@ -43,7 +43,7 @@ class WazoVersionFinder:
         return self._version
 
     def set_token(self, token):
-        self._token = token
+        self._token = token['token']
 
     def _query_for_version(self):
         logger.debug('Using the current version from confd')
