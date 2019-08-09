@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -7,6 +7,7 @@ import requests
 from flask import Flask, make_response, request
 from flask_cors import CORS
 from flask_restful import Api, Resource
+from marshmallow import ValidationError
 from pkg_resources import resource_string
 from xivo import http_helpers
 from xivo.http_helpers import add_logger
@@ -69,9 +70,10 @@ class Market(_AuthentificatedResource):
 
     @required_acl('plugind.market.read')
     def get(self):
-        list_params, errors = MarketListRequestSchema().load(request.args)
-        if errors:
-            raise InvalidListParamException(errors)
+        try:
+            list_params = MarketListRequestSchema().load(request.args)
+        except ValidationError as e:
+            raise InvalidListParamException(e.messages)
 
         for key, value in request.args.items():
             if key in list_params:
@@ -83,7 +85,7 @@ class Market(_AuthentificatedResource):
             plugin_list = self.plugin_service.list_from_market(market_proxy, **list_params)
         except requests.exceptions.ConnectionError:
             raise MarketNotFoundException
-        items, _ = MarketListResultSchema().load(plugin_list, many=True)
+        items = MarketListResultSchema().load(plugin_list, many=True)
         return {
             'items': items,
             'total': self.plugin_service.count_from_market(market_proxy, **list_params),
@@ -124,13 +126,15 @@ class Plugins(_AuthentificatedResource):
 
     @required_acl('plugind.plugins.create')
     def post(self):
-        body, errors = PluginInstallSchema().load(request.get_json())
-        if errors:
-            raise InvalidInstallParamException(errors)
+        try:
+            body = PluginInstallSchema().load(request.get_json())
+        except ValidationError as e:
+            raise InvalidInstallParamException(e.messages)
 
-        params, errors = PluginInstallQueryStringSchema().load(request.args)
-        if errors:
-            raise InvalidInstallQueryStringException(errors)
+        try:
+            params = PluginInstallQueryStringSchema().load(request.args)
+        except ValidationError as e:
+            raise InvalidInstallQueryStringException(e.messages)
 
         uuid = self.plugin_service.create(body['method'], params, body['options'])
 

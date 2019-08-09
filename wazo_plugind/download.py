@@ -1,8 +1,9 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
 import logging
+from marshmallow import ValidationError
 from . import db
 from .exceptions import (
     InvalidInstallParamException,
@@ -52,9 +53,10 @@ class _MarketDownloader:
             if key not in version_info:
                 version_info[key] = value
 
-        body, errors = PluginInstallSchema().load(version_info)
-        if errors:
-            raise InvalidInstallParamException(errors)
+        try:
+            body = PluginInstallSchema().load(version_info)
+        except ValidationError as e:
+            raise InvalidInstallParamException(e.messages)
 
         ctx = ctx.with_fields(
             method=body.get('method'))

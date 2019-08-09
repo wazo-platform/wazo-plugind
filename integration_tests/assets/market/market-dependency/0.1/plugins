@@ -6,6 +6,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "file:///data/git/one"
           }
@@ -18,6 +19,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "file:///data/git/two"
           }
@@ -30,6 +32,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "file:///data/git/three"
           }
@@ -42,6 +45,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "file:///data/git/four"
           }
@@ -54,6 +58,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "file:///data/git/dependencynotfound-one"
           }

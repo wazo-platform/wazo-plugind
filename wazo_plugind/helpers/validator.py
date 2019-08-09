@@ -1,9 +1,10 @@
-# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import re
 
+from marshmallow import ValidationError
 from wazo_plugind.db import PluginDB
 from wazo_plugind.schema import new_plugin_metadata_schema
 from wazo_plugind.exceptions import (
@@ -29,9 +30,10 @@ class Validator:
         logger.debug('Using current version %s', self._current_wazo_version)
         logger.debug('max_wazo_version: %s', metadata.get('max_wazo_version', 'undefined'))
 
-        body, errors = new_plugin_metadata_schema(self._current_wazo_version).load(metadata)
-        if errors:
-            raise PluginValidationException(errors)
+        try:
+            body = new_plugin_metadata_schema(self._current_wazo_version).load(metadata)
+        except ValidationError as e:
+            raise PluginValidationException(e.messages)
         logger.debug('validated metadata: %s', body)
 
         if self._install_params['reinstall']:

@@ -15,6 +15,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-user"
           }
@@ -36,6 +37,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-group"
           }
@@ -57,6 +59,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-conference"
           }
@@ -78,6 +81,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-parking-lot"
           }
@@ -99,6 +103,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-switchboard"
           }
@@ -120,6 +125,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-voicemail"
           }
@@ -141,6 +147,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-cdr"
           }
@@ -164,7 +171,8 @@
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-incall"
           },
-          "version": "git"
+          "version": "0.1",
+          "method": "git"
         }
       ]
     },
@@ -183,6 +191,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-outcall"
           }
@@ -204,6 +213,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-paging"
           }
@@ -225,6 +235,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-moh"
           }
@@ -246,6 +257,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-trunk"
           }
@@ -267,6 +279,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-extension"
           }
@@ -288,6 +301,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-context"
           }
@@ -309,6 +323,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-ivr"
           }
@@ -330,6 +345,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/wazo-pbx/wazo-admin-ui-device"
           }
@@ -352,6 +368,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/sboily/incrediblepbx-firewall"
           }
@@ -374,6 +391,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/sboily/incrediblepbx-pbxstatus"
           }
@@ -396,6 +414,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/sboily/incrediblepbx-moh"
           }
@@ -417,6 +436,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/sboily/wazo-confgend-driver-followme"
           }
@@ -438,6 +458,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/sboily/wazo-confgend-driver-pjsip"
           }
@@ -460,6 +481,7 @@
       "versions": [
         {
           "method": "git",
+          "version": "0.1",
           "options": {
             "url": "https://github.com/sboily/wazo-plugind-queuemetrics-loway"
           }
