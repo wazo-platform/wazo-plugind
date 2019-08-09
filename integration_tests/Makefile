@@ -15,7 +15,7 @@ pull-images:
 	docker pull wazopbx/wazo-auth-mock
 
 build-plugind:
-	docker build --pull -t wazopbx/wazo-plugind ..
+	docker build -t wazopbx/wazo-plugind ..
 	docker build --no-cache -t wazo-plugind-test -f Dockerfile ..
 
 test:
