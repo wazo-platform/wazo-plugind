@@ -3,7 +3,7 @@
 create-git:
 	./make-git-repo.sh
 
-test-setup: build-plugind create-git pull-images ;
+test-setup: egg-info build-plugind create-git pull-images ;
 
 egg-info:
 	cd .. && python setup.py egg_info
