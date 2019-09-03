@@ -1,1 +1,1 @@
-deb http://mirror.wazo.community/debian/ wazo-dev-stretch main
+deb http://mirror.wazo.community/debian/ wazo-dev-buster main

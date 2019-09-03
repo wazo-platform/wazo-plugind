@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.rest_api_helpers import APIException
@@ -56,8 +56,8 @@ class _MarshmallowDetailFormatter:
 
     def format_details(self, errors):
         return {
-            field: self._format_errors(errors)
-            for field, errors in errors.items()
+            field: self._format_errors(error)
+            for field, error in errors.items()
         }
 
     def _format_errors(self, errors):

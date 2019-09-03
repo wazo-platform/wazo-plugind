@@ -1,4 +1,4 @@
 mock
 nose
 pyhamcrest
-git+https://github.com/wazo-pbx/xivo-test-helpers.git
+https://github.com/wazo-pbx/xivo-test-helpers/archive/buster.zip

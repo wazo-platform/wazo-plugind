@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -204,8 +204,9 @@ class _PackageBuilder:
         return ctx
 
     def install_dependency(self, ctx, dep, current_wazo_version):
-        body, errors = schema.DependencyMetadataSchema().load(dep)
-        if errors:
+        try:
+            body = schema.DependencyMetadataSchema().load(dep)
+        except ValidationError:
             ctx.log(logger.info, 'invalid dependency %s skipping', dep)
             return
 

@@ -1,4 +1,4 @@
-FROM python:3.5-stretch
+FROM python:3.7-buster
 
 ADD . /usr/src/wazo-plugind
 ADD ./contribs/docker/certs /usr/share/xivo-certs

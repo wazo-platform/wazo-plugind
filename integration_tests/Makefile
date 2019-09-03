@@ -3,7 +3,7 @@
 create-git:
 	./make-git-repo.sh
 
-test-setup: build-plugind create-git pull-images ;
+test-setup: egg-info build-plugind create-git pull-images ;
 
 egg-info:
 	cd .. && python setup.py egg_info
@@ -15,7 +15,7 @@ pull-images:
 	docker pull wazopbx/wazo-auth-mock
 
 build-plugind:
-	docker build --pull -t wazopbx/wazo-plugind ..
+	docker build -t wazopbx/wazo-plugind ..
 	docker build --no-cache -t wazo-plugind-test -f Dockerfile ..
 
 test:

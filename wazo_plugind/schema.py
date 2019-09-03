@@ -1,8 +1,9 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import pre_load, Schema
+from marshmallow import EXCLUDE, pre_load
 from xivo.mallow import fields
+from xivo.mallow_helpers import Schema
 from xivo.mallow.validate import OneOf
 from xivo.mallow.validate import Length
 from xivo.mallow.validate import Range
@@ -27,7 +28,8 @@ def new_plugin_metadata_schema(current_version):
                                                missing=_DEFAULT_PLUGIN_FORMAT_VERSION)
         max_wazo_version = fields.String(validate=Range(min=current_version))
         min_wazo_version = fields.String(validate=Range(max=current_version))
-        depends = fields.Nested(MarketInstallOptionsSchema, many=True)
+        depends = fields.Nested(MarketInstallOptionsSchema, many=True,
+                                unknown=EXCLUDE)
 
         @pre_load
         def ensure_string_versions(self, data):
@@ -38,15 +40,9 @@ def new_plugin_metadata_schema(current_version):
                 if not isinstance(value, (float, int)):
                     continue
                 data[field] = str(value)
+            return data
 
     return PluginMetadataSchema()
-
-
-class BaseSchema(Schema):
-
-    @pre_load
-    def ensure_dict(self, data):
-        return data or {}
 
 
 class DependencyMetadataSchema(Schema):
@@ -68,7 +64,7 @@ class MarketInstallOptionsSchema(Schema):
     version = fields.String()
 
 
-class MarketListRequestSchema(BaseSchema):
+class MarketListRequestSchema(Schema):
 
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
     order = fields.String(validate=Length(min=1), missing='name')
@@ -78,7 +74,7 @@ class MarketListRequestSchema(BaseSchema):
     installed = fields.Boolean()
 
 
-class MarketVersionResultSchema(BaseSchema):
+class MarketVersionResultSchema(Schema):
 
     upgradable = fields.Boolean(required=True)
     version = fields.String(required=True)
@@ -86,7 +82,7 @@ class MarketVersionResultSchema(BaseSchema):
     max_wazo_version = fields.String()
 
 
-class MarketListResultSchema(BaseSchema):
+class MarketListResultSchema(Schema):
 
     homepage = fields.String()
     color = fields.String()
@@ -95,7 +91,8 @@ class MarketListResultSchema(BaseSchema):
     namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
     tags = fields.List(fields.String)
     author = fields.String()
-    versions = fields.Nested(MarketVersionResultSchema, many=True, required=True)
+    versions = fields.Nested(MarketVersionResultSchema, many=True,
+                             required=True, unknown=EXCLUDE)
     screenshots = fields.List(fields.String)
     icon = fields.String()
     description = fields.String()
@@ -107,8 +104,8 @@ class MarketListResultSchema(BaseSchema):
 class OptionField(fields.Field):
 
     _options = {
-        'git': fields.Nested(GitInstallOptionsSchema),
-        'market': fields.Nested(MarketInstallOptionsSchema),
+        'git': fields.Nested(GitInstallOptionsSchema, unknown=EXCLUDE),
+        'market': fields.Nested(MarketInstallOptionsSchema, unknown=EXCLUDE),
     }
 
     def _deserialize(self, value, attr, data):
@@ -119,12 +116,12 @@ class OptionField(fields.Field):
         return concrete_options._deserialize(value, attr, data)
 
 
-class PluginInstallSchema(BaseSchema):
+class PluginInstallSchema(Schema):
 
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
-    options = OptionField(missing=dict)
+    options = OptionField(missing=dict, required=True)
 
 
-class PluginInstallQueryStringSchema(BaseSchema):
+class PluginInstallQueryStringSchema(Schema):
 
     reinstall = fields.Boolean(default=False, missing=False)
