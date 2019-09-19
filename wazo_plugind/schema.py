@@ -15,36 +15,6 @@ _PLUGIN_NAME_REGEXP = r'^[a-z0-9-]+$'
 _PLUGIN_NAMESPACE_REGEXP = r'^[a-z0-9]+$'
 
 
-def new_plugin_metadata_schema(current_version):
-    class PluginMetadataSchema(Schema):
-
-        version_fields = ['version', 'max_wazo_version', 'min_wazo_version']
-
-        name = fields.String(validate=Regexp(_PLUGIN_NAME_REGEXP), required=True)
-        namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
-        version = fields.String(required=True)
-        plugin_format_version = fields.Integer(validate=Range(min=0,
-                                                              max=_MAX_PLUGIN_FORMAT_VERSION),
-                                               missing=_DEFAULT_PLUGIN_FORMAT_VERSION)
-        max_wazo_version = fields.String(validate=Range(min=current_version))
-        min_wazo_version = fields.String(validate=Range(max=current_version))
-        depends = fields.Nested(MarketInstallOptionsSchema, many=True,
-                                unknown=EXCLUDE)
-
-        @pre_load
-        def ensure_string_versions(self, data):
-            for field in self.version_fields:
-                if field not in data:
-                    continue
-                value = data[field]
-                if not isinstance(value, (float, int)):
-                    continue
-                data[field] = str(value)
-            return data
-
-    return PluginMetadataSchema()
-
-
 class DependencyMetadataSchema(Schema):
 
     namespace = fields.String(validate=Length(min=1), required=True)
@@ -80,6 +50,46 @@ class MarketVersionResultSchema(Schema):
     version = fields.String(required=True)
     min_wazo_version = fields.String()
     max_wazo_version = fields.String()
+
+
+class PluginMetadataSchema(Schema):
+
+    version_fields = ['version', 'max_wazo_version', 'min_wazo_version']
+    current_version = None
+
+    name = fields.String(validate=Regexp(_PLUGIN_NAME_REGEXP), required=True)
+    namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
+    version = fields.String(required=True)
+    plugin_format_version = fields.Integer(validate=Range(min=0,
+                                                          max=_MAX_PLUGIN_FORMAT_VERSION),
+                                           missing=_DEFAULT_PLUGIN_FORMAT_VERSION)
+    max_wazo_version = fields.String()
+    min_wazo_version = fields.String()
+    depends = fields.Nested(MarketInstallOptionsSchema, many=True,
+                            unknown=EXCLUDE)
+
+    @pre_load
+    def ensure_string_versions(self, data):
+        for field in self.version_fields:
+            if field not in data:
+                continue
+            value = data[field]
+            if not isinstance(value, (float, int)):
+                continue
+            data[field] = str(value)
+        return data
+
+    def on_bind_field(self, field_name, field_obj):
+        if field_name == 'max_wazo_version':
+            self._set_max_wazo_version_parameters(field_obj)
+        elif field_name == 'min_wazo_version':
+            self._set_min_wazo_version_parameters(field_obj)
+
+    def _set_max_wazo_version_parameters(self, field_obj):
+        field_obj.validators = [Range(min=self.current_version)]
+
+    def _set_min_wazo_version_parameters(self, field_obj):
+        field_obj.validators = [Range(max=self.current_version)]
 
 
 class MarketListResultSchema(Schema):
