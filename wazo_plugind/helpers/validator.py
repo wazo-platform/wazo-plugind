@@ -6,7 +6,7 @@ import re
 
 from marshmallow import ValidationError
 from wazo_plugind.db import PluginDB
-from wazo_plugind.schema import new_plugin_metadata_schema
+from wazo_plugind.schema import PluginMetadataSchema as _PluginMetadataSchema
 from wazo_plugind.exceptions import (
     PluginAlreadyInstalled,
     PluginValidationException,
@@ -26,12 +26,17 @@ class Validator:
         self._current_wazo_version = current_wazo_version
         self._install_params = install_params
 
+        class PluginMetadataSchema(_PluginMetadataSchema):
+            current_version = self._current_wazo_version
+
+        self._PluginMetadataSchema = PluginMetadataSchema
+
     def validate(self, metadata):
         logger.debug('Using current version %s', self._current_wazo_version)
         logger.debug('max_wazo_version: %s', metadata.get('max_wazo_version', 'undefined'))
 
         try:
-            body = new_plugin_metadata_schema(self._current_wazo_version).load(metadata)
+            body = self._PluginMetadataSchema().load(metadata)
         except ValidationError as e:
             raise PluginValidationException(e.messages)
         logger.debug('validated metadata: %s', body)
