@@ -1,8 +1,8 @@
 #!/bin/bash
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-set -eu
+set -eux
 
 for dir in $(find . -name '*-git'); do
     new_name="${dir::-4}"
@@ -11,6 +11,8 @@ for dir in $(find . -name '*-git'); do
     pushd "$new_name"
     git init
     git add -A
+    git config user.email "dev@wazo.community"
+    git config user.name "Wazo Authors"
     git commit --no-gpg-sign -m 'initial commit'
     popd
 done
