@@ -1,0 +1,18 @@
+- job:
+    name: plugind-tox-integration
+    description: Run plugind integration tests
+    parent: wazo-tox-integration
+    pre-run: pre.yml
+
+- project:
+    templates:
+      - wazo-tox-linters
+      - wazo-tox-py37
+    check:
+      jobs:
+        - plugind-tox-integration:
+            nodeset: debian10-vm
+    gate:
+      jobs:
+        - plugind-tox-integration:
+            nodeset: debian10-vm

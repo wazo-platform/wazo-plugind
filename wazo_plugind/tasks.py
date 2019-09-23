@@ -6,6 +6,7 @@ import os
 import shutil
 import yaml
 from threading import Thread
+from marshmallow import ValidationError
 from .context import Context
 from . import bus, debian, download, schema
 from .exceptions import (
@@ -205,7 +206,7 @@ class _PackageBuilder:
 
     def install_dependency(self, ctx, dep, current_wazo_version):
         try:
-            body = schema.DependencyMetadataSchema().load(dep)
+            schema.DependencyMetadataSchema().load(dep)
         except ValidationError:
             ctx.log(logger.info, 'invalid dependency %s skipping', dep)
             return

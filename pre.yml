@@ -1,0 +1,12 @@
+---
+- hosts: all
+  tasks:
+    - name: Set git user name
+      command: "git config --global user.name ZuulBot"
+      args:
+        chdir: "{{ zuul.project.src_dir }}"
+
+    - name: Set git user email
+      command: "git config --global user.email zuul@wazo.ci"
+      args:
+        chdir: "{{ zuul.project.src_dir }}"
