@@ -18,8 +18,8 @@ services:
       - "./etc/wazo-plugind/conf.d/market.yml:/etc/wazo-plugind/conf.d/market.yml"
       - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
       - "./etc/wazo-plugind/conf.d/disable_service_discovery.yml:/etc/wazo-plugind/conf.d/disable_service_discovery.yml"
-      # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.5/site-packages/xivo"
-      # - "${LOCAL_GIT_REPOS}/wazo-market-client/wazo_market_client:/usr/local/lib/python3.5/site-packages/wazo_market_client"
+      # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.7/site-packages/xivo"
+      # - "${LOCAL_GIT_REPOS}/wazo-market-client/wazo_market_client:/usr/local/lib/python3.7/site-packages/wazo_market_client"
     ports:
       - "9503"
 
