@@ -4,9 +4,9 @@ After=network.target consul.target
 Before=monit.service
 
 [Service]
-ExecStartPre=/usr/bin/install -d -o wazo-plugind -g wazo-plugind /var/run/wazo-plugind
+ExecStartPre=/usr/bin/install -d -o wazo-plugind -g wazo-plugind /run/wazo-plugind
 ExecStart=/usr/bin/python3 -u /usr/bin/wazo-plugind
-PIDFile=/var/run/wazo-plugind/wazo-plugind.pid
+PIDFile=/run/wazo-plugind/wazo-plugind.pid
 
 [Install]
 WantedBy=multi-user.target

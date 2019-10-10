@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -14,7 +14,7 @@ _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTPS_PORT = 9503
 _DEFAULT_CERT_FILE = '/usr/share/xivo-certs/server.crt'
 _PLUGIN_DATA_DIR = 'wazo'
-_PID_DIR = '/var/run/{}'.format(_DAEMONNAME)
+_PID_DIR = '/run/{}'.format(_DAEMONNAME)
 _HOME_DIR = '/usr/lib/wazo-plugind'
 _DEFAULT_CONFIG = dict(
     config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
