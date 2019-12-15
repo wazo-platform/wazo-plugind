@@ -1,0 +1,4 @@
+wazo-plugind: script-not-executable usr/lib/wazo-plugind/templates/postinst.jinja
+wazo-plugind: script-not-executable usr/lib/wazo-plugind/templates/postrm.jinja
+wazo-plugind: script-not-executable usr/lib/wazo-plugind/templates/prerm.jinja
+wazo-plugind: shell-script-fails-syntax-check usr/lib/wazo-plugind/templates/postrm.jinja

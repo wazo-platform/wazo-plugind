@@ -1,9 +1,3 @@
-- job:
-    name: plugind-tox-integration
-    description: Run plugind integration tests
-    parent: wazo-tox-integration
-    pre-run: pre.yml
-
 - project:
     templates:
       - wazo-tox-linters
@@ -17,3 +11,11 @@
       jobs:
         - plugind-tox-integration:
             nodeset: debian10-vm
+
+- job:
+    name: plugind-tox-integration
+    description: Run plugind integration tests
+    parent: wazo-tox-integration
+    pre-run: pre.yml
+    vars:
+      integration_test_timeout: 60
