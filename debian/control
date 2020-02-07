@@ -27,6 +27,7 @@ Depends:
  python3-requests,
  python3-setuptools,
  python3-unidecode,
+ python3-werkzeug,
  wazo-auth-client-python3,
  wazo-confd-client-python3,
  wazo-market-client-python3,

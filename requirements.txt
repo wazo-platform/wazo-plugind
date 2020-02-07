@@ -16,3 +16,4 @@ netifaces==0.10.4
 requests==2.21.0
 stevedore==1.29.0
 unidecode==1.0.23
+werkzeug==0.14.1
