@@ -518,7 +518,7 @@ class TestPluginInstallation(BaseIntegrationTest):
             'error_id': 'install-error',
             'message': 'Installation error',
             'resource': 'plugins',
-            'details': {'step': 'building',},
+            'details': {'step': 'building'},
         }
 
         self.assert_status_received(

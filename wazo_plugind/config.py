@@ -39,7 +39,7 @@ _DEFAULT_CONFIG = dict(
     log_level='info',
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
-    market={'host': 'apps.wazo.community',},
+    market={'host': 'apps.wazo.community'},
     pid_file=os.path.join(_PID_DIR, '{}.pid'.format(_DAEMONNAME)),
     confd={
         'host': 'localhost',

@@ -54,7 +54,7 @@ class TestMarketPluginUpdater(TestCase):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [{'min_wazo_version': '17.13',},],
+            'versions': [{'min_wazo_version': '17.13'}],
         }
 
         result = self.updater.update(plugin_info)
@@ -67,7 +67,7 @@ class TestMarketPluginUpdater(TestCase):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [{'min_wazo_version': CURRENT_WAZO_VERSION,},],
+            'versions': [{'min_wazo_version': CURRENT_WAZO_VERSION}],
         }
 
         result = self.updater.update(plugin_info)
@@ -80,7 +80,7 @@ class TestMarketPluginUpdater(TestCase):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [{'max_wazo_version': '17.11',},],
+            'versions': [{'max_wazo_version': '17.11'}],
         }
 
         result = self.updater.update(plugin_info)
@@ -93,7 +93,7 @@ class TestMarketPluginUpdater(TestCase):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [{'max_wazo_version': CURRENT_WAZO_VERSION,},],
+            'versions': [{'max_wazo_version': CURRENT_WAZO_VERSION}],
         }
 
         result = self.updater.update(plugin_info)
@@ -106,7 +106,7 @@ class TestMarketPluginUpdater(TestCase):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [{'version': '0.0.1'},],
+            'versions': [{'version': '0.0.1'}],
         }
 
         with self.installed_plugin('foobar', 'foo', '0.0.2'):
@@ -120,7 +120,7 @@ class TestMarketPluginUpdater(TestCase):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [{'version': '0.0.1'},],
+            'versions': [{'version': '0.0.1'}],
         }
 
         with self.installed_plugin('foobar', 'foo', '0.0.1'):
@@ -134,7 +134,7 @@ class TestMarketPluginUpdater(TestCase):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [{'version': '0.0.2'},],
+            'versions': [{'version': '0.0.2'}],
         }
 
         with self.installed_plugin('foobar', 'foo', '0.0.1'):
@@ -231,8 +231,8 @@ class TestMarketDB(TestCase):
                 'author': 'me',
                 'installed_version': '0.0.1',
                 'versions': [
-                    {'version': '0.1.1', 'min_wazo_version': '1',},
-                    {'version': '0.0.1',},
+                    {'version': '0.1.1', 'min_wazo_version': '1'},
+                    {'version': '0.0.1'},
                 ],
             },
             {
@@ -242,9 +242,9 @@ class TestMarketDB(TestCase):
                 'author': 'you',
                 'installed_version': None,
                 'versions': [
-                    {'version': '0.3.0', 'min_wazo_version': '9999',},
-                    {'version': '0.2.0', 'min_wazo_version': '3',},
-                    {'version': '0.1.1',},
+                    {'version': '0.3.0', 'min_wazo_version': '9999'},
+                    {'version': '0.2.0', 'min_wazo_version': '3'},
+                    {'version': '0.1.1'},
                 ],
             },
             {
@@ -252,8 +252,8 @@ class TestMarketDB(TestCase):
                 'author': 'you & me',
                 'installed_version': '0.10.0',
                 'versions': [
-                    {'version': '0.12.0', 'min_wazo_version': '2',},
-                    {'version': '0.10.5', 'max_wazo_version': '0',},
+                    {'version': '0.12.0', 'min_wazo_version': '2'},
+                    {'version': '0.10.5', 'max_wazo_version': '0'},
                 ],
             },
         ]

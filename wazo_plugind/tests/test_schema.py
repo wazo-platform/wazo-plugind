@@ -27,7 +27,7 @@ class TestMarketResultSchema(TestCase):
             'versions': [
                 {
                     'method': 'git',
-                    'options': {'url': 'the://git/url',},
+                    'options': {'url': 'the://git/url'},
                     'version': '0.0.1',
                     'upgradable': True,
                 },
