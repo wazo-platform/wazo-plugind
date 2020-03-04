@@ -128,53 +128,32 @@ class TestPluginDependencies(BaseIntegrationTest):
                 self.msg_accumulator.accumulate(),
                 has_items(
                     has_entries(
-                        {
-                            'name': 'plugin_install_progress',
-                            'data': has_entries(
-                                {
-                                    'uuid': result['uuid'],
-                                    'status': 'error',
-                                    'errors': has_entries(
-                                        {
-                                            'details': has_entries(
-                                                {
-                                                    'install_options': has_entries(
-                                                        {
-                                                            'url': 'file:///data/git/dependencynotfound-one',
-                                                        }
-                                                    )
-                                                }
-                                            )
-                                        }
-                                    ),
-                                }
+                        name='plugin_install_progress',
+                        data=has_entries(
+                            uuid=result['uuid'],
+                            status='error',
+                            errors=has_entries(
+                                details=has_entries(
+                                    install_options=has_entries(
+                                        url='file:///data/git/dependencynotfound-one',
+                                    )
+                                )
                             ),
-                        }
+                        ),
                     ),
                     has_entries(
-                        {
-                            'name': 'plugin_install_progress',
-                            'data': has_entries(
-                                {
-                                    'uuid': ANY,
-                                    'status': 'error',
-                                    'errors': has_entries(
-                                        {
-                                            'details': has_entries(
-                                                {
-                                                    'install_options': has_entries(
-                                                        {
-                                                            'name': 'not-found',
-                                                            'namespace': 'dependency',
-                                                        }
-                                                    )
-                                                }
-                                            )
-                                        }
-                                    ),
-                                }
+                        name='plugin_install_progress',
+                        data=has_entries(
+                            uuid=ANY,
+                            status='error',
+                            errors=has_entries(
+                                details=has_entries(
+                                    install_options=has_entries(
+                                        name='not-found', namespace='dependency',
+                                    )
+                                )
                             ),
-                        }
+                        ),
                     ),
                 ),
             )
