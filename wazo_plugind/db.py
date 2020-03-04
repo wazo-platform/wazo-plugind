@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class AlwaysLast:
-
     def __lt__(self, other):
         return False
 
@@ -67,11 +66,12 @@ class MarketProxy:
             result = self._client.plugins.list()
             return result['items']
         except HTTPError as e:
-            logger.info('Failed to fetch plugins from the market %s', e.response.status_code)
+            logger.info(
+                'Failed to fetch plugins from the market %s', e.response.status_code
+            )
 
 
 class MarketPluginUpdater:
-
     def __init__(self, plugin_db, current_wazo_version):
         self._plugin_db = plugin_db
         self._current_wazo_version = current_wazo_version
@@ -86,15 +86,21 @@ class MarketPluginUpdater:
         return plugin_info
 
     def _add_installed_version(self, plugin_info, plugin):
-        installed_version = plugin.metadata()['version'] if plugin.is_installed() else None
+        installed_version = (
+            plugin.metadata()['version'] if plugin.is_installed() else None
+        )
         plugin_info['installed_version'] = installed_version
 
     def _add_upgradable_field(self, plugin_info, plugin):
         for version_info in plugin_info.get('versions', []):
             version_info['upgradable'] = True
 
-            min_wazo_version = version_info.get('min_wazo_version', self._current_wazo_version)
-            max_wazo_version = version_info.get('max_wazo_version', self._current_wazo_version)
+            min_wazo_version = version_info.get(
+                'min_wazo_version', self._current_wazo_version
+            )
+            max_wazo_version = version_info.get(
+                'max_wazo_version', self._current_wazo_version
+            )
             proposed_version = version_info.get('version')
 
             if version.less_than(self._current_wazo_version, min_wazo_version):
@@ -108,7 +114,6 @@ class MarketPluginUpdater:
 
 
 class MarketDB:
-
     def __init__(self, market_proxy, current_wazo_version, plugin_db=None):
         self._market_proxy = market_proxy
         self._updater = MarketPluginUpdater(plugin_db, current_wazo_version)
@@ -122,10 +127,7 @@ class MarketDB:
         return len(content)
 
     def get(self, namespace, name):
-        filters = dict(
-            namespace=namespace,
-            name=name,
-        )
+        filters = dict(namespace=namespace, name=name,)
 
         content = self._market_proxy.get_content()
         content = self._add_local_values(content)
@@ -154,8 +156,16 @@ class MarketDB:
         return content
 
     @staticmethod
-    def _extract_strict_filters(filtered=None, search=None, limit=None, offset=None, order=None,
-                                direction=None, installed=None, **kwargs):
+    def _extract_strict_filters(
+        filtered=None,
+        search=None,
+        limit=None,
+        offset=None,
+        order=None,
+        direction=None,
+        installed=None,
+        **kwargs
+    ):
         if installed is not None and 'installed_version' not in kwargs:
             kwargs['installed_version'] = InstalledVersionMatcher(installed)
         return kwargs
@@ -207,7 +217,6 @@ class MarketDB:
 
 
 class PluginDB:
-
     def __init__(self, config):
         self._config = config
         self._debian_package_section = config['debian_package_section']
@@ -224,22 +233,27 @@ class PluginDB:
 
     def list_(self):
         result = []
-        debian_packages = self._debian_package_db.list_installed_packages(self._debian_package_section)
+        debian_packages = self._debian_package_db.list_installed_packages(
+            self._debian_package_section
+        )
         for debian_package in debian_packages:
             try:
                 plugin = Plugin.from_debian_package(self._config, debian_package)
                 result.append(plugin.metadata())
             except (IOError, InvalidPackageNameException):
-                logger.info('no metadata file found for %s/%s', plugin.namespace, plugin.name)
+                logger.info(
+                    'no metadata file found for %s/%s', plugin.namespace, plugin.name
+                )
         return result
 
 
 class Plugin:
-
     def __init__(self, config, namespace, name):
         self.namespace = namespace
         self.name = name
-        self.debian_package_name = '{}-{}-{}'.format(config['default_debian_package_prefix'], name, namespace)
+        self.debian_package_name = '{}-{}-{}'.format(
+            config['default_debian_package_prefix'], name, namespace
+        )
         self.metadata_filename = os.path.join(
             config['metadata_dir'],
             self.namespace,
@@ -270,7 +284,9 @@ class Plugin:
 
     @staticmethod
     def _extract_namespace_and_name(package_name_prefix, package_name):
-        package_name_pattern = re.compile(r'^{}-([a-z0-9-]+)-([a-z0-9]+)$'.format(package_name_prefix))
+        package_name_pattern = re.compile(
+            r'^{}-([a-z0-9-]+)-([a-z0-9]+)$'.format(package_name_prefix)
+        )
         matches = package_name_pattern.match(package_name)
         if not matches:
             raise InvalidPackageNameException(package_name)
@@ -279,12 +295,13 @@ class Plugin:
     @classmethod
     def from_debian_package(cls, config, debian_package_name):
         package_name_prefix = config['default_debian_package_prefix']
-        namespace, name = cls._extract_namespace_and_name(package_name_prefix, debian_package_name)
+        namespace, name = cls._extract_namespace_and_name(
+            package_name_prefix, debian_package_name
+        )
         return cls(config, namespace, name)
 
 
 class InstalledVersionMatcher:
-
     def __init__(self, installed):
         self._installed = installed
 

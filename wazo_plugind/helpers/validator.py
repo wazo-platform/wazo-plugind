@@ -1,4 +1,4 @@
-# Copyright 2018-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -33,7 +33,9 @@ class Validator:
 
     def validate(self, metadata):
         logger.debug('Using current version %s', self._current_wazo_version)
-        logger.debug('max_wazo_version: %s', metadata.get('max_wazo_version', 'undefined'))
+        logger.debug(
+            'max_wazo_version: %s', metadata.get('max_wazo_version', 'undefined')
+        )
 
         try:
             body = self._PluginMetadataSchema().load(metadata)
@@ -44,7 +46,9 @@ class Validator:
         if self._install_params['reinstall']:
             return
 
-        if self._db.is_installed(metadata['namespace'], metadata['name'], metadata['version']):
+        if self._db.is_installed(
+            metadata['namespace'], metadata['name'], metadata['version']
+        ):
             raise PluginAlreadyInstalled(metadata['namespace'], metadata['name'])
 
     @classmethod

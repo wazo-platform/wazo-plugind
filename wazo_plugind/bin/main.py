@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -19,7 +19,9 @@ FOREGROUND = True  # Always in foreground systemd takes care of daemonizing
 def main(args):
     conf = config.load_config(args)
 
-    xivo_logging.setup_logging(conf['log_file'], FOREGROUND, conf['debug'], conf['log_level'])
+    xivo_logging.setup_logging(
+        conf['log_file'], FOREGROUND, conf['debug'], conf['log_level']
+    )
 
     os.chdir(conf['home_dir'])
 

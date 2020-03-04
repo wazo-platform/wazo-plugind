@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -39,9 +39,7 @@ _DEFAULT_CONFIG = dict(
     log_level='info',
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
-    market={
-        'host': 'apps.wazo.community',
-    },
+    market={'host': 'apps.wazo.community',},
     pid_file=os.path.join(_PID_DIR, '{}.pid'.format(_DAEMONNAME)),
     confd={
         'host': 'localhost',
@@ -56,8 +54,7 @@ _DEFAULT_CONFIG = dict(
             'certificate': _DEFAULT_CERT_FILE,
             'private_key': '/usr/share/xivo-certs/server.key',
         },
-        'cors': {'enabled': True,
-                 'allow_headers': ['Content-Type', 'X-Auth-Token']}
+        'cors': {'enabled': True, 'allow_headers': ['Content-Type', 'X-Auth-Token']},
     },
     bus={
         'username': 'guest',
@@ -88,35 +85,48 @@ _DEFAULT_CONFIG = dict(
         'port': 9497,
         'verify_certificate': _DEFAULT_CERT_FILE,
         'key_file': '/var/lib/wazo-auth-keys/wazo-plugind-key.yml',
-    }
+    },
 )
 
 
 def load_config(args):
     cli_config = _parse_cli_args(args)
     file_config = read_config_file_hierarchy(ChainMap(cli_config, _DEFAULT_CONFIG))
-    reinterpreted_config = _get_reinterpreted_raw_values(cli_config, file_config, _DEFAULT_CONFIG)
+    reinterpreted_config = _get_reinterpreted_raw_values(
+        cli_config, file_config, _DEFAULT_CONFIG
+    )
     service_key = _load_key_file(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
-    return ChainMap(reinterpreted_config, cli_config, service_key, file_config, _DEFAULT_CONFIG)
+    return ChainMap(
+        reinterpreted_config, cli_config, service_key, file_config, _DEFAULT_CONFIG
+    )
 
 
 def _load_key_file(config):
     key_file = parse_config_file(config['auth']['key_file'])
-    return {'auth': {'username': key_file['service_id'],
-                     'password': key_file['service_key']}}
+    return {
+        'auth': {
+            'username': key_file['service_id'],
+            'password': key_file['service_key'],
+        }
+    }
 
 
 def _get_reinterpreted_raw_values(*configs):
     config = ChainMap(*configs)
-    return dict(
-        log_level=get_log_level_by_name(config['log_level']),
-    )
+    return dict(log_level=get_log_level_by_name(config['log_level']),)
 
 
 def _parse_cli_args(args):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config-file', action='store', help='The path to the config file')
-    parser.add_argument('-d', '--debug', action='store_true', help='Log debug mesages. Override log_level')
+    parser.add_argument(
+        '-c', '--config-file', action='store', help='The path to the config file'
+    )
+    parser.add_argument(
+        '-d',
+        '--debug',
+        action='store_true',
+        help='Log debug mesages. Override log_level',
+    )
     parser.add_argument('-u', '--user', action='store', help='The owner of the process')
     parsed_args = parser.parse_args()
 

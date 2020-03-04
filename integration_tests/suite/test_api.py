@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -27,13 +27,17 @@ def autoremove(namespace, plugin):
                 except HTTPError:
                     pass
             return result
+
         return decorated
+
     return decorator
 
 
 class BaseIntegrationTest(AssetLaunchingTestCase):
 
-    assets_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'assets'))
+    assets_root = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'assets')
+    )
     service = 'plugind'
     bus_config = dict(user='guest', password='guest', host='localhost')
 
@@ -140,7 +144,9 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return False
 
     def _is_installed(self, search, version=None):
-        installed_packages = self.docker_exec(['dpkg-query', '-W', '-f=${binary:Package} ${Version}\n'])
+        installed_packages = self.docker_exec(
+            ['dpkg-query', '-W', '-f=${binary:Package} ${Version}\n']
+        )
         for line in installed_packages.split('\n'):
             if not line:
                 continue
@@ -152,7 +158,9 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                 return version == installed_version
         return False
 
-    def assert_status_received(self, msg_accumulator, operation, uuid, status, exclusive=False, **kwargs):
+    def assert_status_received(
+        self, msg_accumulator, operation, uuid, status, exclusive=False, **kwargs
+    ):
         event_name = 'plugin_{}_progress'.format(operation)
 
         def match():
@@ -162,9 +170,13 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                 expected_data.append(value)
 
             received_msg = msg_accumulator.accumulate()
-            assert_that(received_msg, has_items(
-                has_entry('name', event_name),
-                has_entry('data', has_entries(*expected_data))))
+            assert_that(
+                received_msg,
+                has_items(
+                    has_entry('name', event_name),
+                    has_entry('data', has_entries(*expected_data)),
+                ),
+            )
 
         def exclusive_match():
             while True:
@@ -180,8 +192,16 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                     return
 
                 msg_accumulator.push_back(first)
-                self.fail('{} is not at the top of the accumulator, received {}'.format(status, first))
+                self.fail(
+                    '{} is not at the top of the accumulator, received {}'.format(
+                        status, first
+                    )
+                )
 
         aux = exclusive_match if exclusive else match
-        until.assert_(aux, tries=120, interval=0.5,
-                      message='The bus message should have been received: {}'.format(status))
+        until.assert_(
+            aux,
+            tries=120,
+            interval=0.5,
+            message='The bus message should have been received: {}'.format(status),
+        )

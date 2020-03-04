@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -12,8 +12,15 @@ logger = logging.getLogger(__name__)
 
 
 class PluginService:
-
-    def __init__(self, config, status_publisher, root_worker, executor, plugin_db, wazo_version_finder):
+    def __init__(
+        self,
+        config,
+        status_publisher,
+        root_worker,
+        executor,
+        plugin_db,
+        wazo_version_finder,
+    ):
         self._build_dir = config['build_dir']
         self._deb_file = '{}.deb'.format(self._build_dir)
         self._config = config

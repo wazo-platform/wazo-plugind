@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -11,7 +11,6 @@ from ..bus import StatusPublisher
 
 
 class TestStatusPublisher(TestCase):
-
     def setUp(self):
         self.publisher = Mock()
         self.status_publisher = StatusPublisher(self.publisher)
@@ -30,7 +29,12 @@ class TestStatusPublisher(TestCase):
 
         self.status_publisher.install_error(ctx, s.error_id, s.message)
 
-        errors = {'error_id': s.error_id, 'message': s.message, 'resource': 'plugins', 'details': {}}
+        errors = {
+            'error_id': s.error_id,
+            'message': s.message,
+            'resource': 'plugins',
+            'details': {},
+        }
         expected_event = PluginInstallProgressEvent(s.uuid, 'error', errors=errors)
 
         self.publisher.publish.assert_called_once_with(expected_event)
@@ -49,7 +53,12 @@ class TestStatusPublisher(TestCase):
 
         self.status_publisher.uninstall_error(ctx, s.error_id, s.message)
 
-        errors = {'error_id': s.error_id, 'message': s.message, 'resource': 'plugins', 'details': {}}
+        errors = {
+            'error_id': s.error_id,
+            'message': s.message,
+            'resource': 'plugins',
+            'details': {},
+        }
         expected_event = PluginUninstallProgressEvent(s.uuid, 'error', errors=errors)
 
         self.publisher.publish.assert_called_once_with(expected_event)

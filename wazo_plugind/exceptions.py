@@ -1,11 +1,10 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.rest_api_helpers import APIException
 
 
 class CommandExecutionFailed(Exception):
-
     def __init__(self, command, return_code):
         self._command = command
         self._return_code = return_code
@@ -15,12 +14,13 @@ class CommandExecutionFailed(Exception):
 
 
 class UnsupportedDownloadMethod(APIException):
-
     def __init__(self):
-        super().__init__(status_code=501,
-                         message='Unsupported download method',
-                         error_id='unsupported-download-method',
-                         details={})
+        super().__init__(
+            status_code=501,
+            message='Unsupported download method',
+            error_id='unsupported-download-method',
+            details={},
+        )
 
 
 class InvalidPackageNameException(Exception):
@@ -44,21 +44,23 @@ class InvalidSortParamException(APIException):
     _fmt = '"{}" values are not orderable'
 
     def __init__(self, column):
-        super().__init__(status_code=400,
-                         message='Invalid sort parameters',
-                         error_id='invalid-sort-params',
-                         resource='market',
-                         details={column: {'constraint_id': 'orderable',
-                                           'message': self._fmt.format(column)}})
+        super().__init__(
+            status_code=400,
+            message='Invalid sort parameters',
+            error_id='invalid-sort-params',
+            resource='market',
+            details={
+                column: {
+                    'constraint_id': 'orderable',
+                    'message': self._fmt.format(column),
+                }
+            },
+        )
 
 
 class _MarshmallowDetailFormatter:
-
     def format_details(self, errors):
-        return {
-            field: self._format_errors(error)
-            for field, error in errors.items()
-        }
+        return {field: self._format_errors(error) for field, error in errors.items()}
 
     def _format_errors(self, errors):
         if isinstance(errors, (list, tuple)):
@@ -74,33 +76,36 @@ class _MarshmallowDetailFormatter:
 
 
 class InvalidListParamException(APIException, _MarshmallowDetailFormatter):
-
     def __init__(self, errors):
-        super().__init__(status_code=400,
-                         message='Invalid data',
-                         error_id='invalid-data',
-                         resource='plugins',
-                         details=self.format_details(errors))
+        super().__init__(
+            status_code=400,
+            message='Invalid data',
+            error_id='invalid-data',
+            resource='plugins',
+            details=self.format_details(errors),
+        )
 
 
 class InvalidInstallParamException(APIException, _MarshmallowDetailFormatter):
-
     def __init__(self, errors):
-        super().__init__(status_code=400,
-                         message='Invalid data',
-                         error_id='invalid-data',
-                         resource='plugins',
-                         details=self.format_details(errors))
+        super().__init__(
+            status_code=400,
+            message='Invalid data',
+            error_id='invalid-data',
+            resource='plugins',
+            details=self.format_details(errors),
+        )
 
 
 class InvalidInstallQueryStringException(APIException, _MarshmallowDetailFormatter):
-
     def __init__(self, errors):
-        super().__init__(status_code=400,
-                         message='Invalid data',
-                         error_id='invalid-data',
-                         resource='plugins',
-                         details=self.format_details(errors))
+        super().__init__(
+            status_code=400,
+            message='Invalid data',
+            error_id='invalid-data',
+            resource='plugins',
+            details=self.format_details(errors),
+        )
 
 
 class PluginValidationException(Exception, _MarshmallowDetailFormatter):
@@ -114,13 +119,14 @@ class PluginValidationException(Exception, _MarshmallowDetailFormatter):
 
 
 class PluginNotFoundException(APIException):
-
     def __init__(self, namespace, name):
-        super().__init__(status_code=404,
-                         message='Plugin not found {}/{}'.format(namespace, name),
-                         error_id='plugin-not-found',
-                         resource='plugins',
-                         details={'name': name, 'namespace': namespace})
+        super().__init__(
+            status_code=404,
+            message='Plugin not found {}/{}'.format(namespace, name),
+            error_id='plugin-not-found',
+            resource='plugins',
+            details={'name': name, 'namespace': namespace},
+        )
 
 
 class PluginAlreadyInstalled(Exception):
@@ -136,10 +142,11 @@ class DependencyAlreadyInstalledException(Exception):
 
 
 class MarketNotFoundException(APIException):
-
     def __init__(self):
-        super().__init__(status_code=503,
-                         message='Market Service Unavailable',
-                         error_id='market-service-unavailable',
-                         resource='market',
-                         details={})
+        super().__init__(
+            status_code=503,
+            message='Market Service Unavailable',
+            error_id='market-service-unavailable',
+            resource='market',
+            details={},
+        )

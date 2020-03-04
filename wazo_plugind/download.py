@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 
 
 class _GitDownloader:
-
     def __init__(self, config):
         self._download_dir = config['download_dir']
 
@@ -46,7 +45,11 @@ class _MarketDownloader:
     def download(self, ctx):
         version_info = self._find_matching_plugin(ctx)
         if not version_info:
-            ctx.log(logger.debug, 'Ignoring dependency not upgradable: %s', ctx.install_options)
+            ctx.log(
+                logger.debug,
+                'Ignoring dependency not upgradable: %s',
+                ctx.install_options,
+            )
             raise DependencyAlreadyInstalledException()
 
         for key, value in self._defaults.items():
@@ -58,8 +61,7 @@ class _MarketDownloader:
         except ValidationError as e:
             raise InvalidInstallParamException(e.messages)
 
-        ctx = ctx.with_fields(
-            method=body.get('method'))
+        ctx = ctx.with_fields(method=body.get('method'))
 
         options = body['options']
         if options:
@@ -90,7 +92,9 @@ class _MarketDownloader:
         plugin_info = market_db.get(**search_params)
 
         if self._already_satisfied(ctx, plugin_info, required_version):
-            ctx.log(logger.info, '%s already satisfies %s', plugin_info, required_version)
+            ctx.log(
+                logger.info, '%s already satisfies %s', plugin_info, required_version
+            )
             raise DependencyAlreadyInstalledException()
 
         if not required_version:
@@ -113,7 +117,6 @@ class _MarketDownloader:
 
 
 class _UndefinedDownloader:
-
     def __init__(self, config):
         pass
 
@@ -122,7 +125,6 @@ class _UndefinedDownloader:
 
 
 class Downloader:
-
     def __init__(self, config):
         self._downloaders = {
             'git': _GitDownloader(config),

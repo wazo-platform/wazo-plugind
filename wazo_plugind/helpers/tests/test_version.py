@@ -1,4 +1,4 @@
-# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -11,7 +11,6 @@ from .. import version
 
 
 class TestLessThan(TestCase):
-
     def test_less_than(self):
         assert_that(version.less_than('17.10', '17.10'), equal_to(False))
         assert_that(version.less_than('17.09', '17.10'), equal_to(True))
