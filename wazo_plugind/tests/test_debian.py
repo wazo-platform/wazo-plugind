@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -22,7 +22,6 @@ def random_string(min, max):
 
 
 class TestPackageDB(TestCase):
-
     def test_that_list_installed_packages_returns_a_list_of_package_and_section(self):
         packages_and_sections = [
             (random_string(5, 30), random_string(3, 15)) for _ in range(10)
@@ -64,7 +63,6 @@ class TestPackageDB(TestCase):
 
 
 class TestDebianGenerator(TestCase):
-
     def test_make_template_ctx_adds_all_necessary_fields(self):
         depends = [
             {'namespace': 'foobar', 'name': 'baz'},
@@ -76,7 +74,8 @@ class TestDebianGenerator(TestCase):
             name='foo',
             metadata={'foo': 'bar', 'depends': depends},
             destination_plugin_path='/var/lib/foobar',
-            installer_base_filename='wazo/rules')
+            installer_base_filename='wazo/rules',
+        )
 
         generator = Generator(
             metadata_dir='/usr/lib/wazo-plugind',
@@ -87,12 +86,14 @@ class TestDebianGenerator(TestCase):
 
         ctx = generator._make_template_ctx(ctx)
 
-        expected = {'foo': 'bar',
-                    'depends': depends,
-                    'debian_depends': ['wazo-plugind-baz-foobar', 'wazo-plugind-foobaz-foobar'],
-                    'rules_path': '/usr/lib/wazo-plugind/foobar/foo/wazo/rules',
-                    'debian_package_section': s.section,
-                    'backup_rules_path': '/var/lib/wazo-plugind/rules/rules.foo.foobar'}
+        expected = {
+            'foo': 'bar',
+            'depends': depends,
+            'debian_depends': ['wazo-plugind-baz-foobar', 'wazo-plugind-foobaz-foobar'],
+            'rules_path': '/usr/lib/wazo-plugind/foobar/foo/wazo/rules',
+            'debian_package_section': s.section,
+            'backup_rules_path': '/var/lib/wazo-plugind/rules/rules.foo.foobar',
+        }
         assert_that(ctx.template_context, equal_to(expected))
 
     def test_make_debian_dir(self):

@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -82,14 +82,18 @@ class Market(_AuthentificatedResource):
 
         market_proxy = self.plugin_service.new_market_proxy()
         try:
-            plugin_list = self.plugin_service.list_from_market(market_proxy, **list_params)
+            plugin_list = self.plugin_service.list_from_market(
+                market_proxy, **list_params
+            )
         except requests.exceptions.ConnectionError:
             raise MarketNotFoundException
         items = MarketListResultSchema().load(plugin_list, many=True)
         return {
             'items': items,
             'total': self.plugin_service.count_from_market(market_proxy, **list_params),
-            'filtered': self.plugin_service.count_from_market(market_proxy, filtered=True, **list_params)
+            'filtered': self.plugin_service.count_from_market(
+                market_proxy, filtered=True, **list_params
+            ),
         }
 
     @classmethod
@@ -181,7 +185,7 @@ class Swagger(_BaseResource):
         return make_response(api_spec, 200, {'Content-Type': 'application/x-yaml'})
 
 
-class PlugindAPI():
+class PlugindAPI:
     def __init__(self, app, config, prefix, decorators=None, *args, **kwargs):
         self._config = config
         self._prefix = prefix
@@ -191,10 +195,12 @@ class PlugindAPI():
 
     def add_resource(self, resource):
         logger.debug('Adding %s to %s %s', resource, self._prefix, self._restful_api)
-        resource.add_resource(self._restful_api, self._config, *self._args, **self._kwargs)
+        resource.add_resource(
+            self._restful_api, self._config, *self._args, **self._kwargs
+        )
 
 
-class MultiAPI():
+class MultiAPI:
     def __init__(self, *apis):
         self._apis = apis
 
@@ -212,7 +218,9 @@ def new_app(config, *args, **kwargs):
     app.config.update(config)
     app.after_request(http_helpers.log_request)
 
-    APIv02 = PlugindAPI(app, config, prefix='/0.2', *args, endpoint_prefix='v02', **kwargs)
+    APIv02 = PlugindAPI(
+        app, config, prefix='/0.2', *args, endpoint_prefix='v02', **kwargs
+    )
     MultiAPI(APIv02).add_resource(Swagger)
     MultiAPI(APIv02).add_resource(Config)
     MultiAPI(APIv02).add_resource(Market)

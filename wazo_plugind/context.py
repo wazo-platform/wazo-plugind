@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class Context:
-
     def __init__(self, config, **kwargs):
         self.uuid = str(uuid4())
         self.config = config

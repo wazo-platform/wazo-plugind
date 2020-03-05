@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -24,7 +24,6 @@ _publisher = None
 
 
 class UninstallTask:
-
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
         self._remover = _PackageRemover(config, root_worker)
@@ -46,17 +45,23 @@ class UninstallTask:
                 self._publisher.uninstall(ctx, step)
                 ctx = fn(ctx)
         except Exception:
-            ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=self._debug_enabled)
+            ctx.log(
+                logger.error,
+                'Unexpected error while %s',
+                step,
+                exc_info=self._debug_enabled,
+            )
             error_id = '{}-error'.format(step)
             message = '{} Error'.format(step.capitalize())
             self._publisher.uninstall_error(ctx, error_id, message)
 
 
 class PackageAndInstallTask:
-
     def __init__(self, config, root_worker):
         self._root_worker = root_worker
-        self._builder = _PackageBuilder(config, self._root_worker, self._package_and_install_impl)
+        self._builder = _PackageBuilder(
+            config, self._root_worker, self._package_and_install_impl
+        )
         self._publisher = get_publisher(config)
 
     def execute(self, ctx):
@@ -85,12 +90,23 @@ class PackageAndInstallTask:
                 ctx = fn(ctx)
 
         except CommandExecutionFailed as e:
-            ctx.log(logger.info, 'an external command failed during the plugin installation: %s', e)
+            ctx.log(
+                logger.info,
+                'an external command failed during the plugin installation: %s',
+                e,
+            )
             self._builder.clean(ctx)
             details = {'step': step}
-            self._publisher.install_error(ctx, 'install-error', 'Installation error', details=details)
+            self._publisher.install_error(
+                ctx, 'install-error', 'Installation error', details=details
+            )
         except PluginAlreadyInstalled:
-            ctx.log(logger.info, '%s/%s is already installed', ctx.metadata['namespace'], ctx.metadata['name'])
+            ctx.log(
+                logger.info,
+                '%s/%s is already installed',
+                ctx.metadata['namespace'],
+                ctx.metadata['name'],
+            )
             self._builder.clean(ctx)
             self._publisher.install(ctx, 'completed')
         except PluginValidationException as e:
@@ -103,7 +119,9 @@ class PackageAndInstallTask:
             self._publisher.install(ctx, 'completed')
         except Exception:
             debug_enabled = ctx.config['debug']
-            ctx.log(logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled)
+            ctx.log(
+                logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled
+            )
             error_id = '{}-error'.format(step.replace(' ', '-'))
             message = '{} Error'.format(step.capitalize())
             details = {'install_options': dict(ctx.install_options)}
@@ -123,7 +141,6 @@ def get_publisher(config):
 
 
 class _PackageRemover:
-
     def __init__(self, config, root_worker):
         self._config = config
         self._root_worker = root_worker
@@ -136,7 +153,6 @@ class _PackageRemover:
 
 
 class _PackageBuilder:
-
     def __init__(self, config, root_worker, package_install_fn):
         self._config = config
         self._downloader = download.Downloader(config)
@@ -146,11 +162,15 @@ class _PackageBuilder:
 
     def build(self, ctx):
         namespace, name = ctx.metadata['namespace'], ctx.metadata['name']
-        installer_path = os.path.join(ctx.extract_path, self._config['default_install_filename'])
+        installer_path = os.path.join(
+            ctx.extract_path, self._config['default_install_filename']
+        )
         ctx.log(logger.debug, 'building %s/%s', namespace, name)
         cmd = [installer_path, 'build']
         self._exec(ctx, cmd, cwd=ctx.extract_path)
-        return ctx.with_fields(installer_path=installer_path, namespace=namespace, name=name)
+        return ctx.with_fields(
+            installer_path=installer_path, namespace=namespace, name=name
+        )
 
     def clean(self, ctx):
         extract_path = getattr(ctx, 'extract_path', None)
@@ -165,7 +185,9 @@ class _PackageBuilder:
         ctx = self._debian_file_generator.generate(ctx)
         cmd = ['dpkg-deb', '--build', ctx.pkgdir]
         self._exec(ctx, cmd, cwd=ctx.extract_path)
-        deb_path = os.path.join(ctx.extract_path, '{}.deb'.format(self._config['build_dir']))
+        deb_path = os.path.join(
+            ctx.extract_path, '{}.deb'.format(self._config['build_dir'])
+        )
         return ctx.with_fields(package_deb_file=deb_path)
 
     def download(self, ctx):
@@ -176,16 +198,17 @@ class _PackageBuilder:
         ctx.log(logger.debug, 'extracting to %s', extract_path)
         shutil.rmtree(extract_path, ignore_errors=True)
         shutil.move(ctx.download_path, extract_path)
-        metadata_filename = os.path.join(extract_path, self._config['default_metadata_filename'])
+        metadata_filename = os.path.join(
+            extract_path, self._config['default_metadata_filename']
+        )
         with open(metadata_filename, 'r') as f:
             metadata = yaml.safe_load(f)
-        return ctx.with_fields(
-            metadata=metadata,
-            extract_path=extract_path,
-        )
+        return ctx.with_fields(metadata=metadata, extract_path=extract_path,)
 
     def validate(self, ctx):
-        validator = Validator.new_from_config(ctx.config, ctx.wazo_version, ctx.install_params)
+        validator = Validator.new_from_config(
+            ctx.config, ctx.wazo_version, ctx.install_params
+        )
         validator.validate(ctx.metadata)
         ctx.install_params['reinstall'] = False
         return ctx
@@ -236,9 +259,12 @@ class _PackageBuilder:
         cmd = ['fakeroot', ctx.installer_path, 'package']
         self._exec(ctx, cmd, cwd=ctx.extract_path, env=dict(os.environ, pkgdir=pkgdir))
         installed_plugin_data_path = os.path.join(
-            pkgdir, 'usr/lib/wazo-plugind/plugins', ctx.namespace, ctx.name)
+            pkgdir, 'usr/lib/wazo-plugind/plugins', ctx.namespace, ctx.name
+        )
         os.makedirs(installed_plugin_data_path)
-        plugin_data_path = os.path.join(ctx.extract_path, self._config['plugin_data_dir'])
+        plugin_data_path = os.path.join(
+            ctx.extract_path, self._config['plugin_data_dir']
+        )
         cmd = ['fakeroot', 'cp', '-R', plugin_data_path, installed_plugin_data_path]
         self._exec(ctx, cmd, cwd=ctx.extract_path)
         return self._debianize(ctx.with_fields(pkgdir=pkgdir))

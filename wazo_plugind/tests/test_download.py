@@ -1,4 +1,4 @@
-# Copyright 2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, equal_to
@@ -10,10 +10,11 @@ from wazo_plugind.config import _DEFAULT_CONFIG
 
 
 class TestMarketDownloader(TestCase):
-
     def setUp(self):
         self._main_downloader = Mock()
-        self.downloader = download._MarketDownloader(_DEFAULT_CONFIG, self._main_downloader)
+        self.downloader = download._MarketDownloader(
+            _DEFAULT_CONFIG, self._main_downloader
+        )
 
     def test_already_satisfied(self):
         not_installed = {}

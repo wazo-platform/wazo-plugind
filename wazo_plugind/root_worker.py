@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -22,9 +22,10 @@ class BaseWorker:
         self._result_queue = Queue()
         self._stop_requested = Event()
         self._command_queue_lock = Lock()
-        self._process = Process(target=_run, args=(self._command_queue,
-                                                   self._result_queue,
-                                                   self._stop_requested))
+        self._process = Process(
+            target=_run,
+            args=(self._command_queue, self._result_queue, self._stop_requested),
+        )
 
     def __enter__(self):
         self.run()
@@ -82,7 +83,6 @@ class RootWorker(BaseWorker):
 
 
 class _CommandExecutor:
-
     def execute(self, cmd, *args, **kwargs):
         fn = getattr(self, cmd, None)
         if not fn:

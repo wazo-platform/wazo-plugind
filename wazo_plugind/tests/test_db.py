@@ -1,26 +1,43 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
 from unittest import TestCase
-from hamcrest import assert_that, calling, contains, empty, equal_to, has_entries, raises
+from hamcrest import (
+    assert_that,
+    calling,
+    contains,
+    empty,
+    equal_to,
+    has_entries,
+    raises,
+)
 from mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
-from ..db import (iin, normalize_caseless, MarketDB, MarketPluginUpdater, MarketProxy, Plugin, PluginDB)
+from ..db import (
+    iin,
+    normalize_caseless,
+    MarketDB,
+    MarketPluginUpdater,
+    MarketProxy,
+    Plugin,
+    PluginDB,
+)
 from ..exceptions import InvalidSortParamException
 
 CURRENT_WAZO_VERSION = '17.12'
 
 
 class TestMarketPluginUpdater(TestCase):
-
     def setUp(self):
         self.uninstalled_plugin = Mock()
         self.uninstalled_plugin.is_installed.return_value = False
         self.plugin_db = Mock(PluginDB)
         self.plugin_db.get_plugin.return_value = self.uninstalled_plugin
-        self.updater = MarketPluginUpdater(self.plugin_db, current_wazo_version=CURRENT_WAZO_VERSION)
+        self.updater = MarketPluginUpdater(
+            self.plugin_db, current_wazo_version=CURRENT_WAZO_VERSION
+        )
 
     def test_that_the_installed_version_is_added(self):
         plugin_info = {
@@ -37,109 +54,95 @@ class TestMarketPluginUpdater(TestCase):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [
-                {
-                    'min_wazo_version': '17.13',
-                },
-            ],
+            'versions': [{'min_wazo_version': '17.13'}],
         }
 
         result = self.updater.update(plugin_info)
 
-        assert_that(result, has_entries('versions', contains(has_entries('upgradable', False))))
+        assert_that(
+            result, has_entries('versions', contains(has_entries('upgradable', False)))
+        )
 
     def test_upgradable_field_with_min_version_that_is_ok(self):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [
-                {
-                    'min_wazo_version': CURRENT_WAZO_VERSION,
-                },
-            ],
+            'versions': [{'min_wazo_version': CURRENT_WAZO_VERSION}],
         }
 
         result = self.updater.update(plugin_info)
 
-        assert_that(result, has_entries('versions', contains(has_entries('upgradable', True))))
+        assert_that(
+            result, has_entries('versions', contains(has_entries('upgradable', True)))
+        )
 
     def test_upgradable_field_with_max_version_too_low(self):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [
-                {
-                    'max_wazo_version': '17.11',
-                },
-            ],
+            'versions': [{'max_wazo_version': '17.11'}],
         }
 
         result = self.updater.update(plugin_info)
 
-        assert_that(result, has_entries('versions', contains(has_entries('upgradable', False))))
+        assert_that(
+            result, has_entries('versions', contains(has_entries('upgradable', False)))
+        )
 
     def test_upgradable_field_with_max_version_that_is_ok(self):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [
-                {
-                    'max_wazo_version': CURRENT_WAZO_VERSION,
-                },
-            ],
+            'versions': [{'max_wazo_version': CURRENT_WAZO_VERSION}],
         }
 
         result = self.updater.update(plugin_info)
 
-        assert_that(result, has_entries('versions', contains(has_entries('upgradable', True))))
+        assert_that(
+            result, has_entries('versions', contains(has_entries('upgradable', True)))
+        )
 
     def test_upgradable_with_an_old_version(self):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [
-                {
-                    'version': '0.0.1'
-                },
-            ],
+            'versions': [{'version': '0.0.1'}],
         }
 
         with self.installed_plugin('foobar', 'foo', '0.0.2'):
             result = self.updater.update(plugin_info)
 
-        assert_that(result, has_entries('versions', contains(has_entries('upgradable', False))))
+        assert_that(
+            result, has_entries('versions', contains(has_entries('upgradable', False)))
+        )
 
     def test_upgradable_with_the_same_version(self):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [
-                {
-                    'version': '0.0.1'
-                },
-            ],
+            'versions': [{'version': '0.0.1'}],
         }
 
         with self.installed_plugin('foobar', 'foo', '0.0.1'):
             result = self.updater.update(plugin_info)
 
-        assert_that(result, has_entries('versions', contains(has_entries('upgradable', False))))
+        assert_that(
+            result, has_entries('versions', contains(has_entries('upgradable', False)))
+        )
 
     def test_upgradable_with_a_newer_version(self):
         plugin_info = {
             'namespace': 'foobar',
             'name': 'foo',
-            'versions': [
-                {
-                    'version': '0.0.2'
-                },
-            ],
+            'versions': [{'version': '0.0.2'}],
         }
 
         with self.installed_plugin('foobar', 'foo', '0.0.1'):
             result = self.updater.update(plugin_info)
 
-        assert_that(result, has_entries('versions', contains(has_entries('upgradable', True))))
+        assert_that(
+            result, has_entries('versions', contains(has_entries('upgradable', True)))
+        )
 
     @contextmanager
     def installed_plugin(self, namespace, name, version):
@@ -156,7 +159,6 @@ class TestMarketPluginUpdater(TestCase):
 
 
 class TestPlugin(TestCase):
-
     def test_is_installed_no_arguments(self):
         namespace, name = 'foo', 'bar'
 
@@ -187,7 +189,6 @@ class TestPlugin(TestCase):
 
 
 class TestIIn(TestCase):
-
     def test_iin(self):
         truth = [
             ('ç', 'François'),
@@ -206,7 +207,6 @@ class TestIIn(TestCase):
 
 
 class TestNormalizeCaseless(TestCase):
-
     def test_normalize_caseless(self):
         data = [
             ('abc', 'abc'),
@@ -221,7 +221,6 @@ class TestNormalizeCaseless(TestCase):
 
 
 class TestMarketDB(TestCase):
-
     def setUp(self):
         self.content = [
             {
@@ -232,13 +231,8 @@ class TestMarketDB(TestCase):
                 'author': 'me',
                 'installed_version': '0.0.1',
                 'versions': [
-                    {
-                        'version': '0.1.1',
-                        'min_wazo_version': '1',
-                    },
-                    {
-                        'version': '0.0.1',
-                    },
+                    {'version': '0.1.1', 'min_wazo_version': '1'},
+                    {'version': '0.0.1'},
                 ],
             },
             {
@@ -248,17 +242,9 @@ class TestMarketDB(TestCase):
                 'author': 'you',
                 'installed_version': None,
                 'versions': [
-                    {
-                        'version': '0.3.0',
-                        'min_wazo_version': '9999',
-                    },
-                    {
-                        'version': '0.2.0',
-                        'min_wazo_version': '3',
-                    },
-                    {
-                        'version': '0.1.1',
-                    },
+                    {'version': '0.3.0', 'min_wazo_version': '9999'},
+                    {'version': '0.2.0', 'min_wazo_version': '3'},
+                    {'version': '0.1.1'},
                 ],
             },
             {
@@ -266,14 +252,8 @@ class TestMarketDB(TestCase):
                 'author': 'you & me',
                 'installed_version': '0.10.0',
                 'versions': [
-                    {
-                        'version': '0.12.0',
-                        'min_wazo_version': '2',
-                    },
-                    {
-                        'version': '0.10.5',
-                        'max_wazo_version': '0',
-                    },
+                    {'version': '0.12.0', 'min_wazo_version': '2'},
+                    {'version': '0.10.5', 'max_wazo_version': '0'},
                 ],
             },
         ]
@@ -297,7 +277,9 @@ class TestMarketDB(TestCase):
         results = self.db.list_(name='a', namespace='c', author='me')
         assert_that(results, contains(a))
 
-        results = self.db.list_(name='a', namespace='c', author='you')  # Not full match on author
+        results = self.db.list_(
+            name='a', namespace='c', author='you'
+        )  # Not full match on author
         assert_that(results, empty())
 
     def test_get(self):
@@ -317,10 +299,7 @@ class TestMarketDB(TestCase):
         assert_that(result, expected_result)
 
         # Unknown name
-        assert_that(
-            calling(self.db.get).with_args('foo', 'BAZ'),
-            raises(Exception)
-        )
+        assert_that(calling(self.db.get).with_args('foo', 'BAZ'), raises(Exception))
 
     def test_search(self):
         a, b, c = self.content
@@ -352,8 +331,10 @@ class TestMarketDB(TestCase):
         results = self.db.list_(order='namespace', direction='asc')
         assert_that(results, contains(c, a, b))
 
-        assert_that(calling(self.db.list_).with_args(order='d'),
-                    raises(InvalidSortParamException))
+        assert_that(
+            calling(self.db.list_).with_args(order='d'),
+            raises(InvalidSortParamException),
+        )
 
     def test_limit(self):
         a, b, c = self.content

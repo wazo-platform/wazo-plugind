@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import EXCLUDE, pre_load
@@ -60,13 +60,13 @@ class PluginMetadataSchema(Schema):
     name = fields.String(validate=Regexp(_PLUGIN_NAME_REGEXP), required=True)
     namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
     version = fields.String(required=True)
-    plugin_format_version = fields.Integer(validate=Range(min=0,
-                                                          max=_MAX_PLUGIN_FORMAT_VERSION),
-                                           missing=_DEFAULT_PLUGIN_FORMAT_VERSION)
+    plugin_format_version = fields.Integer(
+        validate=Range(min=0, max=_MAX_PLUGIN_FORMAT_VERSION),
+        missing=_DEFAULT_PLUGIN_FORMAT_VERSION,
+    )
     max_wazo_version = fields.String()
     min_wazo_version = fields.String()
-    depends = fields.Nested(MarketInstallOptionsSchema, many=True,
-                            unknown=EXCLUDE)
+    depends = fields.Nested(MarketInstallOptionsSchema, many=True, unknown=EXCLUDE)
 
     @pre_load
     def ensure_string_versions(self, data):
@@ -101,8 +101,9 @@ class MarketListResultSchema(Schema):
     namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
     tags = fields.List(fields.String)
     author = fields.String()
-    versions = fields.Nested(MarketVersionResultSchema, many=True,
-                             required=True, unknown=EXCLUDE)
+    versions = fields.Nested(
+        MarketVersionResultSchema, many=True, required=True, unknown=EXCLUDE
+    )
     screenshots = fields.List(fields.String)
     icon = fields.String()
     description = fields.String()

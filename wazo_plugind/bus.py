@@ -1,4 +1,4 @@
-# Copyright 2017 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import kombu
@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class StatusPublisher:
-
     def __init__(self, publisher):
         self._publisher = publisher
 
@@ -37,7 +36,12 @@ class StatusPublisher:
 
     def _publish_error(self, Event, ctx, error_id, message, details=None):
         details = details or {}
-        errors = {'error_id': error_id, 'message': message, 'resource': 'plugins', 'details': details}
+        errors = {
+            'error_id': error_id,
+            'message': message,
+            'resource': 'plugins',
+            'details': details,
+        }
         return self._publish(Event, ctx, 'error', errors=errors)
 
     def run(self):
@@ -54,7 +58,9 @@ class StatusPublisher:
         bus_url = 'amqp://{username}:{password}@{host}:{port}//'.format(**config['bus'])
         exchange_name = config['bus']['exchange_name']
         exchange_type = config['bus']['exchange_type']
-        publisher_fcty = partial(_new_publisher, uuid, bus_url, exchange_name, exchange_type)
+        publisher_fcty = partial(
+            _new_publisher, uuid, bus_url, exchange_name, exchange_type
+        )
         publisher = xivo_bus.PublishingQueue(publisher_fcty)
         return cls(publisher)
 
@@ -62,6 +68,8 @@ class StatusPublisher:
 def _new_publisher(uuid, url, exchange_name, exchange_type):
     bus_connection = kombu.Connection(url)
     bus_exchange = kombu.Exchange(exchange_name, type=exchange_type)
-    bus_producer = kombu.Producer(bus_connection, exchange=bus_exchange, auto_declare=True)
+    bus_producer = kombu.Producer(
+        bus_connection, exchange=bus_exchange, auto_declare=True
+    )
     bus_marshaler = xivo_bus.Marshaler(uuid)
     return xivo_bus.Publisher(bus_producer, bus_marshaler)

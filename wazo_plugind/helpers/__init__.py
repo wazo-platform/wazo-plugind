@@ -1,4 +1,4 @@
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 
 
 def exec_and_log(stdout_logger, stderr_logger, *args, **kwargs):
-    p = subprocess.Popen(*args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+    p = subprocess.Popen(
+        *args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+    )
     out, err = p.communicate()
     cmd = ' '.join(args[0])
     if out:
@@ -29,7 +31,6 @@ def exec_and_log(stdout_logger, stderr_logger, *args, **kwargs):
 
 
 class WazoVersionFinder:
-
     def __init__(self, config):
         self._token = None
         self._config = config

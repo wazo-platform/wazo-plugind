@@ -1,4 +1,4 @@
-# Copyright 2017-2018 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -24,7 +24,6 @@ def _signal_handler(signum, frame):
 
 
 class Controller:
-
     def __init__(self, config, root_worker):
         self._executor = ThreadPoolExecutor(max_workers=10)  # Make it configurable
         self._xivo_uuid = config.get('uuid')
@@ -40,12 +39,17 @@ class Controller:
         bind_addr = (self._listen_addr, self._listen_port)
         self._publisher = bus.StatusPublisher.from_config(config)
         plugin_service = service.PluginService.from_config(
-            config, self._publisher, root_worker, self._executor)
+            config, self._publisher, root_worker, self._executor
+        )
 
         flask_app = http.new_app(config, plugin_service=plugin_service)
         flask_app.after_request(http_helpers.log_request)
-        wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(self._ssl_cert_file, ssl_key_file)
-        wsgi_app = ReverseProxied(ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': flask_app})))
+        wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(
+            self._ssl_cert_file, ssl_key_file
+        )
+        wsgi_app = ReverseProxied(
+            ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': flask_app}))
+        )
         self._server = wsgi.WSGIServer(bind_addr=bind_addr, wsgi_app=wsgi_app)
         for route in http_helpers.list_routes(flask_app):
             logger.debug(route)
@@ -56,12 +60,12 @@ class Controller:
         publisher_thread = Thread(target=self._publisher.run)
         publisher_thread.start()
         with ServiceCatalogRegistration(
-                'wazo-plugind',
-                self._xivo_uuid,
-                self._consul_config,
-                self._service_discovery_config,
-                self._bus_config,
-                partial(self_check, self._listen_port),
+            'wazo-plugind',
+            self._xivo_uuid,
+            self._consul_config,
+            self._service_discovery_config,
+            self._bus_config,
+            partial(self_check, self._listen_port),
         ):
             try:
                 self._server.start()
