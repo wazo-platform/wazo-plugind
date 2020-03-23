@@ -19,4 +19,4 @@ build-plugind:
 	docker build --no-cache -t wazo-plugind-test -f Dockerfile ..
 
 test:
-	nosetests -x
+	pytest -x
