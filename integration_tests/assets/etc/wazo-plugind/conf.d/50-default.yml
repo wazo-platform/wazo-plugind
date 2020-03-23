@@ -1,0 +1,18 @@
+debug: true
+
+auth:
+  host: auth
+  verify_certificate: false
+  key_file: /etc/wazo-plugind/key.yml
+
+bus:
+  host: rabbitmq
+
+market:
+  host: market
+  port: 8000
+  https: False
+  version: 0.1
+
+service_discovery:
+  enabled: false
