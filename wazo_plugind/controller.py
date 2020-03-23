@@ -27,11 +27,11 @@ class Controller:
     def __init__(self, config, root_worker):
         self._executor = ThreadPoolExecutor(max_workers=10)  # Make it configurable
         self._xivo_uuid = config.get('uuid')
-        self._listen_addr = config['rest_api']['https']['listen']
-        self._listen_port = config['rest_api']['https']['port']
+        self._listen_addr = config['rest_api']['listen']
+        self._listen_port = config['rest_api']['port']
         self._cors_config = config['rest_api']['cors']
-        self._ssl_cert_file = config['rest_api']['https']['certificate']
-        ssl_key_file = config['rest_api']['https']['private_key']
+        self._ssl_cert_file = config['rest_api']['certificate']
+        ssl_key_file = config['rest_api']['private_key']
         self._consul_config = config['consul']
         self._service_discovery_config = config['service_discovery']
         self._bus_config = config['bus']

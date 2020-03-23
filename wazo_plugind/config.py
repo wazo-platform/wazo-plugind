@@ -48,12 +48,10 @@ _DEFAULT_CONFIG = dict(
         'verify_certificate': '/usr/share/xivo-certs/server.crt',
     },
     rest_api={
-        'https': {
-            'listen': '0.0.0.0',
-            'port': _DEFAULT_HTTPS_PORT,
-            'certificate': _DEFAULT_CERT_FILE,
-            'private_key': '/usr/share/xivo-certs/server.key',
-        },
+        'listen': '0.0.0.0',
+        'port': _DEFAULT_HTTPS_PORT,
+        'certificate': _DEFAULT_CERT_FILE,
+        'private_key': '/usr/share/xivo-certs/server.key',
         'cors': {'enabled': True, 'allow_headers': ['Content-Type', 'X-Auth-Token']},
     },
     bus={
