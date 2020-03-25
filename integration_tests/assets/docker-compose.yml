@@ -13,11 +13,7 @@ services:
     volumes:
       - "../..:/usr/src/wazo-plugind"
       - "./etc/wazo-plugind/key.yml:/etc/wazo-plugind/key.yml"
-      - "./etc/wazo-plugind/conf.d/auth.yml:/etc/wazo-plugind/conf.d/auth.yml"
-      - "./etc/wazo-plugind/conf.d/debug.yml:/etc/wazo-plugind/conf.d/debug.yml"
-      - "./etc/wazo-plugind/conf.d/market.yml:/etc/wazo-plugind/conf.d/market.yml"
-      - "./etc/wazo-plugind/conf.d/rabbitmq.yml:/etc/wazo-plugind/conf.d/rabbitmq.yml"
-      - "./etc/wazo-plugind/conf.d/disable_service_discovery.yml:/etc/wazo-plugind/conf.d/disable_service_discovery.yml"
+      - "./etc/wazo-plugind/conf.d/50-default.yml:/etc/wazo-plugind/conf.d/50-default.yml"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/usr/local/lib/python3.7/site-packages/xivo"
       # - "${LOCAL_GIT_REPOS}/wazo-market-client/wazo_market_client:/usr/local/lib/python3.7/site-packages/wazo_market_client"
     ports:

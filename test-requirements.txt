@@ -1,4 +1,4 @@
-mock
-nose
-pyhamcrest
 https://github.com/wazo-platform/xivo-test-helpers/archive/master.zip
+mock
+pyhamcrest
+pytest

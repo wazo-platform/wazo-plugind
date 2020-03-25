@@ -4,8 +4,8 @@ https://github.com/wazo-platform/wazo-plugind-client/archive/master.zip
 docker-compose
 kombu
 mock
-nose
 openapi-spec-validator
 pyhamcrest
+pytest
 requests
 stevedore
