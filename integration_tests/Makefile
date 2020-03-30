@@ -1,18 +1,10 @@
-.PHONY: test-setup build-plugind test create-git
-
 create-git:
 	./make-git-repo.sh
 
-test-setup: egg-info build-plugind create-git pull-images ;
+test-setup: egg-info build-plugind create-git
 
 egg-info:
 	cd .. && python setup.py egg_info
-
-pull-images:
-	docker pull consul
-	docker pull rabbitmq
-	docker pull wazopbx/wait
-	docker pull wazopbx/wazo-auth-mock
 
 build-plugind:
 	docker build -t wazopbx/wazo-plugind ..
@@ -20,3 +12,5 @@ build-plugind:
 
 test:
 	pytest -x
+
+.PHONY: test-setup build-plugind test create-git
