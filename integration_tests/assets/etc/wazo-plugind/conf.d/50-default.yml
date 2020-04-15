@@ -2,7 +2,6 @@ debug: true
 
 auth:
   host: auth
-  verify_certificate: false
   key_file: /etc/wazo-plugind/key.yml
 
 bus:
