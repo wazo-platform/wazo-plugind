@@ -45,7 +45,8 @@ _DEFAULT_CONFIG = dict(
         'host': 'localhost',
         'port': 9486,
         'version': 1.1,
-        'verify_certificate': '/usr/share/xivo-certs/server.crt',
+        'prefix': None,
+        'https': False,
     },
     rest_api={
         'listen': '0.0.0.0',
