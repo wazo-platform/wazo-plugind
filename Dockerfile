@@ -1,33 +1,41 @@
-FROM python:3.7-buster
+FROM python:3.7-slim-buster AS compile-image
+LABEL maintainer="Wazo Maintainers <dev@wazo.community>"
 
-ADD . /usr/src/wazo-plugind
+RUN python -m venv /opt/venv
+# Activate virtual env
+ENV PATH="/opt/venv/bin:$PATH"
 
+RUN apt-get -q update
+RUN apt-get -yq install gcc
+
+COPY . /usr/src/wazo-plugind
 WORKDIR /usr/src/wazo-plugind
+RUN pip install -r requirements.txt
+RUN python setup.py install
+
+RUN pip install pyparsing
+RUN pip install appdirs
+
+FROM python:3.7-slim-buster AS build-image
+COPY --from=compile-image /opt/venv /opt/venv
+
+COPY ./etc/wazo-plugind /etc/wazo-plugind
+COPY ./templates /usr/lib/wazo-plugind/templates
 
 RUN true \
-    && apt-get update \
-    && apt-get -yqq install apt-utils fakeroot gdebi-core git \
-    && pip install pyparsing \
-    && pip install appdirs \
-    && pip install -r requirements.txt \
+    && apt-get -q update \
+    && apt-get -yq install apt-utils fakeroot gdebi-core git wget gnupg \
     && adduser --quiet --system --group --home /var/lib/wazo-plugind wazo-plugind \
     && mkdir -p /etc/wazo-plugind/conf.d \
-    && mkdir -p /run/wazo-plugind \
-    && mkdir -p /var/lib/wazo-plugind/downloads \
-    && mkdir -p /var/lib/wazo-plugind/rules \
-    && chown -R wazo-plugind:wazo-plugind /var/lib/wazo-plugind \
-    && chmod 755 /var/lib/wazo-plugind/rules \
-    && chmod 755 /var/lib/wazo-plugind \
-    && chmod a+w /run/wazo-plugind \
-    && touch /var/log/wazo-plugind.log \
-    && chown wazo-plugind:wazo-plugind /var/log/wazo-plugind.log \
-    && python setup.py install \
-    && cp -r etc/* /etc \
-    && mkdir -p /usr/lib/wazo-plugind \
-    && cp -r templates /usr/lib/wazo-plugind \
+    && install -m 755 -d -o wazo-plugind -g wazo-plugind /var/lib/wazo-plugind/rules \
+    && install -d -o wazo-plugind -g wazo-plugind /var/lib/wazo-plugind/downloads \
+    && install -d -o wazo-plugind -g wazo-plugind /run/wazo-plugind/ \
+    && install -o wazo-plugind -g wazo-plugind /dev/null /var/log/wazo-plugind.log \
     && chown -R wazo-plugind:wazo-plugind /usr/lib/wazo-plugind \
-    && apt-get -yqq autoremove
+    && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 9503
 
+# Activate virtual env
+ENV PATH="/opt/venv/bin:$PATH"
 CMD ["wazo-plugind"]
