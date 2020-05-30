@@ -20,7 +20,7 @@ services:
       - "9503"
 
   market:
-    image: "python:3"
+    image: "python:3.7-slim-buster"
     ports:
       - "8000"
     command: ["bash", "-c", "cd /var/www && python -m http.server"]
