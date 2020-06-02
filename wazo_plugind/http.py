@@ -10,7 +10,7 @@ from flask_restful import Api, Resource
 from marshmallow import ValidationError
 from pkg_resources import resource_string
 from xivo import http_helpers
-from xivo.http_helpers import add_logger
+from xivo.http_helpers import add_logger, reverse_proxy_fix_api_spec
 from xivo.auth_verifier import AuthVerifier, required_acl
 from xivo.rest_api_helpers import handle_api_exception
 
@@ -182,6 +182,7 @@ class Swagger(_BaseResource):
         except IOError:
             return {'error': "API spec does not exist"}, 404
 
+        reverse_proxy_fix_api_spec(api_spec)
         return make_response(api_spec, 200, {'Content-Type': 'application/x-yaml'})
 
 
