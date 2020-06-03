@@ -3,6 +3,7 @@
 
 import logging
 import requests
+import yaml
 
 from flask import Flask, make_response, request
 from flask_cors import CORS
@@ -178,12 +179,13 @@ class Swagger(_BaseResource):
 
     def get(self):
         try:
-            api_spec = resource_string(self.api_package, self.api_filename)
+            api_spec = yaml.load(resource_string(self.api_package, self.api_filename))
         except IOError:
             return {'error': "API spec does not exist"}, 404
 
         reverse_proxy_fix_api_spec(api_spec)
-        return make_response(api_spec, 200, {'Content-Type': 'application/x-yaml'})
+        response = yaml.dump(dict(api_spec))
+        return make_response(response, 200, {'Content-Type': 'application/x-yaml'})
 
 
 class PlugindAPI:
