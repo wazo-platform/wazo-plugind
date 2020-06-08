@@ -44,9 +44,13 @@ class Controller:
 
         flask_app = http.new_app(config, plugin_service=plugin_service)
         flask_app.after_request(http_helpers.log_request)
-        wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(
-            self._ssl_cert_file, ssl_key_file
-        )
+        if self._ssl_cert_file and ssl_key_file:
+            logger.warning(
+                'Using service SSL configuration is deprecated. Please use NGINX instead.'
+            )
+            wsgi.WSGIServer.ssl_adapter = http_helpers.ssl_adapter(
+                self._ssl_cert_file, ssl_key_file
+            )
         wsgi_app = ReverseProxied(
             ProxyFix(wsgi.WSGIPathInfoDispatcher({'/': flask_app}))
         )

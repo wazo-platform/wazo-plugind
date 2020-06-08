@@ -11,8 +11,7 @@ from xivo.xivo_logging import get_log_level_by_name
 
 _MAX_PLUGIN_FORMAT_VERSION = 2
 _DAEMONNAME = 'wazo-plugind'
-_DEFAULT_HTTPS_PORT = 9503
-_DEFAULT_CERT_FILE = '/usr/share/xivo-certs/server.crt'
+_DEFAULT_HTTP_PORT = 9503
 _PLUGIN_DATA_DIR = 'wazo'
 _PID_DIR = '/run/{}'.format(_DAEMONNAME)
 _HOME_DIR = '/usr/lib/wazo-plugind'
@@ -49,10 +48,10 @@ _DEFAULT_CONFIG = dict(
         'https': False,
     },
     rest_api={
-        'listen': '0.0.0.0',
-        'port': _DEFAULT_HTTPS_PORT,
-        'certificate': _DEFAULT_CERT_FILE,
-        'private_key': '/usr/share/xivo-certs/server.key',
+        'listen': '127.0.0.1',
+        'port': _DEFAULT_HTTP_PORT,
+        'certificate': None,
+        'private_key': None,
         'cors': {'enabled': True, 'allow_headers': ['Content-Type', 'X-Auth-Token']},
     },
     bus={
@@ -72,7 +71,7 @@ _DEFAULT_CONFIG = dict(
     service_discovery={
         'advertise_address': 'auto',
         'advertise_address_interface': 'eth0',
-        'advertise_port': _DEFAULT_HTTPS_PORT,
+        'advertise_port': _DEFAULT_HTTP_PORT,
         'enabled': True,
         'ttl_interval': 30,
         'refresh_interval': 27,

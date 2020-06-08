@@ -22,7 +22,6 @@ case "$1" in
                     --home $HOMEDIR \
                     $USER
         fi
-        adduser --quiet $USER www-data
 
         if [ ! -e "$LOG_FILENAME" ]; then
             touch "$LOG_FILENAME"
@@ -37,6 +36,10 @@ case "$1" in
         if [[ -z "${previous_version}" ]]; then
             ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
                     /etc/nginx/locations/https-enabled/$DAEMONNAME
+        elif dpkg --compare-versions "${previous_version}" lt '20.09'; then
+            if getent group www-data | grep -q $USER; then
+                deluser --quiet $USER www-data
+            fi
         fi
 
         chown -R "$USER:$GROUP" "$HOMEDIR"

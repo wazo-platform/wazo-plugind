@@ -54,8 +54,9 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         port = self.service_port(9503)
         client_args = {
             'port': port,
+            'prefix': None,
+            'https': False,
             'token': token,
-            'verify_certificate': False,
             'timeout': 20,
         }
         if version:
