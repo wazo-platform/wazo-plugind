@@ -1,5 +1,8 @@
 debug: true
 
+rest_api:
+  listen: 0.0.0.0
+
 auth:
   host: auth
   key_file: /etc/wazo-plugind/key.yml
