@@ -5,11 +5,11 @@ import requests
 
 
 def self_check(port):
-    url = 'https://localhost:{}/0.2/config'.format(port)
+    url = 'http://localhost:{}/0.2/config'.format(port)
     try:
         return (
             requests.get(
-                url, headers={'accept': 'application/json'}, verify=False, timeout=1
+                url, headers={'accept': 'application/json'}, timeout=1
             ).status_code
             == 401
         )
