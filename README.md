@@ -4,15 +4,12 @@
 
 A micro service to manage plugins in the [Wazo PBX](http://wazo.community).
 
-
 wazo-plugind allow the administrator to manage plugins installed on a Wazo using
 a simple HTTP interface.
-
 
 ## Docker
 
 The official docker image for this service is `wazopbx/wazo-plugind`.
-
 
 ### Getting the image
 
@@ -21,7 +18,6 @@ To download the latest image from the docker hub
 ```sh
 docker pull wazopbx/wazo-plugind
 ```
-
 
 ### Running wazo-plugind
 
