@@ -1,29 +1,25 @@
-Changelog
-=========
+# Changelog
 
-18.03
-------
+## 20.09
+
+* Deprecate SSL configuration
+
+## 18.03
 
 * It is now possible to force the reinstallation of a plugin on `POST /plugins`
   with query parameter `reinstall=True`.
 
-
-18.02
-------
+## 18.02
 
 API version 0.1 has been removed
 
-
-17.12
------
+## 17.12
 
 * New resource added `GET /market/<namespace>/<name>`
 * New resource added `GET /plugins/<namespace>/<name>`
 * The `url` parameter is now ignored when doing market installation
 
-
-17.11
------
+## 17.11
 
 * REST API Version `0.1` has been deprecated and will be removed in Wazo `18.02`
 * REST API Version `0.2` has been added with the following changes
@@ -31,7 +27,6 @@ API version 0.1 has been removed
   * `POST /plugins` does not have a `url` parameter has top level argument in its body
   * `POST /plugins` now requires an `url` parameter in its options field when using the `git` method
   * `POST /plugins` now accepts an `url` parameter in its options fields when using the `market` method
-
 
 Example:
 
@@ -50,9 +45,7 @@ Example:
    }' 'https://wazo.example.com:9503/0.2/plugins'
 ```
 
-
-17.10
------
+## 17.10
 
 * New endpoint for the plugin market
 
@@ -60,21 +53,15 @@ Example:
 
 * Added the `market` install method to `POST /plugins`
 
-
-17.09
------
+## 17.09
 
 * `POST /plugins` now accepts an `options` parameter for method specific arguments
 
-
-17.08
------
+## 17.08
 
 * `POST /plugins` and `DELETE /plugins` are now asynchronous
 
-
-17.07
------
+## 17.07
 
 * New endpoint for plugins
 
@@ -82,9 +69,7 @@ Example:
   * `GET /plugins`
   * `DELETE /plugins/<namespace>/<name>`
 
-
-17.05
------
+## 17.05
 
 * New endpoint to fetch the configuration:
 
