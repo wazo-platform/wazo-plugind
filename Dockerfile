@@ -29,7 +29,6 @@ RUN true \
     && mkdir -p /etc/wazo-plugind/conf.d \
     && install -m 755 -d -o wazo-plugind -g wazo-plugind /var/lib/wazo-plugind/rules \
     && install -d -o wazo-plugind -g wazo-plugind /var/lib/wazo-plugind/downloads \
-    && install -d -o wazo-plugind -g wazo-plugind /run/wazo-plugind/ \
     && install -o wazo-plugind -g wazo-plugind /dev/null /var/log/wazo-plugind.log \
     && chown -R wazo-plugind:wazo-plugind /usr/lib/wazo-plugind \
     && rm -rf /var/lib/apt/lists/*
