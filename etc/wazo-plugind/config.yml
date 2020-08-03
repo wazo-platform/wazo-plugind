@@ -9,7 +9,6 @@ extra_config_files: '/etc/wazo-plugind/conf.d'
 debug: false
 log_level: info
 log_file: /var/log/wazo-plugind.log
-pid_file: /run/wazo-plugind/wazo-plugind.pid
 rest_api:
   listen: 127.0.0.1
 

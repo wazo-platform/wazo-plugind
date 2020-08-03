@@ -1,13 +1,14 @@
 [Unit]
 Description=wazo-plugind server
 After=network.target consul.target
-Before=monit.service
+StartLimitBurst=15
+StartLimitIntervalSec=150
 
 [Service]
 Environment=PYTHONUNBUFFERED=TRUE
-ExecStartPre=/usr/bin/install -d -o wazo-plugind -g wazo-plugind /run/wazo-plugind
 ExecStart=/usr/bin/wazo-plugind
-PIDFile=/run/wazo-plugind/wazo-plugind.pid
+Restart=on-failure
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target

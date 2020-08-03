@@ -13,7 +13,6 @@ _MAX_PLUGIN_FORMAT_VERSION = 2
 _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTP_PORT = 9503
 _PLUGIN_DATA_DIR = 'wazo'
-_PID_DIR = '/run/{}'.format(_DAEMONNAME)
 _HOME_DIR = '/usr/lib/wazo-plugind'
 _DEFAULT_CONFIG = dict(
     config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
@@ -39,7 +38,6 @@ _DEFAULT_CONFIG = dict(
     log_file='/var/log/{}.log'.format(_DAEMONNAME),
     user=_DAEMONNAME,
     market={'host': 'apps.wazo.community'},
-    pid_file=os.path.join(_PID_DIR, '{}.pid'.format(_DAEMONNAME)),
     confd={
         'host': 'localhost',
         'port': 9486,
