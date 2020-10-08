@@ -149,7 +149,8 @@ class TestPluginDependencies(BaseIntegrationTest):
                             errors=has_entries(
                                 details=has_entries(
                                     install_options=has_entries(
-                                        name='not-found', namespace='dependency',
+                                        name='not-found',
+                                        namespace='dependency',
                                     )
                                 )
                             ),

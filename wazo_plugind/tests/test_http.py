@@ -235,7 +235,9 @@ class TestPlugins(HTTPAppTestCase):
         self.post({'method': 'git', 'options': options})
 
         self.plugin_service.create.assert_called_once_with(
-            'git', {'reinstall': False}, dict(ref='master', **options),
+            'git',
+            {'reinstall': False},
+            dict(ref='master', **options),
         )
 
     def test_git_install_with_a_branch_name(self):
