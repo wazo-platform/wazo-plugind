@@ -1,4 +1,4 @@
-FROM wazopbx/wazo-plugind
+FROM wazoplatform/wazo-plugind
 
 COPY . /usr/src/wazo-plugind
 WORKDIR /usr/src/wazo-plugind

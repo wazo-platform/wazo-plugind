@@ -1,7 +1,7 @@
 version: "3"
 services:
   sync:
-    image: wazopbx/wait
+    image: wazoplatform/wait
     environment:
       TIMEOUT: "${INTEGRATION_TEST_TIMEOUT}"
 
@@ -31,6 +31,6 @@ services:
       - 5672
 
   auth:
-    image: "wazopbx/wazo-auth-mock"
+    image: "wazoplatform/wazo-auth-mock"
     ports:
       - "9497"
