@@ -105,7 +105,9 @@ def _load_key_file(config):
 
 def _get_reinterpreted_raw_values(*configs):
     config = ChainMap(*configs)
-    return dict(log_level=get_log_level_by_name(config['log_level']),)
+    return dict(
+        log_level=get_log_level_by_name(config['log_level']),
+    )
 
 
 def _parse_cli_args(args):

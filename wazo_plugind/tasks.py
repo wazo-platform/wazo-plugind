@@ -203,7 +203,10 @@ class _PackageBuilder:
         )
         with open(metadata_filename, 'r') as f:
             metadata = yaml.safe_load(f)
-        return ctx.with_fields(metadata=metadata, extract_path=extract_path,)
+        return ctx.with_fields(
+            metadata=metadata,
+            extract_path=extract_path,
+        )
 
     def validate(self, ctx):
         validator = Validator.new_from_config(

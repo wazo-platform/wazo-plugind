@@ -127,7 +127,10 @@ class MarketDB:
         return len(content)
 
     def get(self, namespace, name):
-        filters = dict(namespace=namespace, name=name,)
+        filters = dict(
+            namespace=namespace,
+            name=name,
+        )
 
         content = self._market_proxy.get_content()
         content = self._add_local_values(content)

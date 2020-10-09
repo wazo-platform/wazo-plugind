@@ -7,7 +7,7 @@ egg-info:
 	cd .. && python setup.py egg_info
 
 build-plugind:
-	docker build -t wazopbx/wazo-plugind ..
+	docker build -t wazoplatform/wazo-plugind ..
 	docker build --no-cache -t wazo-plugind-test -f Dockerfile ..
 
 test:
