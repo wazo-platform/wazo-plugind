@@ -43,7 +43,6 @@ class Controller:
         )
 
         flask_app = http.new_app(config, plugin_service=plugin_service)
-        flask_app.after_request(http_helpers.log_request)
         if self._ssl_cert_file and ssl_key_file:
             logger.warning(
                 'Using service SSL configuration is deprecated. Please use NGINX instead.'
