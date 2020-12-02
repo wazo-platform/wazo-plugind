@@ -12,8 +12,9 @@ from marshmallow import ValidationError
 from pkg_resources import resource_string
 from xivo import http_helpers
 from xivo.http_helpers import add_logger, reverse_proxy_fix_api_spec
-from xivo.auth_verifier import AuthVerifier, required_acl
+from xivo.auth_verifier import AuthVerifier, required_acl, required_tenant
 from xivo.rest_api_helpers import handle_api_exception
+from werkzeug.local import LocalProxy as Proxy
 
 from .schema import (
     MarketListRequestSchema,
@@ -26,12 +27,40 @@ from .exceptions import (
     InvalidInstallQueryStringException,
     InvalidListParamException,
     MarketNotFoundException,
+    NotInitializedException,
 )
 
 logger = logging.getLogger(__name__)
-
-
 auth_verifier = AuthVerifier()
+
+
+class MasterTenant:
+    def __init__(self):
+        self._app = None
+
+    def init_app(self, app):
+        self._app = app
+
+    def init_value(self, token):
+        tenant_uuid = token['metadata']['tenant_uuid']
+        self._app.config['auth']['master_tenant_uuid'] = tenant_uuid
+
+    def get_uuid(self):
+        if not self._app:
+            raise Exception('Flask application not configured')
+
+        tenant_uuid = self._app.config['auth'].get('master_tenant_uuid')
+        if not tenant_uuid:
+            raise NotInitializedException()
+        return tenant_uuid
+
+
+master_tenant = MasterTenant()
+master_tenant_uuid = Proxy(master_tenant.get_uuid)
+
+
+def required_master_tenant():
+    return required_tenant(master_tenant_uuid)
 
 
 class _BaseResource(Resource):
@@ -47,7 +76,9 @@ class _BaseResource(Resource):
 
 class _AuthentificatedResource(_BaseResource):
 
-    method_decorators = [auth_verifier.verify_token] + _BaseResource.method_decorators
+    method_decorators = [
+        auth_verifier.verify_tenant, auth_verifier.verify_token
+    ] + _BaseResource.method_decorators
 
 
 class Config(_AuthentificatedResource):
@@ -55,6 +86,7 @@ class Config(_AuthentificatedResource):
     api_path = '/config'
     _config = {}
 
+    @required_master_tenant()
     @required_acl('plugind.config.read')
     def get(self):
         return {k: v for k, v in self._config.items()}, 200
@@ -69,6 +101,7 @@ class Market(_AuthentificatedResource):
 
     api_path = '/market'
 
+    @required_master_tenant()
     @required_acl('plugind.market.read')
     def get(self):
         try:
@@ -107,6 +140,7 @@ class MarketItem(_AuthentificatedResource):
 
     api_path = '/market/<namespace>/<name>'
 
+    @required_master_tenant()
     @required_acl('plugind.market.read')
     def get(self, namespace, name):
         market_proxy = self.plugin_service.new_market_proxy()
@@ -122,6 +156,7 @@ class Plugins(_AuthentificatedResource):
 
     api_path = '/plugins'
 
+    @required_master_tenant()
     @required_acl('plugind.plugins.read')
     def get(self):
         return {
@@ -129,6 +164,7 @@ class Plugins(_AuthentificatedResource):
             'total': self.plugin_service.count(),
         }
 
+    @required_master_tenant()
     @required_acl('plugind.plugins.create')
     def post(self):
         try:
@@ -155,11 +191,13 @@ class PluginsItem(_AuthentificatedResource):
 
     api_path = '/plugins/<namespace>/<name>'
 
+    @required_master_tenant()
     @required_acl('plugind.plugins.{namespace}.{name}.delete')
     def delete(self, namespace, name):
         uuid = self.plugin_service.delete(namespace, name)
         return {'uuid': uuid}
 
+    @required_master_tenant()
     @required_acl('plugind.plugins.{namespace}.{name}.read')
     def get(self, namespace, name):
         plugin_metadata = self.plugin_service.get_plugin_metadata(namespace, name)
@@ -220,6 +258,7 @@ def new_app(config, *args, **kwargs):
     add_logger(app, logger)
     app.config.update(config)
     app.after_request(http_helpers.log_request)
+    master_tenant.init_app(app)
 
     APIv02 = PlugindAPI(
         app, config, prefix='/0.2', *args, endpoint_prefix='v02', **kwargs

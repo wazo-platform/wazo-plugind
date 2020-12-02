@@ -10,8 +10,10 @@ from functools import partial
 from cheroot import wsgi
 from werkzeug.contrib.fixers import ProxyFix
 from xivo import http_helpers
-from xivo.http_helpers import ReverseProxied
 from xivo.consul_helpers import ServiceCatalogRegistration
+from xivo.http_helpers import ReverseProxied
+from xivo.token_renewer import TokenRenewer
+from wazo_auth_client import Client as AuthClient
 from wazo_plugind import http, bus, service
 from .service_discovery import self_check
 
@@ -35,6 +37,7 @@ class Controller:
         self._consul_config = config['consul']
         self._service_discovery_config = config['service_discovery']
         self._bus_config = config['bus']
+        self._token_renewer = TokenRenewer(AuthClient(**config['auth']))
 
         bind_addr = (self._listen_addr, self._listen_port)
         self._publisher = bus.StatusPublisher.from_config(config)
@@ -57,11 +60,20 @@ class Controller:
         for route in http_helpers.list_routes(flask_app):
             logger.debug(route)
 
+        if not flask_app.config['auth'].get('master_tenant_uuid'):
+            self._token_renewer.subscribe_to_next_token_details_change(
+                http.master_tenant.init_value
+            )
+        self._token_renewer.subscribe_to_next_token_details_change(
+            lambda t: self._token_renewer.emit_stop()
+        )
+
     def run(self):
         logger.debug('starting http server')
         signal.signal(signal.SIGTERM, _signal_handler)
         publisher_thread = Thread(target=self._publisher.run)
         publisher_thread.start()
+
         with ServiceCatalogRegistration(
             'wazo-plugind',
             self._xivo_uuid,
@@ -70,12 +82,13 @@ class Controller:
             self._bus_config,
             partial(self_check, self._listen_port),
         ):
-            try:
-                self._server.start()
-            except (KeyboardInterrupt, SystemExit):
-                logger.info('Main process stopping')
-            finally:
-                self._server.stop()
+            with self._token_renewer:
+                try:
+                    self._server.start()
+                except (KeyboardInterrupt, SystemExit):
+                    logger.info('Main process stopping')
+                finally:
+                    self._server.stop()
         self._executor.shutdown()
         self._publisher.stop()
         publisher_thread.join()

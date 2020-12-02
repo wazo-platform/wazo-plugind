@@ -12,7 +12,8 @@ from xivo_test_helpers.bus import BusClient
 from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_plugind_client import Client
 
-VALID_TOKEN = 'valid-token'
+VALID_TOKEN = 'valid-token-multitenant'
+TOKEN_SUB_TENANT = 'valid-token-sub-tenant'
 
 
 def autoremove(namespace, plugin):
