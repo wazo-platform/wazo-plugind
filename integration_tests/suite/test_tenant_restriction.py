@@ -10,7 +10,7 @@ from hamcrest import (
 from requests import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers import until
-from .test_api import BaseIntegrationTest, TOKEN_SUB_TENANT
+from .helpers.base import BaseIntegrationTest, TOKEN_SUB_TENANT
 
 
 class TestTenantRestriction(BaseIntegrationTest):

@@ -37,7 +37,7 @@ def autoremove(namespace, plugin):
 class BaseIntegrationTest(AssetLaunchingTestCase):
 
     assets_root = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', 'assets')
+        os.path.join(os.path.dirname(__file__), '../..', 'assets')
     )
     service = 'plugind'
     bus_config = dict(user='guest', password='guest', host='localhost')

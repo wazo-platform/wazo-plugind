@@ -7,7 +7,7 @@ import yaml
 
 from openapi_spec_validator import validate_v2_spec
 
-from .test_api import BaseIntegrationTest
+from .helpers.base import BaseIntegrationTest
 
 logger = logging.getLogger('openapi_spec_validator')
 logger.setLevel(logging.INFO)
