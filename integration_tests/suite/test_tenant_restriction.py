@@ -61,6 +61,7 @@ class TestTenantRestriction(BaseIntegrationTest):
                     has_property('response', has_property('status_code', 503))
                 ),
             )
+
         until.assert_(_plugind_returns_503, tries=10)
 
         self.start_service('auth')
@@ -70,4 +71,5 @@ class TestTenantRestriction(BaseIntegrationTest):
                 calling(self.list_plugins),
                 not_(raises(HTTPError)),
             )
+
         until.assert_(_plugind_does_not_return_503, tries=10)
