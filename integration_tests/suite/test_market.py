@@ -13,7 +13,7 @@ from hamcrest import (
 )
 from requests import HTTPError
 from xivo_test_helpers.hamcrest.raises import raises
-from .test_api import BaseIntegrationTest
+from .helpers.base import BaseIntegrationTest
 
 PLUGIN_COUNT = 24
 

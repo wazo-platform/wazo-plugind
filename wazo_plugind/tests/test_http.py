@@ -25,6 +25,13 @@ class AuthVerifierMock:
 
         return wrapper
 
+    def verify_tenant(self, func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return wrapper
+
 
 with patch('xivo.auth_verifier.AuthVerifier', AuthVerifierMock):
     from ..http import new_app, MultiAPI, PlugindAPI

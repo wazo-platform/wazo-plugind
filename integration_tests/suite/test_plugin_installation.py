@@ -17,7 +17,7 @@ from mock import ANY
 from xivo_test_helpers import until
 from xivo_test_helpers.hamcrest.raises import raises
 from xivo_test_helpers.hamcrest.uuid_ import uuid_
-from .test_api import autoremove, BaseIntegrationTest
+from .helpers.base import autoremove, BaseIntegrationTest
 
 
 class TestPluginList(BaseIntegrationTest):

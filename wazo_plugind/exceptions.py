@@ -150,3 +150,9 @@ class MarketNotFoundException(APIException):
             resource='market',
             details={},
         )
+
+
+class NotInitializedException(APIException):
+    def __init__(self):
+        msg = 'wazo-plugind is not initialized'
+        super().__init__(503, msg, 'not-initialized')
