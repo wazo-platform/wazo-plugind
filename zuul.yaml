@@ -6,11 +6,11 @@
     check:
       jobs:
         - plugind-tox-integration:
-            nodeset: debian10-vm
+            nodeset: vm-debian-10-m1s
     gate:
       jobs:
         - plugind-tox-integration:
-            nodeset: debian10-vm
+            nodeset: vm-debian-10-m1s
 
 - job:
     name: plugind-tox-integration
