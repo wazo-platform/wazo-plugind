@@ -5,12 +5,10 @@
       - debian-packaging-template
     check:
       jobs:
-        - plugind-tox-integration:
-            nodeset: vm-debian-10-m1s
+        - plugind-tox-integration
     gate:
       jobs:
-        - plugind-tox-integration:
-            nodeset: vm-debian-10-m1s
+        - plugind-tox-integration
 
 - job:
     name: plugind-tox-integration
