@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -40,7 +40,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         os.path.join(os.path.dirname(__file__), '../..', 'assets')
     )
     service = 'plugind'
-    bus_config = dict(user='guest', password='guest', host='localhost')
+    bus_config = dict(user='guest', password='guest', host='127.0.0.1')
 
     def setUp(self):
         self.msg_accumulator = self.new_message_accumulator('plugin.#')
@@ -62,7 +62,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         }
         if version:
             client_args['version'] = version
-        return Client('localhost', **client_args)
+        return Client('127.0.0.1', **client_args)
 
     def get_market(self, namespace, name, **kwargs):
         client = self.get_client(**kwargs)
