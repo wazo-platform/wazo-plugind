@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -77,8 +77,8 @@ class _BaseResource(Resource):
 class _AuthentificatedResource(_BaseResource):
 
     method_decorators = [
-        auth_verifier.verify_tenant,
         auth_verifier.verify_token,
+        auth_verifier.verify_tenant,
     ] + _BaseResource.method_decorators
 
 
