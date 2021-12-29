@@ -7,9 +7,9 @@ import time
 from functools import wraps
 from requests import HTTPError
 from hamcrest import assert_that, has_entry, has_entries, has_items
-from xivo_test_helpers import until
-from xivo_test_helpers.bus import BusClient
-from xivo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
+from wazo_test_helpers import until
+from wazo_test_helpers.bus import BusClient
+from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
 from wazo_plugind_client import Client
 
 VALID_TOKEN = 'valid-token-multitenant'
