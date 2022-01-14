@@ -4,7 +4,7 @@
 import logging
 import re
 
-from marshmallow import ValidationError
+from marshmallow import ValidationError, EXCLUDE
 from wazo_plugind.db import PluginDB
 from wazo_plugind.schema import PluginMetadataSchema as _PluginMetadataSchema
 from wazo_plugind.exceptions import (
@@ -38,7 +38,7 @@ class Validator:
         )
 
         try:
-            body = self._PluginMetadataSchema().load(metadata)
+            body = self._PluginMetadataSchema().load(metadata, unknown=EXCLUDE)
         except ValidationError as e:
             raise PluginValidationException(e.messages)
         logger.debug('validated metadata: %s', body)

@@ -8,7 +8,7 @@ import yaml
 from flask import Flask, make_response, request
 from flask_cors import CORS
 from flask_restful import Api, Resource
-from marshmallow import ValidationError
+from marshmallow import ValidationError, EXCLUDE
 from pkg_resources import resource_string
 from xivo import http_helpers
 from xivo.http_helpers import add_logger, reverse_proxy_fix_api_spec
@@ -106,7 +106,7 @@ class Market(_AuthentificatedResource):
     @required_acl('plugind.market.read')
     def get(self):
         try:
-            list_params = MarketListRequestSchema().load(request.args)
+            list_params = MarketListRequestSchema().load(request.args, unknown=EXCLUDE)
         except ValidationError as e:
             raise InvalidListParamException(e.messages)
 
@@ -122,7 +122,7 @@ class Market(_AuthentificatedResource):
             )
         except requests.exceptions.ConnectionError:
             raise MarketNotFoundException
-        items = MarketListResultSchema().load(plugin_list, many=True)
+        items = MarketListResultSchema().load(plugin_list, many=True, unknown=EXCLUDE)
         return {
             'items': items,
             'total': self.plugin_service.count_from_market(market_proxy, **list_params),
@@ -169,12 +169,14 @@ class Plugins(_AuthentificatedResource):
     @required_acl('plugind.plugins.create')
     def post(self):
         try:
-            body = PluginInstallSchema().load(request.get_json())
+            body = PluginInstallSchema().load(request.get_json(), unknown=EXCLUDE)
         except ValidationError as e:
             raise InvalidInstallParamException(e.messages)
 
         try:
-            params = PluginInstallQueryStringSchema().load(request.args)
+            params = PluginInstallQueryStringSchema().load(
+                request.args, unknown=EXCLUDE
+            )
         except ValidationError as e:
             raise InvalidInstallQueryStringException(e.messages)
 

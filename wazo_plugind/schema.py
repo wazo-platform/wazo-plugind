@@ -69,7 +69,7 @@ class PluginMetadataSchema(Schema):
     depends = fields.Nested(MarketInstallOptionsSchema, many=True, unknown=EXCLUDE)
 
     @pre_load
-    def ensure_string_versions(self, data):
+    def ensure_string_versions(self, data, **kwargs):
         for field in self.version_fields:
             if field not in data:
                 continue
@@ -119,7 +119,7 @@ class OptionField(fields.Field):
         'market': fields.Nested(MarketInstallOptionsSchema, unknown=EXCLUDE),
     }
 
-    def _deserialize(self, value, attr, data):
+    def _deserialize(self, value, attr, data, **kwargs):
         method = data.get('method')
         concrete_options = self._options.get(method)
         if not concrete_options:
@@ -130,7 +130,7 @@ class OptionField(fields.Field):
 class PluginInstallSchema(Schema):
 
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
-    options = OptionField(missing=dict, required=True)
+    options = OptionField(missing=dict, required=False)
 
 
 class PluginInstallQueryStringSchema(Schema):

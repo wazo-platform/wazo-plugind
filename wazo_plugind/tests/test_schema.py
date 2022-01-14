@@ -3,7 +3,7 @@
 
 from unittest import TestCase
 
-from marshmallow import ValidationError
+from marshmallow import ValidationError, EXCLUDE
 from hamcrest import (
     all_of,
     assert_that,
@@ -34,7 +34,7 @@ class TestMarketResultSchema(TestCase):
             ],
         }
 
-        result = MarketListResultSchema().load(plugin_info)
+        result = MarketListResultSchema().load(plugin_info, unknown=EXCLUDE)
 
         assert_that(
             result,
@@ -43,17 +43,10 @@ class TestMarketResultSchema(TestCase):
 
 
 class TestInstallationSchema(TestCase):
-    def test_git_options_required(self):
-        input_ = {'method': 'git'}
-        assert_that(
-            calling(PluginInstallSchema().load).with_args(input_),
-            raises(ValidationError, has_property('messages', has_key('options'))),
-        )
-
     def test_git_options_url_required(self):
         input_ = {'method': 'git', 'options': {}}
         assert_that(
-            calling(PluginInstallSchema().load).with_args(input_),
+            calling(PluginInstallSchema().load).with_args(input_, unknown=EXCLUDE),
             raises(
                 ValidationError,
                 has_property('messages', has_entry('options', has_key('url'))),
@@ -62,20 +55,13 @@ class TestInstallationSchema(TestCase):
 
     def test_git_options_ref_default(self):
         input_ = {'method': 'git', 'options': {'url': 'file://my-git-repo.git'}}
-        result = PluginInstallSchema().load(input_)
+        result = PluginInstallSchema().load(input_, unknown=EXCLUDE)
         assert_that(result, has_entries(options=has_entries(ref='master')))
-
-    def test_market_options_required(self):
-        input_ = {'method': 'market'}
-        assert_that(
-            calling(PluginInstallSchema().load).with_args(input_),
-            raises(ValidationError, has_property('messages', has_key('options'))),
-        )
 
     def test_market_options_namespace_name_required(self):
         input_ = {'method': 'market', 'options': {}}
         assert_that(
-            calling(PluginInstallSchema().load).with_args(input_),
+            calling(PluginInstallSchema().load).with_args(input_, unknown=EXCLUDE),
             raises(
                 ValidationError,
                 has_property(
@@ -88,6 +74,6 @@ class TestInstallationSchema(TestCase):
     def test_none(self):
         input_ = None
         assert_that(
-            calling(PluginInstallSchema().load).with_args(input_),
+            calling(PluginInstallSchema().load).with_args(input_, unknown=EXCLUDE),
             raises(ValidationError, has_property('messages', has_key('method'))),
         )

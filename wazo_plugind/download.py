@@ -3,7 +3,7 @@
 
 import os
 import logging
-from marshmallow import ValidationError
+from marshmallow import ValidationError, EXCLUDE
 from . import db
 from .exceptions import (
     InvalidInstallParamException,
@@ -57,7 +57,7 @@ class _MarketDownloader:
                 version_info[key] = value
 
         try:
-            body = PluginInstallSchema().load(version_info)
+            body = PluginInstallSchema().load(version_info, unknown=EXCLUDE)
         except ValidationError as e:
             raise InvalidInstallParamException(e.messages)
 
