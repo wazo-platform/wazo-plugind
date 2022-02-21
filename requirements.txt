@@ -5,15 +5,15 @@ https://github.com/wazo-platform/xivo-bus/archive/master.zip
 https://github.com/wazo-platform/xivo-lib-python/archive/master.zip
 https://github.com/wazo-platform/wazo-market-client/archive/master.zip
 cheroot==6.5.4
-flask==1.0.2
 flask-cors==3.0.7
 flask-restful==0.3.7
+flask==1.0.2
 itsdangerous==0.24  # from flask
 kombu==4.6.11
 marshmallow==3.0.0b14
+netifaces==0.10.4
 python-consul==0.7.1
 pyyaml==3.13
-netifaces==0.10.4
 requests==2.21.0
 stevedore==1.29.0
 unidecode==1.0.23
