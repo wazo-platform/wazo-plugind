@@ -128,7 +128,7 @@ class OptionField(fields.Field):
 class PluginInstallSchema(Schema):
 
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
-    options = OptionField(missing=dict, required=True)
+    options = OptionField(required=True)
 
 
 class PluginInstallQueryStringSchema(Schema):
