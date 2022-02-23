@@ -1,7 +1,7 @@
 # Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import EXCLUDE, pre_load
+from marshmallow import pre_load
 from xivo.mallow import fields
 from xivo.mallow_helpers import Schema
 from xivo.mallow.validate import OneOf
@@ -66,7 +66,7 @@ class PluginMetadataSchema(Schema):
     )
     max_wazo_version = fields.String()
     min_wazo_version = fields.String()
-    depends = fields.Nested(MarketInstallOptionsSchema, many=True, unknown=EXCLUDE)
+    depends = fields.Nested(MarketInstallOptionsSchema, many=True)
 
     @pre_load
     def ensure_string_versions(self, data, **kwargs):
@@ -101,9 +101,7 @@ class MarketListResultSchema(Schema):
     namespace = fields.String(validate=Regexp(_PLUGIN_NAMESPACE_REGEXP), required=True)
     tags = fields.List(fields.String)
     author = fields.String()
-    versions = fields.Nested(
-        MarketVersionResultSchema, many=True, required=True, unknown=EXCLUDE
-    )
+    versions = fields.Nested(MarketVersionResultSchema, many=True, required=True)
     screenshots = fields.List(fields.String)
     icon = fields.String()
     description = fields.String()
@@ -115,8 +113,8 @@ class MarketListResultSchema(Schema):
 class OptionField(fields.Field):
 
     _options = {
-        'git': fields.Nested(GitInstallOptionsSchema, unknown=EXCLUDE),
-        'market': fields.Nested(MarketInstallOptionsSchema, unknown=EXCLUDE),
+        'git': fields.Nested(GitInstallOptionsSchema),
+        'market': fields.Nested(MarketInstallOptionsSchema),
     }
 
     def _deserialize(self, value, attr, data, **kwargs):
