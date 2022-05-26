@@ -1,11 +1,11 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
 
 from functools import wraps
 from hamcrest import assert_that, equal_to, has_entries
-from mock import ANY, Mock, patch, sentinel
+from unittest.mock import ANY, Mock, patch, sentinel
 from unittest import TestCase
 
 from ..exceptions import PluginNotFoundException

@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -8,7 +8,7 @@ from unittest import TestCase
 from string import ascii_lowercase
 from operator import itemgetter
 from hamcrest import assert_that, contains_inanyorder, equal_to
-from mock import sentinel as s
+from unittest.mock import sentinel as s
 from jinja2 import DictLoader, Environment
 from ..context import Context
 from ..debian import Generator, PackageDB

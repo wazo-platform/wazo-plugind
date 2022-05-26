@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -13,7 +13,7 @@ from hamcrest import (
     is_,
 )
 from requests import HTTPError
-from mock import ANY
+from unittest.mock import ANY
 from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
