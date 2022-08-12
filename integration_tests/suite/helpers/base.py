@@ -4,6 +4,7 @@
 import os
 
 from kombu import Exchange
+from hamcrest import assert_that, has_entries, has_items, any_of
 from functools import wraps
 from requests import HTTPError
 from wazo_test_helpers import until
@@ -106,16 +107,22 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
             return result
 
         def assert_received(bus_accumulator):
-            events = bus_accumulator.accumulate(with_headers=True)
-            for event in events:
-                if (
-                    event['message']['data']['status'] in ('completed', 'error')
-                    and event['message']['data']['uuid'] == result['uuid']
-                ):
-                    return True
-            return False
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                status=any_of('completed', 'error'),
+                                uuid=result['uuid'],
+                            )
+                        ),
+                        headers=has_entries(name='plugin_install_progress'),
+                    )
+                ),
+            )
 
-        until.true(assert_received, events, tries=5)
+        until.assert_(assert_received, events, tries=5)
         return result
 
     def list_plugins(self, **kwargs):
@@ -135,18 +142,25 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         except HTTPError:
             if not ignore_errors:
                 raise
+            return
 
         def assert_received(bus_accumulator):
-            events = bus_accumulator.accumulate(with_headers=True)
-            for event in events:
-                if (
-                    event['message']['data']['status'] in ('completed', 'error')
-                    and event['message']['data']['uuid'] == result['uuid']
-                ):
-                    return True
-            return False
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                status=any_of('completed', 'error'),
+                                uuid=result['uuid'],
+                            )
+                        ),
+                        headers=has_entries(name='plugin_uninstall_progress'),
+                    )
+                ),
+            )
 
-        until.true(assert_received, events, tries=5)
+        until.assert_(assert_received, events, tries=5)
         return result
 
     def search(self, *args, **kwargs):

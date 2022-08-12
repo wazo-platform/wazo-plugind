@@ -11,6 +11,7 @@ from hamcrest import (
     has_items,
     has_property,
     is_,
+    has_length,
 )
 from requests import HTTPError
 from unittest.mock import ANY
@@ -87,7 +88,7 @@ class TestPluginDependencies(BaseIntegrationTest):
             _async=False,
         )
 
-        self.msg_accumulator.reset()
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
 
         self.install_plugin(
             url=None,
@@ -96,20 +97,21 @@ class TestPluginDependencies(BaseIntegrationTest):
             _async=False,
         )
 
-        def bus_received_all_completed():
-            received = self.msg_accumulator.accumulate()
+        def assert_received(bus_accumulator):
+            events = bus_accumulator.accumulate(with_headers=True)
             completed = [
-                msg['data']['uuid']
-                for msg in received
-                if msg['data']['status'] == 'completed'
+                event
+                for event in events
+                if event['message']['data']['status'] == 'completed'
             ]
-            nb_completed = len(completed)
-            assert_that(nb_completed, equal_to(4))
+            assert_that(completed, has_length(4))
 
-        until.assert_(bus_received_all_completed, tries=20, interval=0.5)
+        until.assert_(assert_received, events, tries=5)
 
     @autoremove('dependency', 'three')
     def test_given_dependency_error_when_install_then_error(self):
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
         result = self.install_plugin(
             url=None,
             method='market',
@@ -123,43 +125,51 @@ class TestPluginDependencies(BaseIntegrationTest):
         assert_that(one_is_installed, equal_to(False), 'one should not be installed')
         assert_that(three_is_installed, equal_to(True), 'three should be installed')
 
-        def bus_received_two_errors():
+        def assert_received(bus_accumulator):
             assert_that(
-                self.msg_accumulator.accumulate(),
+                bus_accumulator.accumulate(with_headers=True),
                 has_items(
                     has_entries(
-                        name='plugin_install_progress',
-                        data=has_entries(
-                            uuid=result['uuid'],
-                            status='error',
-                            errors=has_entries(
-                                details=has_entries(
-                                    install_options=has_entries(
-                                        url='file:///data/git/dependencynotfound-one',
-                                    )
-                                )
+                        headers=has_entries(
+                            name='plugin_install_progress',
+                        ),
+                        message=has_entries(
+                            data=has_entries(
+                                uuid=result['uuid'],
+                                status='error',
+                                errors=has_entries(
+                                    details=has_entries(
+                                        install_options=has_entries(
+                                            url='file:///data/git/dependencynotfound-one',
+                                        ),
+                                    ),
+                                ),
                             ),
                         ),
                     ),
                     has_entries(
-                        name='plugin_install_progress',
-                        data=has_entries(
-                            uuid=ANY,
-                            status='error',
-                            errors=has_entries(
-                                details=has_entries(
-                                    install_options=has_entries(
-                                        name='not-found',
-                                        namespace='dependency',
-                                    )
-                                )
+                        headers=has_entries(
+                            name='plugin_install_progress',
+                        ),
+                        message=has_entries(
+                            data=has_entries(
+                                uuid=ANY,
+                                status='error',
+                                errors=has_entries(
+                                    details=has_entries(
+                                        install_options=has_entries(
+                                            name='not-found',
+                                            namespace='dependency',
+                                        ),
+                                    ),
+                                ),
                             ),
                         ),
                     ),
                 ),
             )
 
-        until.assert_(bus_received_two_errors, tries=20, interval=0.5)
+        until.assert_(assert_received, events, tries=5)
 
 
 class TestPluginInstallation(BaseIntegrationTest):
@@ -171,24 +181,60 @@ class TestPluginInstallation(BaseIntegrationTest):
             namespace='plugindtests', name='foobar', _async=False, ignore_errors=True
         )
 
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
         result = self.install_plugin(url='file:///data/git/repo', method='git')
 
         assert_that(result, has_entries(uuid=uuid_()))
 
-        statuses = [
-            'starting',
-            'downloading',
-            'extracting',
-            'building',
-            'packaging',
-            'updating',
-            'installing',
-            'completed',
-        ]
-        for status in statuses:
-            self.assert_status_received(
-                self.msg_accumulator, 'install', result['uuid'], status
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='building')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='packaging')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='updating')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='installing')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='completed')
+                        ),
+                    ),
+                ),
             )
+
+        until.assert_(assert_received, events, tries=5)
 
         build_success_exists = self.exists_in_container('/tmp/results/build_success')
         package_success_exists = self.exists_in_container(
@@ -246,7 +292,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(self._is_installed(dependency), equal_to(True))
 
     def test_install_from_git_branch(self):
-        msg_accumulator = self.new_message_accumulator('plugin.install.#')
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
 
         result = self.install_plugin(
             url='file:///data/git/repo', method='git', options=dict(ref='v2')
@@ -254,20 +300,54 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         assert_that(result, has_entries(uuid=uuid_()))
 
-        statuses = [
-            'starting',
-            'downloading',
-            'extracting',
-            'building',
-            'packaging',
-            'updating',
-            'installing',
-            'completed',
-        ]
-        for status in statuses:
-            self.assert_status_received(
-                msg_accumulator, 'install', result['uuid'], status
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='building')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='packaging')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='updating')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='installing')
+                        ),
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='completed')
+                        ),
+                    ),
+                ),
             )
+
+        until.assert_(assert_received, events, tries=10)
 
         package_success_exists = self.exists_in_container(
             '/tmp/results/package_success_2'
@@ -293,48 +373,136 @@ class TestPluginInstallation(BaseIntegrationTest):
     def test_that_installing_twice_completes_without_reinstalling(self):
         self.install_plugin(url='file:///data/git/repo2', method='git', _async=False)
 
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
         result = self.install_plugin(url='file:///data/git/repo2', method='git')
         assert_that(result, has_entries(uuid=uuid_()))
-        statuses = ['starting', 'downloading', 'extracting', 'validating', 'completed']
-        for status in statuses:
-            self.assert_status_received(
-                self.msg_accumulator, 'install', result['uuid'], status, exclusive=True
+
+        def assert_received_in_order(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                contains(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='completed'),
+                        )
+                    ),
+                ),
             )
+
+        until.assert_(assert_received_in_order, events, tries=5)
 
     def test_that_installing_twice_with_reinstall_option_reinstalls(self):
         self.install_plugin(url='file:///data/git/repo2', method='git', _async=False)
+
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
 
         result = self.install_plugin(
             url='file:///data/git/repo2', method='git', reinstall=True
         )
         assert_that(result, has_entries(uuid=uuid_()))
-        statuses = [
-            'starting',
-            'downloading',
-            'extracting',
-            'building',
-            'packaging',
-            'updating',
-            'installing',
-            'completed',
-        ]
-        for status in statuses:
-            self.assert_status_received(
-                self.msg_accumulator, 'install', result['uuid'], status
+
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='building'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='packaging'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='updating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='installing'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='completed'),
+                        )
+                    ),
+                ),
             )
+
+        until.assert_(assert_received, events, tries=5)
 
     def test_when_uninstall_works(self):
         self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
+
+        events = self.bus.accumulator(headers={'name': 'plugin_uninstall_progress'})
 
         result = self.uninstall_plugin(namespace='plugindtests', name='foobar')
 
         assert_that(result, has_entries(uuid=uuid_()))
 
-        statuses = ['starting', 'removing', 'completed']
-        for status in statuses:
-            self.assert_status_received(
-                self.msg_accumulator, 'uninstall', result['uuid'], status
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='removing'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='completed'),
+                        )
+                    ),
+                ),
             )
+
+        until.assert_(assert_received, events, tries=5)
 
         build_success_exists = self.exists_in_container('/tmp/results/build_success')
         package_success_exists = self.exists_in_container(
@@ -356,14 +524,45 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(directory_is_empty, is_(True))
 
     def test_when_with_an_unknown_plugin_format_version(self):
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
         result = self.install_plugin(url='file:///data/git/futureversion', method='git')
 
         assert_that(result, has_entries(uuid=uuid_()))
-        statuses = ['starting', 'error']
-        for status in statuses:
-            self.assert_status_received(
-                self.msg_accumulator, 'install', result['uuid'], status
+
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='error'),
+                        )
+                    ),
+                ),
             )
+
+        until.assert_(assert_received, events, tries=5)
 
     def test_that_uninstalling_an_uninstalled_plugin_returns_404(self):
         assert_that(
@@ -376,6 +575,8 @@ class TestPluginInstallation(BaseIntegrationTest):
         )
 
     def test_with_a_max_version_too_small(self):
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
         result = self.install_plugin(url='/data/git/max_version', method='git')
 
         errors = {
@@ -390,13 +591,47 @@ class TestPluginInstallation(BaseIntegrationTest):
                 }
             },
         }
-        self.assert_status_received(
-            self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors
-        )
+
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                uuid=result['uuid'],
+                                status='error',
+                                errors=errors,
+                            ),
+                        )
+                    ),
+                ),
+            )
+
+        until.assert_(assert_received, events, tries=5)
 
     def test_with_a_min_version_too_high(self):
-        result = self.install_plugin(url='/data/git/min_version', method='git')
-
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
         errors = {
             'error_id': 'validation-error',
             'message': 'Validation error',
@@ -409,13 +644,49 @@ class TestPluginInstallation(BaseIntegrationTest):
                 }
             },
         }
-        self.assert_status_received(
-            self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors
-        )
+
+        result = self.install_plugin(url='/data/git/min_version', method='git')
+
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                uuid=result['uuid'],
+                                status='error',
+                                errors=errors,
+                            ),
+                        )
+                    ),
+                ),
+            )
+
+        until.assert_(assert_received, events, tries=5)
 
     def test_with_invalid_namespace(self):
-        result = self.install_plugin(url='/data/git/fail_namespace', method='git')
-
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
         errors = {
             'error_id': 'validation-error',
             'message': 'Validation error',
@@ -428,13 +699,49 @@ class TestPluginInstallation(BaseIntegrationTest):
                 }
             },
         }
-        self.assert_status_received(
-            self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors
-        )
+
+        result = self.install_plugin(url='/data/git/fail_namespace', method='git')
+
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                uuid=result['uuid'],
+                                status='error',
+                                errors=errors,
+                            ),
+                        )
+                    ),
+                ),
+            )
+
+        until.assert_(assert_received, events, tries=5)
 
     def test_with_invalid_name(self):
-        result = self.install_plugin(url='/data/git/fail_name', method='git')
-
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
         errors = {
             'error_id': 'validation-error',
             'message': 'Validation error',
@@ -447,9 +754,46 @@ class TestPluginInstallation(BaseIntegrationTest):
                 }
             },
         }
-        self.assert_status_received(
-            self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors
-        )
+
+        result = self.install_plugin(url='/data/git/fail_name', method='git')
+
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                uuid=result['uuid'],
+                                status='error',
+                                errors=errors,
+                            ),
+                        )
+                    ),
+                ),
+            )
+
+        until.assert_(assert_received, events, tries=5)
 
     def test_that_an_unauthorized_token_return_401(self):
         assert_that(
@@ -492,8 +836,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         assert_that(ssh_key_installed, equal_to(True))
 
     def test_a_plugin_with_a_failing_build_step(self):
-        result = self.install_plugin(url='file:///data/git/failing_build', method='git')
-
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
         errors = {
             'error_id': 'install-error',
             'message': 'Installation error',
@@ -501,6 +844,54 @@ class TestPluginInstallation(BaseIntegrationTest):
             'details': {'step': 'building'},
         }
 
-        self.assert_status_received(
-            self.msg_accumulator, 'install', result['uuid'], 'error', errors=errors
-        )
+        result = self.install_plugin(url='file:///data/git/failing_build', method='git')
+
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                contains(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='starting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='downloading'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='extracting'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                uuid=result['uuid'], status='installing dependencies'
+                            ),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='building'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                uuid=result['uuid'],
+                                status='error',
+                                errors=errors,
+                            ),
+                        )
+                    ),
+                ),
+            )
+
+        until.assert_(assert_received, events, tries=5)
