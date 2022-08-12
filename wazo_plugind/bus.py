@@ -9,29 +9,10 @@ from xivo_bus.resources.plugins.events import (
 
 
 class Publisher(BusPublisher):
-    def __init__(
-        self,
-        service_uuid=None,
-        username='guest',
-        password='guest',
-        host='localhost',
-        port=5672,
-        exchange_name='',
-        exchange_type='',
-        **kwargs
-    ):
+    @classmethod
+    def from_config(cls, service_uuid, bus_config):
         name = 'wazo-plugind'
-        super().__init__(
-            name,
-            service_uuid,
-            username,
-            password,
-            host,
-            port,
-            exchange_name,
-            exchange_type,
-            **kwargs
-        )
+        return cls(name=name, service_uuid=service_uuid, **bus_config)
 
     def install(self, ctx, status):
         self.publish(PluginInstallProgressEvent(ctx.uuid, status))

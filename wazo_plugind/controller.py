@@ -1,20 +1,22 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import signal
 import sys
-from concurrent.futures import ThreadPoolExecutor
-from threading import Thread
-from functools import partial
+
 from cheroot import wsgi
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+from wazo_auth_client import Client as AuthClient
+from wazo_plugind import http, service
+from wazo_plugind.bus import Publisher
 from werkzeug.contrib.fixers import ProxyFix
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
 from xivo.http_helpers import ReverseProxied
 from xivo.token_renewer import TokenRenewer
-from wazo_auth_client import Client as AuthClient
-from wazo_plugind import http, bus, service
+
 from .service_discovery import self_check
 
 logger = logging.getLogger(__name__)
@@ -40,7 +42,7 @@ class Controller:
         self._token_renewer = TokenRenewer(AuthClient(**config['auth']))
 
         bind_addr = (self._listen_addr, self._listen_port)
-        self._publisher = bus.StatusPublisher.from_config(config)
+        self._publisher = Publisher.from_config(config['uuid'], config['bus'])
         plugin_service = service.PluginService.from_config(
             config, self._publisher, root_worker, self._executor
         )
@@ -71,8 +73,6 @@ class Controller:
     def run(self):
         logger.debug('starting http server')
         signal.signal(signal.SIGTERM, _signal_handler)
-        publisher_thread = Thread(target=self._publisher.run)
-        publisher_thread.start()
 
         with ServiceCatalogRegistration(
             'wazo-plugind',
@@ -90,5 +90,3 @@ class Controller:
                 finally:
                     self._server.stop()
         self._executor.shutdown()
-        self._publisher.stop()
-        publisher_thread.join()
