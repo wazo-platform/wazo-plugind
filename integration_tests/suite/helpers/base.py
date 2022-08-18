@@ -122,7 +122,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                 ),
             )
 
-        until.assert_(assert_received, events, tries=5)
+        until.assert_(assert_received, events, timeout=30)
         return result
 
     def list_plugins(self, **kwargs):
@@ -160,7 +160,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                 ),
             )
 
-        until.assert_(assert_received, events, tries=5)
+        until.assert_(assert_received, events, timeout=30)
         return result
 
     def search(self, *args, **kwargs):
