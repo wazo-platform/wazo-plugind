@@ -17,7 +17,7 @@ class Publisher(BusPublisher):
     def install(self, ctx, status):
         self.publish(PluginInstallProgressEvent(ctx.uuid, status))
 
-    def install_error(self, ctx, error_id, message, details):
+    def install_error(self, ctx, error_id, message, details=None):
         errors = {
             'error_id': error_id,
             'message': message,
@@ -29,7 +29,7 @@ class Publisher(BusPublisher):
     def uninstall(self, ctx, status):
         self.publish(PluginUninstallProgressEvent(ctx.uuid, status))
 
-    def uninstall_error(self, ctx, error_id, message, details):
+    def uninstall_error(self, ctx, error_id, message, details=None):
         errors = {
             'error_id': error_id,
             'message': message,
