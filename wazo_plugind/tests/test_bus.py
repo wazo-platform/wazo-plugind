@@ -2,32 +2,33 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
-from unittest.mock import Mock, sentinel as s
+from unittest.mock import Mock, sentinel as s, patch
 from xivo_bus.resources.plugins.events import (
     PluginInstallProgressEvent,
     PluginUninstallProgressEvent,
 )
-from ..bus import StatusPublisher
+
+from wazo_plugind.bus import Publisher
 
 
-class TestStatusPublisher(TestCase):
+@patch.object(Publisher, 'publish')
+class TestPublisher(TestCase):
     def setUp(self):
-        self.publisher = Mock()
-        self.status_publisher = StatusPublisher(self.publisher)
+        self.publisher = Publisher()
 
-    def test_that_install_publishes_the_right_event(self):
+    def test_that_install_publishes_the_right_event(self, publish):
         ctx = Mock(uuid=s.uuid)
 
-        self.status_publisher.install(ctx, s.status)
+        self.publisher.install(ctx, s.status)
 
         expected_event = PluginInstallProgressEvent(s.uuid, s.status)
 
-        self.publisher.publish.assert_called_once_with(expected_event)
+        publish.assert_called_once_with(expected_event)
 
-    def test_that_install_error_publish_an_error(self):
+    def test_that_install_error_publish_an_error(self, publish):
         ctx = Mock(uuid=s.uuid)
 
-        self.status_publisher.install_error(ctx, s.error_id, s.message)
+        self.publisher.install_error(ctx, s.error_id, s.message, None)
 
         errors = {
             'error_id': s.error_id,
@@ -37,21 +38,21 @@ class TestStatusPublisher(TestCase):
         }
         expected_event = PluginInstallProgressEvent(s.uuid, 'error', errors=errors)
 
-        self.publisher.publish.assert_called_once_with(expected_event)
+        publish.assert_called_once_with(expected_event)
 
-    def test_that_uninstall_publishes_the_right_event(self):
+    def test_that_uninstall_publishes_the_right_event(self, publish):
         ctx = Mock(uuid=s.uuid)
 
-        self.status_publisher.uninstall(ctx, s.status)
+        self.publisher.uninstall(ctx, s.status)
 
         expected_event = PluginUninstallProgressEvent(s.uuid, s.status)
 
-        self.publisher.publish.assert_called_once_with(expected_event)
+        publish.assert_called_once_with(expected_event)
 
-    def test_that_uninstall_error_publish_an_error(self):
+    def test_that_uninstall_error_publish_an_error(self, publish):
         ctx = Mock(uuid=s.uuid)
 
-        self.status_publisher.uninstall_error(ctx, s.error_id, s.message)
+        self.publisher.uninstall_error(ctx, s.error_id, s.message, None)
 
         errors = {
             'error_id': s.error_id,
@@ -61,4 +62,4 @@ class TestStatusPublisher(TestCase):
         }
         expected_event = PluginUninstallProgressEvent(s.uuid, 'error', errors=errors)
 
-        self.publisher.publish.assert_called_once_with(expected_event)
+        publish.assert_called_once_with(expected_event)

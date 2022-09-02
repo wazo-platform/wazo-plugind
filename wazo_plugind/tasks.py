@@ -1,11 +1,10 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import os
 import shutil
 import yaml
-from threading import Thread
 from marshmallow import ValidationError
 from .context import Context
 from . import bus, debian, download, schema
@@ -133,10 +132,7 @@ def get_publisher(config):
     global _publisher
     if not _publisher:
         logger.debug('Creating a new publisher...')
-        _publisher = bus.StatusPublisher.from_config(config)
-        publisher_thread = Thread(target=_publisher.run)
-        publisher_thread.daemon = True
-        publisher_thread.start()
+        _publisher = bus.Publisher(service_uuid=config['uuid'], **config['bus'])
     return _publisher
 
 

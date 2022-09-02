@@ -1,15 +1,18 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
-import time
 
+from kombu import Exchange
+from hamcrest import assert_that, has_entries, has_items, any_of
 from functools import wraps
 from requests import HTTPError
-from hamcrest import assert_that, has_entry, has_entries, has_items
 from wazo_test_helpers import until
 from wazo_test_helpers.bus import BusClient
-from wazo_test_helpers.asset_launching_test_case import AssetLaunchingTestCase
+from wazo_test_helpers.asset_launching_test_case import (
+    AssetLaunchingTestCase,
+    NoSuchPort,
+)
 from wazo_plugind_client import Client
 
 VALID_TOKEN = 'valid-token-multitenant'
@@ -40,13 +43,33 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         os.path.join(os.path.dirname(__file__), '../..', 'assets')
     )
     service = 'plugind'
-    bus_config = dict(user='guest', password='guest', host='127.0.0.1')
-
-    def setUp(self):
-        self.msg_accumulator = self.new_message_accumulator('plugin.#')
+    bus_config = dict(
+        user='guest',
+        password='guest',
+        host='127.0.0.1',
+        exchange_name='wazo-headers',
+        exchange_type='headers',
+    )
 
     def tearDown(self):
         self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.bus = cls.setup_bus()
+
+    @classmethod
+    def setup_bus(cls):
+        try:
+            port = cls.service_port(5672, 'rabbitmq')
+        except NoSuchPort:
+            raise
+
+        upstream = Exchange('xivo', 'topic')
+        bus = BusClient.from_connection_fields(port=port, **cls.bus_config)
+        bus.downstream_exchange_declare('wazo-headers', 'headers', upstream)
+        return bus
 
     def docker_exec(self, *args, **kwargs):
         return super().docker_exec(*args, **kwargs).decode('utf-8')
@@ -77,19 +100,30 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         is_async = kwargs.pop('_async', True)
         options = kwargs.pop('options', None)
         client = self.get_client(**kwargs)
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
 
         result = client.plugins.install(url, method, options, reinstall=reinstall)
         if is_async:
             return result
 
-        while True:
-            messages = self.msg_accumulator.accumulate()
-            for message in messages:
-                if message['data']['uuid'] != result['uuid']:
-                    continue
-                if message['data']['status'] in ['completed', 'error']:
-                    return result
-            time.sleep(0.25)
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                status=any_of('completed', 'error'),
+                                uuid=result['uuid'],
+                            )
+                        ),
+                        headers=has_entries(name='plugin_install_progress'),
+                    )
+                ),
+            )
+
+        until.assert_(assert_received, events, timeout=30)
+        return result
 
     def list_plugins(self, **kwargs):
         client = self.get_client(**kwargs)
@@ -99,28 +133,35 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         ignore_errors = kwargs.pop('ignore_errors', False)
         is_async = kwargs.pop('_async', True)
         client = self.get_client(*kwargs)
+        events = self.bus.accumulator(headers={'name': 'plugin_uninstall_progress'})
 
         try:
             result = client.plugins.uninstall(namespace, name)
             if is_async:
                 return result
-
-            while True:
-                messages = self.msg_accumulator.accumulate()
-                for message in messages:
-                    if message['data']['uuid'] != result['uuid']:
-                        continue
-                    if message['data']['status'] in ['completed', 'error']:
-                        return result
-                time.sleep(0.25)
         except HTTPError:
             if not ignore_errors:
                 raise
+            return
 
-    def new_message_accumulator(self, routing_key):
-        port = self.service_port(5672, service_name='rabbitmq')
-        bus = BusClient.from_connection_fields(port=port, **self.bus_config)
-        return bus.accumulator(routing_key)
+        def assert_received(bus_accumulator):
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(
+                                status=any_of('completed', 'error'),
+                                uuid=result['uuid'],
+                            )
+                        ),
+                        headers=has_entries(name='plugin_uninstall_progress'),
+                    )
+                ),
+            )
+
+        until.assert_(assert_received, events, timeout=30)
+        return result
 
     def search(self, *args, **kwargs):
         client = self.get_client()
@@ -159,51 +200,3 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                     return True
                 return version == installed_version
         return False
-
-    def assert_status_received(
-        self, msg_accumulator, operation, uuid, status, exclusive=False, **kwargs
-    ):
-        event_name = 'plugin_{}_progress'.format(operation)
-
-        def match():
-            expected_data = ['status', status, 'uuid', uuid]
-            for key, value in kwargs.items():
-                expected_data.append(key)
-                expected_data.append(value)
-
-            received_msg = msg_accumulator.accumulate()
-            assert_that(
-                received_msg,
-                has_items(
-                    has_entry('name', event_name),
-                    has_entry('data', has_entries(*expected_data)),
-                ),
-            )
-
-        def exclusive_match():
-            while True:
-                first = msg_accumulator.pop()
-
-                # skip unrelated messages
-                if first.get('data', {}).get('uuid') != uuid:
-                    continue
-                if first.get('name') != event_name:
-                    continue
-
-                if first['data']['status'] == status:
-                    return
-
-                msg_accumulator.push_back(first)
-                self.fail(
-                    '{} is not at the top of the accumulator, received {}'.format(
-                        status, first
-                    )
-                )
-
-        aux = exclusive_match if exclusive else match
-        until.assert_(
-            aux,
-            tries=120,
-            interval=0.5,
-            message='The bus message should have been received: {}'.format(status),
-        )
