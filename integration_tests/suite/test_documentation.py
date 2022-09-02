@@ -5,7 +5,7 @@ import logging
 import requests
 import yaml
 
-from openapi_spec_validator import validate_v2_spec
+from openapi_spec_validator import validate_spec, openapi_v2_spec_validator
 
 from .helpers.base import BaseIntegrationTest
 
@@ -21,4 +21,4 @@ class TestDocumentation(BaseIntegrationTest):
         port = self.service_port(9503, 'plugind')
         api_url = 'http://127.0.0.1:{port}/0.2/api/api.yml'.format(port=port)
         api = requests.get(api_url)
-        validate_v2_spec(yaml.safe_load(api.text))
+        validate_spec(yaml.safe_load(api.text), validator=openapi_v2_spec_validator)
