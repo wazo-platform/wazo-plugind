@@ -14,6 +14,7 @@ from wazo_plugind.bus import Publisher
 from werkzeug.contrib.fixers import ProxyFix
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
+from xivo.status import StatusAggregator, TokenStatus
 from xivo.http_helpers import ReverseProxied
 from xivo.token_renewer import TokenRenewer
 
@@ -40,6 +41,8 @@ class Controller:
         self._service_discovery_config = config['service_discovery']
         self._bus_config = config['bus']
         self._token_renewer = TokenRenewer(AuthClient(**config['auth']))
+        self._status_aggregator = StatusAggregator()
+        self._token_status = TokenStatus()
 
         bind_addr = (self._listen_addr, self._listen_port)
         self._publisher = Publisher.from_config(config['uuid'], config['bus'])
@@ -47,7 +50,11 @@ class Controller:
             config, self._publisher, root_worker, self._executor
         )
 
-        flask_app = http.new_app(config, plugin_service=plugin_service)
+        flask_app = http.new_app(
+            config,
+            plugin_service=plugin_service,
+            status_aggregator=self._status_aggregator,
+        )
         if self._ssl_cert_file and ssl_key_file:
             logger.warning(
                 'Using service SSL configuration is deprecated. Please use NGINX instead.'
@@ -69,6 +76,11 @@ class Controller:
         self._token_renewer.subscribe_to_next_token_details_change(
             lambda t: self._token_renewer.emit_stop()
         )
+        self._token_renewer.subscribe_to_token_change(
+            self._token_status.token_change_callback
+        )
+        self._status_aggregator.add_provider(self._token_status.provide_status)
+        http._update_status_aggregator(self._status_aggregator)
 
     def run(self):
         logger.debug('starting http server')
