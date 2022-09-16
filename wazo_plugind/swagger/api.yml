@@ -39,6 +39,18 @@ paths:
       responses:
         '200':
           'description': The configuration of the service
+  /status:
+    get:
+      produces:
+        - application/json
+      summary: Returns the current status of `wazo-plugind`
+      description: '**Required ACL:** `plugind.status.read`'
+      operationId: getStatus
+      tags:
+        - status
+      responses:
+        '200':
+          'description': the current status of plugind 
   /market:
     get:
       tags:
