@@ -221,10 +221,11 @@ class PluginsItem(_AuthentificatedResource):
         super().add_resource(api, *args, **kwargs)
 
 
-class StatusChecker(_BaseResource):
+class StatusChecker(_AuthentificatedResource):
 
     api_path = '/status'
 
+    @required_master_tenant()
     @required_acl('plugind.status.read')
     def get(
         self,

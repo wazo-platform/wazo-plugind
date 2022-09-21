@@ -3,10 +3,13 @@
 
 from hamcrest import (
     assert_that,
+    calling,
     has_entries,
     has_entry,
 )
+from requests.exceptions import ConnectionError
 from wazo_test_helpers import until
+from wazo_test_helpers.hamcrest.raises import raises
 from .helpers.base import BaseIntegrationTest
 
 
@@ -36,26 +39,18 @@ class TestStatusWhenWazoAuthDown(BaseIntegrationTest):
         self.stop_service('auth')
         self.start_service('plugind')
         plugind_client = self.get_client()
-        response = until.return_(plugind_client.status.get, timeout=5)
         assert_that(
-            response,
-            has_entries(
-                master_tenant=has_entry('status', 'fail'),
-                rest_api=has_entry('status', 'ok'),
-                service_token=has_entry('status', 'fail'),
-            ),
+            calling(plugind_client.status.get),
+            raises(ConnectionError),
         )
         self.start_service('auth')
 
-        def _until_plugind_status_is_all_ok():
-            response = plugind_client.status.get()
-            assert_that(
-                response,
-                has_entries(
-                    master_tenant=has_entry('status', 'ok'),
-                    rest_api=has_entry('status', 'ok'),
-                    service_token=has_entry('status', 'ok'),
-                ),
-            )
-
-        until.assert_(_until_plugind_status_is_all_ok, tries=10)
+        response = until.return_(plugind_client.status.get, timeout=10)
+        assert_that(
+            response,
+            has_entries(
+                master_tenant=has_entry('status', 'ok'),
+                rest_api=has_entry('status', 'ok'),
+                service_token=has_entry('status', 'ok'),
+            ),
+        )
