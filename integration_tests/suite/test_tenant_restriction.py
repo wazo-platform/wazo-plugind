@@ -17,6 +17,9 @@ class TestTenantRestriction(BaseIntegrationTest):
 
     asset = 'plugind_only'
 
+    def setUp(self):
+        super().setUpClass()
+
     def _assert_unauthorized(self, url, *args):
         assert_that(
             calling(url).with_args(*args),
@@ -65,6 +68,9 @@ class TestTenantRestriction(BaseIntegrationTest):
         until.assert_(_plugind_returns_503, tries=10)
 
         self.start_service('auth')
+        self.auth = self.make_mock_auth()
+        until.true(self.auth.is_up, tries=10)
+        self.configure_wazo_auth()
 
         def _plugind_does_not_return_503():
             assert_that(
