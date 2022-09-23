@@ -3,20 +3,31 @@
 
 import os
 
+
 from kombu import Exchange
 from hamcrest import assert_that, has_entries, has_items, any_of
 from functools import wraps
 from requests import HTTPError
 from wazo_test_helpers import until
 from wazo_test_helpers.bus import BusClient
+from wazo_test_helpers.auth import AuthClient, MockUserToken, MockCredentials
 from wazo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
     NoSuchPort,
+    NoSuchService,
 )
 from wazo_plugind_client import Client
+from .wait_strategy import EverythingOkWaitStrategy
 
-VALID_TOKEN = 'valid-token-multitenant'
+
+MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
+MAIN_USER_UUID = '5f243438-a429-46a8-a992-baed872081e0'
+SUB_TENANT = '00000000-0000-4000-8000-000000000202'
 TOKEN_SUB_TENANT = 'valid-token-sub-tenant'
+USER_1_UUID = '00000000-0000-4000-8000-000000000302'
+VALID_TOKEN = 'valid-token-multitenant'
+VALID_TOKEN_SUB_TENANT = '00000000-0000-4000-8000-000000000102'
+WAZO_UUID = '00000000-0000-4000-8000-00003eb8004d'
 
 
 def autoremove(namespace, plugin):
@@ -51,13 +62,71 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         exchange_type='headers',
     )
 
+    wait_strategy = EverythingOkWaitStrategy()
+
+    @classmethod
+    def make_plugind(cls, token=VALID_TOKEN):
+        try:
+            port = cls.service_port(9503, 'plugind')
+        except NoSuchService:
+            return
+        return Client(
+            '127.0.0.1',
+            port=port,
+            prefix=False,
+            https=False,
+            token=token,
+        )
+
+    @classmethod
+    def configure_wazo_auth(cls):
+        cls.mock_auth_client = cls.make_mock_auth()
+        credentials = MockCredentials('plugind-service', 'plugind-password')
+        cls.mock_auth_client.set_valid_credentials(credentials, VALID_TOKEN)
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                VALID_TOKEN,
+                MAIN_USER_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': MAIN_TENANT, 'uuid': MAIN_USER_UUID},
+            )
+        )
+        cls.mock_auth_client.set_token(
+            MockUserToken(
+                VALID_TOKEN_SUB_TENANT,
+                USER_1_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': SUB_TENANT, 'uuid': USER_1_UUID},
+            )
+        )
+        cls.mock_auth_client.set_tenants(
+            {
+                'uuid': MAIN_TENANT,
+                'name': 'plugind-tests-master',
+                'parent_uuid': MAIN_TENANT,
+            },
+            {
+                'uuid': SUB_TENANT,
+                'name': 'plugind-tests-users',
+                'parent_uuid': MAIN_TENANT,
+            },
+        )
+
+    @classmethod
+    def make_mock_auth(cls):
+        return AuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
+
     def tearDown(self):
         self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.configure_wazo_auth()
+        cls.plugind = cls.make_plugind()
+        cls.auth = cls.make_mock_auth()
         cls.bus = cls.setup_bus()
+        cls.wait_strategy.wait(cls)
 
     @classmethod
     def setup_bus(cls):
