@@ -12,7 +12,6 @@ services:
       - WAZO_VERSION=17.10
     volumes:
       - "../..:/usr/src/wazo-plugind"
-      - "./etc/wazo-plugind/key.yml:/etc/wazo-plugind/key.yml"
       - "./etc/wazo-plugind/conf.d/50-default.yml:/etc/wazo-plugind/conf.d/50-default.yml"
       # - "${LOCAL_GIT_REPOS}/xivo-bus/xivo_bus:/opt/venv/lib/python3.7/site-packages/xivo_bus"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/opt/venv/lib/python3.7/site-packages/xivo"

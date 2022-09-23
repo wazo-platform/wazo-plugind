@@ -76,7 +76,7 @@ _DEFAULT_CONFIG = dict(
         'port': 9497,
         'prefix': None,
         'https': False,
-        'key_file': '/var/lib/wazo-auth-keys/wazo-plugind-key.yml',
+        'key_file': '',
     },
 )
 
@@ -89,12 +89,19 @@ def load_config(args):
     )
     service_key = _load_key_file(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
     return ChainMap(
-        reinterpreted_config, cli_config, service_key, file_config, _DEFAULT_CONFIG
+        reinterpreted_config, service_key, cli_config, file_config, _DEFAULT_CONFIG
     )
 
 
 def _load_key_file(config):
-    key_file = parse_config_file(config['auth']['key_file'])
+    filename = config.get('auth', {}).get('key_file')
+    if not filename:
+        return {}
+
+    key_file = parse_config_file(filename)
+    if not key_file:
+        return {}
+
     return {
         'auth': {
             'username': key_file['service_id'],
