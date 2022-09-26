@@ -1,18 +1,19 @@
 # This file should not be modified as it may get changed by the maintainer.
-# Add extra configuration files in the extra_config_files directory to override
-# the content from this file
+# Add extra configuration files to the extra_config_files directory to override
+# the settings in this file
 
-# Extra configuration directory where the config files overriding this file
-# should be.
+# Directory in which to place config overrides
 extra_config_files: '/etc/wazo-plugind/conf.d'
 
 debug: false
 log_level: info
 log_file: /var/log/wazo-plugind.log
+
+# REST API server
 rest_api:
   listen: 127.0.0.1
 
-# Event bus (AMQP) connection informations
+# Event bus (AMQP) connection settings
 bus:
   username: guest
   password: guest
@@ -21,36 +22,36 @@ bus:
   exchange_name: xivo
   exchange_type: topic
 
-# consul connection informations
+# Consul connection settings
 consul:
   scheme: http
   host: localhost
   port: 8500
   token: 'the_one_ring'
 
-# Service discovery configuration. all time intervals are in seconds
+# Service discovery configuration. All time intervals are in seconds
 service_discovery:
-  # to indicate wether of not to use service discovery, should only be disabled
-  # for testing purposes
+  # Indicates whether of not to use service discovery.
+  # It should only be disabled for testing purposes
   enabled: true
-  # the address that will be received by other services using service discovery.
-  # use "advertise_address: auto" to enable ip address detection based on
+  # The address that will be received by other services using service discovery.
+  # Use "advertise_address: auto" to enable ip address detection based on
   # advertise_address_interface
   advertise_address: auto
-  # if advertise_address is "auto" this interface will be used to find the ip
-  # address to advertise. ignored otherwise
+  # If advertise_address is "auto" this interface will be used to find the ip
+  # address to advertise. Ignored otherwise
   advertise_address_interface: eth0
   advertise_port: 9503
-  # the number of seconds that consul will wait between 2 ttl messages to mark
+  # The number of seconds that consul will wait between 2 ttl messages to mark
   # this service as up
   ttl_interval: 30
-  # the time interval before the service sends a new ttl message to consul
+  # The time interval before the service sends a new ttl message to consul
   refresh_interval: 27
-  # the time interval to detect that the service is running when starting
+  # The time interval to detect that the service is running when starting
   retry_interval: 2
   extra_tags: []
 
-# Connection info to the authentication server
+# Authentication server connection settings
 auth:
   host: localhost
   port: 9497
