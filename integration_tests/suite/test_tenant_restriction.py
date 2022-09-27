@@ -17,9 +17,6 @@ class TestTenantRestriction(BaseIntegrationTest):
 
     asset = 'plugind_only'
 
-    def setUp(self):
-        super().setUpClass()
-
     def _assert_unauthorized(self, url, *args):
         assert_that(
             calling(url).with_args(*args),
@@ -29,7 +26,7 @@ class TestTenantRestriction(BaseIntegrationTest):
         )
 
     def test_restrict_only_master_tenant(self):
-        plugind = self.get_client(token=TOKEN_SUB_TENANT)
+        plugind = self.make_plugind(token=TOKEN_SUB_TENANT)
 
         url = plugind.market.get
         self._assert_unauthorized(url, 'official', 'admin-ui-conference')
@@ -56,10 +53,11 @@ class TestTenantRestriction(BaseIntegrationTest):
         self.stop_service('plugind')
         self.stop_service('auth')
         self.start_service('plugind')
+        self.reset_clients()
 
         def _plugind_returns_503():
             assert_that(
-                calling(self.list_plugins),
+                calling(self.plugind.plugins.list),
                 raises(HTTPError).matching(
                     has_property('response', has_property('status_code', 503))
                 ),
@@ -75,7 +73,7 @@ class TestTenantRestriction(BaseIntegrationTest):
 
         def _plugind_does_not_return_503():
             assert_that(
-                calling(self.list_plugins),
+                calling(self.plugind.plugins.list),
                 not_(raises(HTTPError)),
             )
 

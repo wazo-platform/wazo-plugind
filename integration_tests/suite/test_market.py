@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -23,35 +23,34 @@ class TestMarket(BaseIntegrationTest):
     asset = 'market'
 
     def test_get(self):
+        plugind_unauthorized = self.make_plugind(token='invalid-token')
         assert_that(
-            calling(self.get_market).with_args(
-                'official', 'admin-ui-conference', token='invalid-token'
-            ),
+            calling(plugind_unauthorized.market.get).with_args('official', 'foo'),
             raises(HTTPError).matching(
                 has_property('response', has_property('status_code', 401))
             ),
         )
 
         assert_that(
-            calling(self.get_market).with_args('foobar', 'foobar'),
+            calling(self.plugind.market.get).with_args('foobar', 'foobar'),
             raises(HTTPError).matching(
                 has_property('response', has_property('status_code', 404))
             ),
         )
 
-        result = self.get_market('official', 'admin-ui-conference')
+        result = self.plugind.market.get('official', 'admin-ui-conference')
         assert_that(
             result, has_entries('name', 'admin-ui-conference', 'namespace', 'official')
         )
 
     def test_that_no_filter_returns_all_plugins(self):
-        response = self.search()
+        response = self.plugind.market.list()
 
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(PLUGIN_COUNT))
 
     def test_with_a_search_term(self):
-        response = self.search('conference')
+        response = self.plugind.market.list('conference')
 
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(1))
@@ -63,7 +62,7 @@ class TestMarket(BaseIntegrationTest):
         )
 
     def test_with_search_and_pagination(self):
-        response = self.search(
+        response = self.plugind.market.list(
             'official', limit=5, offset=5, order='name', direction='asc'
         )
 
@@ -145,7 +144,7 @@ class TestMarket(BaseIntegrationTest):
             method='market', options={'namespace': ns, 'name': name}, _async=False
         )
 
-        response = self.search(name=name)
+        response = self.plugind.market.list(name=name)
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(1))
         assert_that(
@@ -157,7 +156,7 @@ class TestMarket(BaseIntegrationTest):
 
         self.uninstall_plugin(ns, name, _async=False)
 
-        response = self.search(name=name)
+        response = self.plugind.market.list(name=name)
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(1))
         assert_that(
@@ -174,28 +173,28 @@ class TestMarket(BaseIntegrationTest):
             method='market', options={'namespace': ns, 'name': name}, _async=False
         )
 
-        response = self.search(name=name, installed=True)
+        response = self.plugind.market.list(name=name, installed=True)
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(1))
         assert_that(
             response['items'], contains(has_entries('namespace', ns, 'name', name))
         )
 
-        response = self.search(name=name, installed=False)
+        response = self.plugind.market.list(name=name, installed=False)
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(0))
         assert_that(response['items'], empty())
 
         self.uninstall_plugin(ns, name, _async=False)
 
-        response = self.search(name=name, installed=False)
+        response = self.plugind.market.list(name=name, installed=False)
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(1))
         assert_that(
             response['items'], contains(has_entries('namespace', ns, 'name', name))
         )
 
-        response = self.search(name=name, installed=True)
+        response = self.plugind.market.list(name=name, installed=True)
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(0))
         assert_that(response['items'], empty())

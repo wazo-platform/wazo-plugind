@@ -76,6 +76,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
             prefix=None,
             https=False,
             token=token,
+            timeout=20,
         )
 
     @classmethod
@@ -162,35 +163,14 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         cls.auth = cls.make_auth()
         cls.bus = cls.setup_bus()
 
-    def get_client(self, token=TOKEN, version=None):
-        port = self.service_port(9503)
-        client_args = {
-            'port': port,
-            'prefix': None,
-            'https': False,
-            'token': token,
-            'timeout': 20,
-        }
-        if version:
-            client_args['version'] = version
-        return PlugindClient('127.0.0.1', **client_args)
-
-    def get_market(self, namespace, name, **kwargs):
-        client = self.get_client(**kwargs)
-        return client.market.get(namespace, name)
-
-    def get_plugin(self, namespace, name, **kwargs):
-        client = self.get_client(**kwargs)
-        return client.plugins.get(namespace, name)
-
-    def install_plugin(self, url=None, method=None, **kwargs):
+    def install_plugin(self, url=None, method=None, version=None, **kwargs):
         reinstall = kwargs.pop('reinstall', None)
         is_async = kwargs.pop('_async', True)
         options = kwargs.pop('options', None)
-        client = self.get_client(**kwargs)
         events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
 
-        result = client.plugins.install(url, method, options, reinstall=reinstall)
+        plugind = self.make_plugind(**kwargs)
+        result = plugind.plugins.install(url, method, options, reinstall=reinstall)
         if is_async:
             return result
 
@@ -213,18 +193,14 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         until.assert_(assert_received, events, timeout=30)
         return result
 
-    def list_plugins(self, **kwargs):
-        client = self.get_client(**kwargs)
-        return client.plugins.list()
-
     def uninstall_plugin(self, namespace, name, **kwargs):
         ignore_errors = kwargs.pop('ignore_errors', False)
         is_async = kwargs.pop('_async', True)
-        client = self.get_client(*kwargs)
         events = self.bus.accumulator(headers={'name': 'plugin_uninstall_progress'})
+        plugind = self.make_plugind(**kwargs)
 
         try:
-            result = client.plugins.uninstall(namespace, name)
+            result = plugind.plugins.uninstall(namespace, name)
             if is_async:
                 return result
         except HTTPError:
@@ -250,10 +226,6 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
 
         until.assert_(assert_received, events, timeout=30)
         return result
-
-    def search(self, *args, **kwargs):
-        client = self.get_client()
-        return client.market.list(*args, **kwargs)
 
     def list_file_in_container_dir(self, dir_path):
         output = self.docker_exec(['ls', dir_path])

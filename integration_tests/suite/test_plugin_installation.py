@@ -26,22 +26,23 @@ class TestPluginList(BaseIntegrationTest):
     asset = 'plugind_only'
 
     def test_that_an_unauthorized_token_return_401(self):
+        plugind_unauthorized = self.make_plugind(token='expired')
         assert_that(
-            calling(self.list_plugins).with_args(token='expired'),
+            calling(plugind_unauthorized.plugins.list),
             raises(HTTPError).matching(
                 has_property('response', has_property('status_code', 401))
             ),
         )
 
     def test_that_installed_plugins_are_listed(self):
-        response = self.list_plugins()
+        response = self.plugind.plugins.list()
 
         assert_that(response['total'], equal_to(0))
         assert_that(response['items'], empty())
 
         self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
 
-        result = self.list_plugins()
+        result = self.plugind.plugins.list()
 
         assert_that(result['total'], equal_to(1))
         assert_that(
@@ -259,7 +260,7 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
 
-        result = self.get_plugin(namespace, name)
+        result = self.plugind.plugins.get(namespace, name)
 
         assert_that(
             result,
@@ -267,15 +268,16 @@ class TestPluginInstallation(BaseIntegrationTest):
         )
 
         assert_that(
-            calling(self.get_plugin).with_args(namespace, 'not-foobar'),
+            calling(self.plugind.plugins.get).with_args(namespace, 'not-foobar'),
             raises(HTTPError).matching(
                 has_property('response', has_property('status_code', 404))
             ),
         )
 
+        plugind_unauthorized = self.make_plugind(token='invalid-token')
         assert_that(
-            calling(self.get_plugin).with_args(
-                namespace, 'not-foobar', token='invalid-token'
+            calling(plugind_unauthorized.plugins.get).with_args(
+                namespace, 'not-foobar'
             ),
             raises(HTTPError).matching(
                 has_property('response', has_property('status_code', 401))
