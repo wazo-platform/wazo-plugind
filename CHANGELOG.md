@@ -2,10 +2,7 @@
 
 ## 22.14
 
-* `/status` route has now been included into `wazo-plugind`, and it returns the current status (`ok` or `fail`) of the following:
-  * `master_tenant`
-  * `service_token`
-  * `rest_api`
+* New resource added `GET /status`
 
 ## 20.09
 

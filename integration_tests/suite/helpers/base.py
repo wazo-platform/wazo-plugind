@@ -3,7 +3,6 @@
 
 import os
 
-
 from kombu import Exchange
 from hamcrest import assert_that, has_entries, has_items, any_of
 from functools import wraps
@@ -73,7 +72,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         return Client(
             '127.0.0.1',
             port=port,
-            prefix=False,
+            prefix=None,
             https=False,
             token=token,
         )

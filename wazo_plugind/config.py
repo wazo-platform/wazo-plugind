@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -76,7 +76,7 @@ _DEFAULT_CONFIG = dict(
         'port': 9497,
         'prefix': None,
         'https': False,
-        'key_file': '',
+        'key_file': '/var/lib/wazo-auth-keys/wazo-plugind-key.yml',
     },
 )
 
@@ -89,19 +89,15 @@ def load_config(args):
     )
     service_key = _load_key_file(ChainMap(cli_config, file_config, _DEFAULT_CONFIG))
     return ChainMap(
-        reinterpreted_config, service_key, cli_config, file_config, _DEFAULT_CONFIG
+        reinterpreted_config, cli_config, service_key, file_config, _DEFAULT_CONFIG
     )
 
 
 def _load_key_file(config):
-    filename = config.get('auth', {}).get('key_file')
-    if not filename:
+    if config['auth'].get('username') and config['auth'].get('password'):
         return {}
 
-    key_file = parse_config_file(filename)
-    if not key_file:
-        return {}
-
+    key_file = parse_config_file(config['auth']['key_file'])
     return {
         'auth': {
             'username': key_file['service_id'],

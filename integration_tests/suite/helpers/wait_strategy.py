@@ -18,7 +18,6 @@ class EverythingOkWaitStrategy(WaitStrategy):
                     {
                         'master_tenant': has_entries(status='ok'),
                         'rest_api': has_entries(status='ok'),
-                        'service_token': has_entries(status='ok'),
                     }
                 ),
             )

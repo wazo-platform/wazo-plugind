@@ -35,9 +35,6 @@ logger = logging.getLogger(__name__)
 auth_verifier = AuthVerifier()
 
 
-_status_aggregator = None
-
-
 class MasterTenant:
     def __init__(self):
         self._app = None
@@ -226,11 +223,13 @@ class StatusChecker(_AuthentificatedResource):
     api_path = '/status'
 
     @required_acl('plugind.status.read')
-    def get(
-        self,
-    ):
-        global _status_aggregator
-        return _status_aggregator.status(), 200
+    def get(self):
+        return self.status_aggregator.status(), 200
+
+    @classmethod
+    def add_resource(cls, api, *args, **kwargs):
+        cls.status_aggregator = kwargs['status_aggregator']
+        super().add_resource(api, *args, **kwargs)
 
 
 class Swagger(_BaseResource):
@@ -298,13 +297,6 @@ def new_app(config, *args, **kwargs):
     if cors_config.pop('enabled', False):
         CORS(app, **cors_config)
     return app
-
-
-def _update_status_aggregator(status_aggregator):
-    global _status_aggregator
-    _status_aggregator = status_aggregator
-    _status_aggregator.add_provider(provide_status)
-    _status_aggregator.add_provider(master_tenant.provide_status)
 
 
 def provide_status(status):
