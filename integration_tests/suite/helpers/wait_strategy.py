@@ -1,17 +1,23 @@
 # Copyright 2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import requests
 
 from hamcrest import assert_that, has_entries
 
 from wazo_test_helpers import until
-from wazo_test_helpers.wait_strategy import WaitStrategy
+from wazo_test_helpers.wait_strategy import WaitStrategy, NoWaitStrategy
+
+__all__ = ['NoWaitStrategy']
 
 
 class EverythingOkWaitStrategy(WaitStrategy):
-    def wait(self, plugind_client):
+    def wait(self, integration_test):
         def is_ready():
-            status = plugind_client.plugind.status.get()
+            try:
+                status = integration_test.plugind.status.get()
+            except requests.RequestException:
+                status = {}
             assert_that(
                 status,
                 has_entries(

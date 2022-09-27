@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -68,9 +68,10 @@ class TestTenantRestriction(BaseIntegrationTest):
         until.assert_(_plugind_returns_503, tries=10)
 
         self.start_service('auth')
-        self.auth = self.make_mock_auth()
+        self.reset_clients()
         until.true(self.auth.is_up, tries=10)
-        self.configure_wazo_auth()
+        self.configure_token()
+        self.configure_service_token()
 
         def _plugind_does_not_return_503():
             assert_that(

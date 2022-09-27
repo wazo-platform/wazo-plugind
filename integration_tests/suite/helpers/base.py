@@ -14,18 +14,19 @@ from wazo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
     NoSuchPort,
     NoSuchService,
+    WrongClient,
 )
-from wazo_plugind_client import Client
+from wazo_plugind_client import Client as PlugindClient
 from .wait_strategy import EverythingOkWaitStrategy
 
+MAIN_TENANT = '00000000-0000-4000-8000-000000000201'
+MAIN_USER_UUID = '00000000-0000-4000-8000-000000000301'
+TOKEN = '00000000-0000-4000-8000-000000000101'
 
-MAIN_TENANT = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeee10'
-MAIN_USER_UUID = '5f243438-a429-46a8-a992-baed872081e0'
 SUB_TENANT = '00000000-0000-4000-8000-000000000202'
-TOKEN_SUB_TENANT = 'valid-token-sub-tenant'
-USER_1_UUID = '00000000-0000-4000-8000-000000000302'
-VALID_TOKEN = 'valid-token-multitenant'
-VALID_TOKEN_SUB_TENANT = '00000000-0000-4000-8000-000000000102'
+SUB_USER_UUID = '00000000-0000-4000-8000-000000000302'
+TOKEN_SUB_TENANT = '00000000-0000-4000-8000-000000000102'
+
 WAZO_UUID = '00000000-0000-4000-8000-00003eb8004d'
 
 
@@ -64,12 +65,12 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     wait_strategy = EverythingOkWaitStrategy()
 
     @classmethod
-    def make_plugind(cls, token=VALID_TOKEN):
+    def make_plugind(cls, token=TOKEN):
         try:
             port = cls.service_port(9503, 'plugind')
-        except NoSuchService:
-            return
-        return Client(
+        except (NoSuchService, NoSuchPort):
+            return WrongClient('plugind')
+        return PlugindClient(
             '127.0.0.1',
             port=port,
             prefix=None,
@@ -78,27 +79,27 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def configure_wazo_auth(cls):
-        cls.mock_auth_client = cls.make_mock_auth()
-        credentials = MockCredentials('plugind-service', 'plugind-password')
-        cls.mock_auth_client.set_valid_credentials(credentials, VALID_TOKEN)
-        cls.mock_auth_client.set_token(
+    def configure_token(cls):
+        if isinstance(cls.auth, WrongClient):
+            return
+
+        cls.auth.set_token(
             MockUserToken(
-                VALID_TOKEN,
+                TOKEN,
                 MAIN_USER_UUID,
                 WAZO_UUID,
                 {'tenant_uuid': MAIN_TENANT, 'uuid': MAIN_USER_UUID},
             )
         )
-        cls.mock_auth_client.set_token(
+        cls.auth.set_token(
             MockUserToken(
-                VALID_TOKEN_SUB_TENANT,
-                USER_1_UUID,
+                TOKEN_SUB_TENANT,
+                SUB_USER_UUID,
                 WAZO_UUID,
-                {'tenant_uuid': SUB_TENANT, 'uuid': USER_1_UUID},
+                {'tenant_uuid': SUB_TENANT, 'uuid': SUB_USER_UUID},
             )
         )
-        cls.mock_auth_client.set_tenants(
+        cls.auth.set_tenants(
             {
                 'uuid': MAIN_TENANT,
                 'name': 'plugind-tests-master',
@@ -112,8 +113,20 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def make_mock_auth(cls):
-        return AuthClient('127.0.0.1', cls.service_port(9497, 'auth'))
+    def configure_service_token(cls):
+        if isinstance(cls.auth, WrongClient):
+            return
+
+        credentials = MockCredentials('plugind-service', 'plugind-password')
+        cls.auth.set_valid_credentials(credentials, TOKEN)
+
+    @classmethod
+    def make_auth(cls):
+        try:
+            port = cls.service_port(9497, 'auth')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient('auth')
+        return AuthClient('127.0.0.1', port=port)
 
     def tearDown(self):
         self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
@@ -121,9 +134,10 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.configure_wazo_auth()
+        cls.auth = cls.make_auth()
+        cls.configure_token()
+        cls.configure_service_token()
         cls.plugind = cls.make_plugind()
-        cls.auth = cls.make_mock_auth()
         cls.bus = cls.setup_bus()
         cls.wait_strategy.wait(cls)
 
@@ -142,7 +156,13 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     def docker_exec(self, *args, **kwargs):
         return super().docker_exec(*args, **kwargs).decode('utf-8')
 
-    def get_client(self, token=VALID_TOKEN, version=None):
+    @classmethod
+    def reset_clients(cls):
+        cls.plugind = cls.make_plugind()
+        cls.auth = cls.make_auth()
+        cls.bus = cls.setup_bus()
+
+    def get_client(self, token=TOKEN, version=None):
         port = self.service_port(9503)
         client_args = {
             'port': port,
@@ -153,7 +173,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         }
         if version:
             client_args['version'] = version
-        return Client('127.0.0.1', **client_args)
+        return PlugindClient('127.0.0.1', **client_args)
 
     def get_market(self, namespace, name, **kwargs):
         client = self.get_client(**kwargs)
