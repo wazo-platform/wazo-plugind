@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -26,7 +26,7 @@ class TestTenantRestriction(BaseIntegrationTest):
         )
 
     def test_restrict_only_master_tenant(self):
-        plugind = self.get_client(token=TOKEN_SUB_TENANT)
+        plugind = self.make_plugind(token=TOKEN_SUB_TENANT)
 
         url = plugind.market.get
         self._assert_unauthorized(url, 'official', 'admin-ui-conference')
@@ -53,10 +53,11 @@ class TestTenantRestriction(BaseIntegrationTest):
         self.stop_service('plugind')
         self.stop_service('auth')
         self.start_service('plugind')
+        self.reset_clients()
 
         def _plugind_returns_503():
             assert_that(
-                calling(self.list_plugins),
+                calling(self.plugind.plugins.list),
                 raises(HTTPError).matching(
                     has_property('response', has_property('status_code', 503))
                 ),
@@ -65,10 +66,14 @@ class TestTenantRestriction(BaseIntegrationTest):
         until.assert_(_plugind_returns_503, tries=10)
 
         self.start_service('auth')
+        self.reset_clients()
+        until.true(self.auth.is_up, tries=10)
+        self.configure_token()
+        self.configure_service_token()
 
         def _plugind_does_not_return_503():
             assert_that(
-                calling(self.list_plugins),
+                calling(self.plugind.plugins.list),
                 not_(raises(HTTPError)),
             )
 

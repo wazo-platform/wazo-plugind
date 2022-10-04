@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -94,6 +94,9 @@ def load_config(args):
 
 
 def _load_key_file(config):
+    if config['auth'].get('username') and config['auth'].get('password'):
+        return {}
+
     key_file = parse_config_file(config['auth']['key_file'])
     return {
         'auth': {

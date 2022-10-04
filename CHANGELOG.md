@@ -1,5 +1,9 @@
 # Changelog
 
+## 22.14
+
+* New resource added `GET /status`
+
 ## 20.09
 
 * Deprecate SSL configuration

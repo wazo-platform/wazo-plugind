@@ -8,6 +8,8 @@ from hamcrest import assert_that, equal_to, has_entries
 from unittest.mock import ANY, Mock, patch, sentinel
 from unittest import TestCase
 
+from xivo.status import StatusAggregator
+
 from ..exceptions import PluginNotFoundException
 from ..service import PluginService
 
@@ -40,9 +42,14 @@ with patch('xivo.auth_verifier.AuthVerifier', AuthVerifierMock):
 class HTTPAppTestCase(TestCase):
     def setUp(self):
         config = {'rest_api': {'cors': {'enabled': False}}, 'auth': {'host': 'foobar'}}
+        self.status_aggregator = Mock(StatusAggregator)
         self.plugin_service = Mock(PluginService)
         self.plugin_service.create.return_value = {'create': 'return_value'}
-        self.app = new_app(config, plugin_service=self.plugin_service).test_client()
+        self.app = new_app(
+            config,
+            plugin_service=self.plugin_service,
+            status_aggregator=self.status_aggregator,
+        ).test_client()
 
     def get_plugin(self, namespace, name, version=API_VERSION):
         url = '/{version}/plugins/{namespace}/{name}'.format(

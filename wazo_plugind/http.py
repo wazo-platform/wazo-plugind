@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -14,6 +14,7 @@ from xivo import http_helpers
 from xivo.http_helpers import add_logger, reverse_proxy_fix_api_spec
 from xivo.auth_verifier import AuthVerifier, required_acl, required_tenant
 from xivo.rest_api_helpers import handle_api_exception
+from xivo.status import Status
 from werkzeug.local import LocalProxy as Proxy
 
 from .schema import (
@@ -53,6 +54,13 @@ class MasterTenant:
         if not tenant_uuid:
             raise NotInitializedException()
         return tenant_uuid
+
+    def provide_status(self, status):
+        status['master_tenant']['status'] = (
+            Status.ok
+            if self._app.config['auth'].get('master_tenant_uuid')
+            else Status.fail
+        )
 
 
 master_tenant = MasterTenant()
@@ -210,6 +218,20 @@ class PluginsItem(_AuthentificatedResource):
         super().add_resource(api, *args, **kwargs)
 
 
+class StatusChecker(_AuthentificatedResource):
+
+    api_path = '/status'
+
+    @required_acl('plugind.status.read')
+    def get(self):
+        return self.status_aggregator.status(), 200
+
+    @classmethod
+    def add_resource(cls, api, *args, **kwargs):
+        cls.status_aggregator = kwargs['status_aggregator']
+        super().add_resource(api, *args, **kwargs)
+
+
 class Swagger(_BaseResource):
 
     api_package = 'wazo_plugind.swagger'
@@ -270,7 +292,12 @@ def new_app(config, *args, **kwargs):
     MultiAPI(APIv02).add_resource(MarketItem)
     MultiAPI(APIv02).add_resource(PluginsItem)
     MultiAPI(APIv02).add_resource(Plugins)
+    MultiAPI(APIv02).add_resource(StatusChecker)
 
     if cors_config.pop('enabled', False):
         CORS(app, **cors_config)
     return app
+
+
+def provide_status(status):
+    status['rest_api']['status'] = Status.ok

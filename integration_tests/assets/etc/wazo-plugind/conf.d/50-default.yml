@@ -5,7 +5,8 @@ rest_api:
 
 auth:
   host: auth
-  key_file: /etc/wazo-plugind/key.yml
+  username: plugind-service
+  password: plugind-password
 
 bus:
   host: rabbitmq

@@ -38,7 +38,21 @@ paths:
         - config
       responses:
         '200':
-          'description': The configuration of the service
+          description: The configuration of the service
+  /status:
+    get:
+      produces:
+        - application/json
+      summary: Returns the current status of wazo-plugind
+      description: '**Required ACL:** `plugind.status.read`'
+      operationId: getStatus
+      tags:
+        - status
+      responses:
+        '200':
+          description: the current status of wazo-plugind
+          schema:
+            $ref: '#/definitions/StatusSummary'
   /market:
     get:
       tags:
@@ -341,6 +355,25 @@ definitions:
       upgradable:
         type: boolean
         description: An indication wether installing this version would be an upgrade on not. Unstalled plugins are marked as upgradable.
+
+  StatusSummary:
+    type: object
+    properties:
+      master_tenant:
+        $ref: '#/definitions/ComponentWithStatus'
+      rest_api:
+        $ref: '#/definitions/ComponentWithStatus'
+  ComponentWithStatus:
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/StatusValue'
+  StatusValue:
+    type: string
+    enum:
+      - fail
+      - ok
+
 responses:
   InvalidRequest:
     description: Invalid request

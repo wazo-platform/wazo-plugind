@@ -9,14 +9,25 @@ from functools import wraps
 from requests import HTTPError
 from wazo_test_helpers import until
 from wazo_test_helpers.bus import BusClient
+from wazo_test_helpers.auth import AuthClient, MockUserToken, MockCredentials
 from wazo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
     NoSuchPort,
+    NoSuchService,
+    WrongClient,
 )
-from wazo_plugind_client import Client
+from wazo_plugind_client import Client as PlugindClient
+from .wait_strategy import EverythingOkWaitStrategy
 
-VALID_TOKEN = 'valid-token-multitenant'
-TOKEN_SUB_TENANT = 'valid-token-sub-tenant'
+MAIN_TENANT = '00000000-0000-4000-8000-000000000201'
+MAIN_USER_UUID = '00000000-0000-4000-8000-000000000301'
+TOKEN = '00000000-0000-4000-8000-000000000101'
+
+SUB_TENANT = '00000000-0000-4000-8000-000000000202'
+SUB_USER_UUID = '00000000-0000-4000-8000-000000000302'
+TOKEN_SUB_TENANT = '00000000-0000-4000-8000-000000000102'
+
+WAZO_UUID = '00000000-0000-4000-8000-00003eb8004d'
 
 
 def autoremove(namespace, plugin):
@@ -51,13 +62,85 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         exchange_type='headers',
     )
 
+    wait_strategy = EverythingOkWaitStrategy()
+
+    @classmethod
+    def make_plugind(cls, token=TOKEN):
+        try:
+            port = cls.service_port(9503, 'plugind')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient('plugind')
+        return PlugindClient(
+            '127.0.0.1',
+            port=port,
+            prefix=None,
+            https=False,
+            token=token,
+            timeout=20,
+        )
+
+    @classmethod
+    def configure_token(cls):
+        if isinstance(cls.auth, WrongClient):
+            return
+
+        cls.auth.set_token(
+            MockUserToken(
+                TOKEN,
+                MAIN_USER_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': MAIN_TENANT, 'uuid': MAIN_USER_UUID},
+            )
+        )
+        cls.auth.set_token(
+            MockUserToken(
+                TOKEN_SUB_TENANT,
+                SUB_USER_UUID,
+                WAZO_UUID,
+                {'tenant_uuid': SUB_TENANT, 'uuid': SUB_USER_UUID},
+            )
+        )
+        cls.auth.set_tenants(
+            {
+                'uuid': MAIN_TENANT,
+                'name': 'plugind-tests-master',
+                'parent_uuid': MAIN_TENANT,
+            },
+            {
+                'uuid': SUB_TENANT,
+                'name': 'plugind-tests-users',
+                'parent_uuid': MAIN_TENANT,
+            },
+        )
+
+    @classmethod
+    def configure_service_token(cls):
+        if isinstance(cls.auth, WrongClient):
+            return
+
+        credentials = MockCredentials('plugind-service', 'plugind-password')
+        cls.auth.set_valid_credentials(credentials, TOKEN)
+
+    @classmethod
+    def make_auth(cls):
+        try:
+            port = cls.service_port(9497, 'auth')
+        except (NoSuchService, NoSuchPort):
+            return WrongClient('auth')
+        return AuthClient('127.0.0.1', port=port)
+
     def tearDown(self):
         self.docker_exec(['rm', '-rf', '/tmp/results'], service_name='plugind')
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.auth = cls.make_auth()
+        cls.configure_token()
+        cls.configure_service_token()
+        cls.plugind = cls.make_plugind()
         cls.bus = cls.setup_bus()
+        cls.wait_strategy.wait(cls)
 
     @classmethod
     def setup_bus(cls):
@@ -74,35 +157,20 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
     def docker_exec(self, *args, **kwargs):
         return super().docker_exec(*args, **kwargs).decode('utf-8')
 
-    def get_client(self, token=VALID_TOKEN, version=None):
-        port = self.service_port(9503)
-        client_args = {
-            'port': port,
-            'prefix': None,
-            'https': False,
-            'token': token,
-            'timeout': 20,
-        }
-        if version:
-            client_args['version'] = version
-        return Client('127.0.0.1', **client_args)
+    @classmethod
+    def reset_clients(cls):
+        cls.plugind = cls.make_plugind()
+        cls.auth = cls.make_auth()
+        cls.bus = cls.setup_bus()
 
-    def get_market(self, namespace, name, **kwargs):
-        client = self.get_client(**kwargs)
-        return client.market.get(namespace, name)
-
-    def get_plugin(self, namespace, name, **kwargs):
-        client = self.get_client(**kwargs)
-        return client.plugins.get(namespace, name)
-
-    def install_plugin(self, url=None, method=None, **kwargs):
+    def install_plugin(self, url=None, method=None, version=None, **kwargs):
         reinstall = kwargs.pop('reinstall', None)
         is_async = kwargs.pop('_async', True)
         options = kwargs.pop('options', None)
-        client = self.get_client(**kwargs)
         events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
 
-        result = client.plugins.install(url, method, options, reinstall=reinstall)
+        plugind = self.make_plugind(**kwargs)
+        result = plugind.plugins.install(url, method, options, reinstall=reinstall)
         if is_async:
             return result
 
@@ -125,18 +193,14 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         until.assert_(assert_received, events, timeout=30)
         return result
 
-    def list_plugins(self, **kwargs):
-        client = self.get_client(**kwargs)
-        return client.plugins.list()
-
     def uninstall_plugin(self, namespace, name, **kwargs):
         ignore_errors = kwargs.pop('ignore_errors', False)
         is_async = kwargs.pop('_async', True)
-        client = self.get_client(*kwargs)
         events = self.bus.accumulator(headers={'name': 'plugin_uninstall_progress'})
+        plugind = self.make_plugind(**kwargs)
 
         try:
-            result = client.plugins.uninstall(namespace, name)
+            result = plugind.plugins.uninstall(namespace, name)
             if is_async:
                 return result
         except HTTPError:
@@ -162,10 +226,6 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
 
         until.assert_(assert_received, events, timeout=30)
         return result
-
-    def search(self, *args, **kwargs):
-        client = self.get_client()
-        return client.market.list(*args, **kwargs)
 
     def list_file_in_container_dir(self, dir_path):
         output = self.docker_exec(['ls', dir_path])
