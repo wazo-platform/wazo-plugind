@@ -190,7 +190,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
                 ),
             )
 
-        until.assert_(assert_received, events, timeout=30)
+        until.assert_(assert_received, events, timeout=60)
         return result
 
     def uninstall_plugin(self, namespace, name, **kwargs):
