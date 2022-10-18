@@ -3,7 +3,6 @@
 
 import os
 
-from kombu import Exchange
 from hamcrest import assert_that, has_entries, has_items, any_of
 from functools import wraps
 from requests import HTTPError
@@ -149,9 +148,7 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         except NoSuchPort:
             raise
 
-        upstream = Exchange('xivo', 'topic')
         bus = BusClient.from_connection_fields(port=port, **cls.bus_config)
-        bus.downstream_exchange_declare('wazo-headers', 'headers', upstream)
         return bus
 
     def docker_exec(self, *args, **kwargs):
