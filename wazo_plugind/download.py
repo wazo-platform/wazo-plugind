@@ -1,8 +1,14 @@
 # Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
 
 import os
 import logging
+import re
+import tarfile
+from typing import TextIO
+from urllib.request import urlopen
+
 from marshmallow import ValidationError
 from . import db
 from .exceptions import (
@@ -35,7 +41,11 @@ class _GitDownloader:
             raise Exception(f'Download failed {url}')
 
         if subdirectory:
-            proc = exec_and_log(['git', 'sparse-checkout', 'set', subdirectory], logger.error, cwd=filename)
+            proc = exec_and_log(
+                ['git', 'sparse-checkout', 'set', subdirectory],
+                logger.error,
+                cwd=filename,
+            )
             if proc.returncode:
                 raise Exception(f'Failed to checkout subdirectory {url}')
             filename = os.path.join(filename, subdirectory)
@@ -133,10 +143,31 @@ class _UndefinedDownloader:
         raise UnsupportedDownloadMethod()
 
 
+class _ArchiveDownloader:
+    def __init__(self, config):
+        self._download_dir = config['download_dir']
+
+    def download(self, ctx):
+        url = ctx.install_options['url']
+        target_dir = os.path.join(self._download_dir, ctx.uuid)
+        with urlopen(url) as f:
+            if re.search(r'\.t(ar\.)?(bz2|gz|xz)$', url, re.IGNORECASE):
+                self._extract_tar(f, target_dir)
+            else:
+                raise ValueError('Only tar archives are currently supported.')
+        return target_dir
+
+    @staticmethod
+    def _extract_tar(f: TextIO, target_directory: str):
+        with tarfile.open(fileobj=f, mode='r') as tar_file:
+            tar_file.extractall(target_directory)
+
+
 class Downloader:
     def __init__(self, config):
         self._downloaders = {
             'git': _GitDownloader(config),
+            'archive': _ArchiveDownloader(config),
             'market': _MarketDownloader(config, self),
         }
         self._undefined_downloader = _UndefinedDownloader(config)

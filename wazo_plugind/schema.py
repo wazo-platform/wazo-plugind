@@ -28,6 +28,11 @@ class GitInstallOptionsSchema(Schema):
     subdirectory = fields.String(validate=Length(min=1), required=False)
 
 
+class ArchiveInstallOptionsSchema(Schema):
+
+    url = fields.String(validate=Length(min=1), required=True)
+
+
 class MarketInstallOptionsSchema(Schema):
 
     namespace = fields.String(validate=Length(min=1), required=True)
@@ -115,6 +120,7 @@ class OptionField(fields.Field):
 
     _options = {
         'git': fields.Nested(GitInstallOptionsSchema),
+        'archive': fields.Nested(ArchiveInstallOptionsSchema),
         'market': fields.Nested(MarketInstallOptionsSchema),
     }
 
@@ -128,7 +134,7 @@ class OptionField(fields.Field):
 
 class PluginInstallSchema(Schema):
 
-    method = fields.String(validate=OneOf(['git', 'market']), required=True)
+    method = fields.String(validate=OneOf(['git', 'archive', 'market']), required=True)
     options = OptionField(required=True)
 
 
