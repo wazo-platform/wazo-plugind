@@ -24,12 +24,21 @@ class _GitDownloader:
     def download(self, ctx):
         url, ref = ctx.install_options['url'], ctx.install_options['ref']
         filename = os.path.join(self._download_dir, ctx.uuid)
+        subdirectory = ctx.install_options.get('subdirectory', None)
 
         cmd = ['git', 'clone', '--branch', ref, '--depth', '1', url, filename]
+        if subdirectory:
+            cmd.insert(-2, '--sparse')
 
         proc = exec_and_log(logger.debug, logger.error, cmd)
         if proc.returncode:
-            raise Exception('Download failed {}'.format(url))
+            raise Exception(f'Download failed {url}')
+
+        if subdirectory:
+            proc = exec_and_log(['git', 'sparse-checkout', 'set', subdirectory], logger.error, cwd=filename)
+            if proc.returncode:
+                raise Exception(f'Failed to checkout subdirectory {url}')
+            filename = os.path.join(filename, subdirectory)
 
         return ctx.with_fields(download_path=filename)
 

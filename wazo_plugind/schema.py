@@ -25,6 +25,7 @@ class GitInstallOptionsSchema(Schema):
 
     ref = fields.String(missing='master', validate=Length(min=1))
     url = fields.String(validate=Length(min=1), required=True)
+    subdirectory = fields.String(validate=Length(min=1), required=False)
 
 
 class MarketInstallOptionsSchema(Schema):
