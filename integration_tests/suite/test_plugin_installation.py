@@ -471,7 +471,7 @@ class TestPluginInstallation(BaseIntegrationTest):
                 ),
             )
 
-        until.assert_(assert_received, events, tries=5)
+        until.assert_(assert_received, events, tries=10)
 
     def test_when_uninstall_works(self):
         self.install_plugin(url='file:///data/git/repo', method='git', _async=False)
@@ -504,7 +504,7 @@ class TestPluginInstallation(BaseIntegrationTest):
                 ),
             )
 
-        until.assert_(assert_received, events, tries=5)
+        until.assert_(assert_received, events, tries=10)
 
         build_success_exists = self.exists_in_container('/tmp/results/build_success')
         package_success_exists = self.exists_in_container(
