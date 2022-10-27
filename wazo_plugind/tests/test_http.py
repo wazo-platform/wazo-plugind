@@ -190,7 +190,7 @@ class TestPlugins(HTTPAppTestCase):
                 {
                     'method': {
                         'constraint_id': 'enum',
-                        'constraint': {'choices': ['git', 'market']},
+                        'constraint': {'choices': ['git', 'archive', 'market']},
                         'message': ANY,
                     }
                 },
