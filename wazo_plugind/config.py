@@ -57,8 +57,8 @@ _DEFAULT_CONFIG = dict(
         'password': 'guest',
         'host': 'localhost',
         'port': 5672,
-        'exchange_name': 'xivo',
-        'exchange_type': 'topic',
+        'exchange_name': 'wazo-headers',
+        'exchange_type': 'headers',
     },
     consul={
         'scheme': 'http',

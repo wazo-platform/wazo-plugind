@@ -1,5 +1,12 @@
 # Changelog
 
+## 23.01
+
+* Bus configuration keys changed:
+
+  * key `exchange_name` now defaults to `wazo-headers`
+  * key `exchange_type` was removed
+
 ## 22.14
 
 * New resource added `GET /status`
