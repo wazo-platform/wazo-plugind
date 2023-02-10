@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -14,7 +14,6 @@ from .helpers.base import BaseIntegrationTest, TOKEN_SUB_TENANT
 
 
 class TestTenantRestriction(BaseIntegrationTest):
-
     asset = 'plugind_only'
 
     def _assert_unauthorized(self, url, *args):

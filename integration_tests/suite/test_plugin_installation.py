@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import (
@@ -22,7 +22,6 @@ from .helpers.base import autoremove, BaseIntegrationTest
 
 
 class TestPluginList(BaseIntegrationTest):
-
     asset = 'plugind_only'
 
     def test_that_an_unauthorized_token_return_401(self):
@@ -52,7 +51,6 @@ class TestPluginList(BaseIntegrationTest):
 
 
 class TestPluginDependencies(BaseIntegrationTest):
-
     asset = 'dependency'
 
     @autoremove('dependency', 'one')
@@ -174,7 +172,6 @@ class TestPluginDependencies(BaseIntegrationTest):
 
 
 class TestPluginInstallation(BaseIntegrationTest):
-
     asset = 'plugind_only'
 
     def test_when_it_works(self):

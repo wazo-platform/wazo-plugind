@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 
 class BaseWorker:
-
     name = 'base'
 
     def __init__(self):
@@ -69,7 +68,6 @@ class BaseWorker:
 
 
 class RootWorker(BaseWorker):
-
     name = 'root'
 
     def apt_get_update(self, *args, **kwargs):
