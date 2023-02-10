@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import pre_load
@@ -16,26 +16,22 @@ _PLUGIN_NAMESPACE_REGEXP = r'^[a-z0-9]+$'
 
 
 class DependencyMetadataSchema(Schema):
-
     namespace = fields.String(validate=Length(min=1), required=True)
     name = fields.String(validate=Length(min=1), required=True)
 
 
 class GitInstallOptionsSchema(Schema):
-
     ref = fields.String(missing='master', validate=Length(min=1))
     url = fields.String(validate=Length(min=1), required=True)
 
 
 class MarketInstallOptionsSchema(Schema):
-
     namespace = fields.String(validate=Length(min=1), required=True)
     name = fields.String(validate=Length(min=1), required=True)
     version = fields.String()
 
 
 class MarketListRequestSchema(Schema):
-
     direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
     order = fields.String(validate=Length(min=1), missing='name')
     limit = fields.Integer(validate=Range(min=0), missing=None)
@@ -45,7 +41,6 @@ class MarketListRequestSchema(Schema):
 
 
 class MarketVersionResultSchema(Schema):
-
     upgradable = fields.Boolean(required=True)
     version = fields.String(required=True)
     min_wazo_version = fields.String()
@@ -53,7 +48,6 @@ class MarketVersionResultSchema(Schema):
 
 
 class PluginMetadataSchema(Schema):
-
     version_fields = ['version', 'max_wazo_version', 'min_wazo_version']
     current_version = None
 
@@ -93,7 +87,6 @@ class PluginMetadataSchema(Schema):
 
 
 class MarketListResultSchema(Schema):
-
     homepage = fields.String()
     color = fields.String()
     display_name = fields.String()
@@ -111,7 +104,6 @@ class MarketListResultSchema(Schema):
 
 
 class OptionField(fields.Field):
-
     _options = {
         'git': fields.Nested(GitInstallOptionsSchema),
         'market': fields.Nested(MarketInstallOptionsSchema),
@@ -126,11 +118,9 @@ class OptionField(fields.Field):
 
 
 class PluginInstallSchema(Schema):
-
     method = fields.String(validate=OneOf(['git', 'market']), required=True)
     options = OptionField(required=True)
 
 
 class PluginInstallQueryStringSchema(Schema):
-
     reinstall = fields.Boolean(default=False, missing=False)

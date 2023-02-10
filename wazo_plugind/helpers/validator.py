@@ -1,4 +1,4 @@
-# Copyright 2018-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class Validator:
-
     valid_namespace = re.compile(r'^[a-z0-9]+$')
     valid_name = re.compile(r'^[a-z0-9-]+$')
     required_fields = ['name', 'namespace', 'version']

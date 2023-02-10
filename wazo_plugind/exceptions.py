@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from xivo.rest_api_helpers import APIException
@@ -24,7 +24,6 @@ class UnsupportedDownloadMethod(APIException):
 
 
 class InvalidPackageNameException(Exception):
-
     _fmt = 'invalid debian package name {}'
 
     def __init__(self, name):
@@ -32,7 +31,6 @@ class InvalidPackageNameException(Exception):
 
 
 class InvalidVersionException(Exception):
-
     _fmt = 'invalid version {}'
 
     def __init__(self, version_string):
@@ -40,7 +38,6 @@ class InvalidVersionException(Exception):
 
 
 class InvalidSortParamException(APIException):
-
     _fmt = '"{}" values are not orderable'
 
     def __init__(self, column):
@@ -109,7 +106,6 @@ class InvalidInstallQueryStringException(APIException, _MarshmallowDetailFormatt
 
 
 class PluginValidationException(Exception, _MarshmallowDetailFormatter):
-
     error_id = 'validation-error'
     message = 'Validation error'
     details = {}
@@ -130,7 +126,6 @@ class PluginNotFoundException(APIException):
 
 
 class PluginAlreadyInstalled(Exception):
-
     _fmt = '{}/{} is already installed'
 
     def __init__(self, namespace, name):

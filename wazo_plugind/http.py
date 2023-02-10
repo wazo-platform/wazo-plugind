@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -72,7 +72,6 @@ def required_master_tenant():
 
 
 class _BaseResource(Resource):
-
     method_decorators = [handle_api_exception] + Resource.method_decorators
 
     @classmethod
@@ -83,7 +82,6 @@ class _BaseResource(Resource):
 
 
 class _AuthentificatedResource(_BaseResource):
-
     method_decorators = [
         auth_verifier.verify_token,
         auth_verifier.verify_tenant,
@@ -91,7 +89,6 @@ class _AuthentificatedResource(_BaseResource):
 
 
 class Config(_AuthentificatedResource):
-
     api_path = '/config'
     _config = {}
 
@@ -107,7 +104,6 @@ class Config(_AuthentificatedResource):
 
 
 class Market(_AuthentificatedResource):
-
     api_path = '/market'
 
     @required_master_tenant()
@@ -146,7 +142,6 @@ class Market(_AuthentificatedResource):
 
 
 class MarketItem(_AuthentificatedResource):
-
     api_path = '/market/<namespace>/<name>'
 
     @required_master_tenant()
@@ -162,7 +157,6 @@ class MarketItem(_AuthentificatedResource):
 
 
 class Plugins(_AuthentificatedResource):
-
     api_path = '/plugins'
 
     @required_master_tenant()
@@ -197,7 +191,6 @@ class Plugins(_AuthentificatedResource):
 
 
 class PluginsItem(_AuthentificatedResource):
-
     api_path = '/plugins/<namespace>/<name>'
 
     @required_master_tenant()
@@ -219,7 +212,6 @@ class PluginsItem(_AuthentificatedResource):
 
 
 class StatusChecker(_AuthentificatedResource):
-
     api_path = '/status'
 
     @required_acl('plugind.status.read')
@@ -233,7 +225,6 @@ class StatusChecker(_AuthentificatedResource):
 
 
 class Swagger(_BaseResource):
-
     api_package = 'wazo_plugind.swagger'
     api_filename = 'api.yml'
     api_path = '/api/api.yml'

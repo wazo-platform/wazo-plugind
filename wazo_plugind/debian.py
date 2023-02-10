@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class PackageDB:
-
     _package_and_section_format = "${binary:Package} ${Section}\n"
 
     def __init__(self, package_section_generator=None):
@@ -40,7 +39,6 @@ class PackageDB:
 
 
 class Generator:
-
     _debian_dir = 'DEBIAN'
     _generated_files = ['control', 'postinst', 'prerm', 'postrm']
     _generated_files_mod = {'postinst': 0o755, 'prerm': 0o755, 'postrm': 0o755}
