@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -11,7 +11,7 @@ from functools import partial
 from wazo_auth_client import Client as AuthClient
 from wazo_plugind import http, service
 from wazo_plugind.bus import Publisher
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
 from xivo.status import StatusAggregator
