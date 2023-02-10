@@ -2,7 +2,7 @@
 
 [![Build Status](https://jenkins.wazo.community/buildStatus/icon?job=wazo-plugind)](https://jenkins.wazo.community/job/wazo-plugind)
 
-A micro service to manage plugins in the [Wazo PBX](http://wazo.community).
+A microservice to manage plugins in the [Wazo PBX](http://wazo.community).
 
 wazo-plugind allows the administrator to manage plugins installed on a Wazo stack using
 a simple HTTP interface.

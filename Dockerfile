@@ -1,4 +1,4 @@
-FROM python:3.7-slim-buster AS compile-image
+FROM python:3.9-slim-bullseye AS compile-image
 LABEL maintainer="Wazo Maintainers <dev@wazo.community>"
 
 RUN python -m venv /opt/venv
@@ -16,7 +16,7 @@ RUN python setup.py install
 RUN pip install pyparsing
 RUN pip install appdirs
 
-FROM python:3.7-slim-buster AS build-image
+FROM python:3.9-slim-bullseye AS build-image
 COPY --from=compile-image /opt/venv /opt/venv
 
 COPY ./etc/wazo-plugind /etc/wazo-plugind
