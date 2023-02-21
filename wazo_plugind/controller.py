@@ -3,7 +3,7 @@
 
 import logging
 import signal
-import sys
+import threading
 
 from cheroot import wsgi
 from concurrent.futures import ThreadPoolExecutor
@@ -23,9 +23,8 @@ from .service_discovery import self_check
 logger = logging.getLogger(__name__)
 
 
-def _signal_handler(signum, frame):
-    logger.info('SIGTERM received, terminating')
-    sys.exit(0)
+def _signal_handler(controller, signum, frame):
+    controller.stop(reason=signal.Signals(signum).name)
 
 
 class Controller:
@@ -80,7 +79,8 @@ class Controller:
 
     def run(self):
         logger.debug('starting http server')
-        signal.signal(signal.SIGTERM, _signal_handler)
+        signal.signal(signal.SIGTERM, partial(_signal_handler, self))
+        signal.signal(signal.SIGINT, partial(_signal_handler, self))
 
         with ServiceCatalogRegistration(
             'wazo-plugind',
@@ -93,8 +93,12 @@ class Controller:
             with self._token_renewer:
                 try:
                     self._server.start()
-                except (KeyboardInterrupt, SystemExit):
-                    logger.info('Main process stopping')
                 finally:
-                    self._server.stop()
+                    if self._stopping_thread:
+                        self._stopping_thread.join()
         self._executor.shutdown()
+
+    def stop(self, reason):
+        logger.warning('Stopping wazo-webhookd: %s', reason)
+        self._stopping_thread = threading.Thread(target=self._server.stop, name=reason)
+        self._stopping_thread.start()
