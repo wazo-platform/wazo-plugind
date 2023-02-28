@@ -94,19 +94,19 @@ class _CommandExecutor:
 
     def update(self, uuid_):
         logger.debug('[%s] updating apt cache', uuid_)
-        cmd = ['apt-get', 'update', '-q']
+        cmd = ['apt-get', 'update', '--quiet']
         p = exec_and_log(logger.debug, logger.error, cmd)
         return p.returncode == 0
 
     def install(self, uuid_, deb):
         logger.debug('[%s] installing %s...', uuid_, deb)
-        cmd = ['gdebi', '-nq', deb]
+        cmd = ['gdebi', '--quiet', '--non-interactive', deb]
         p = exec_and_log(logger.debug, logger.error, cmd)
         return p.returncode == 0
 
     def uninstall(self, uuid, package_name):
         logger.debug('[%s] uninstalling %s', uuid, package_name)
-        cmd = ['apt-get', 'remove', '-y', package_name]
+        cmd = ['apt-get', 'remove', '--yes', package_name]
         p = exec_and_log(logger.debug, logger.error, cmd)
         return p.returncode == 0
 
