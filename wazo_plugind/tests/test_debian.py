@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -29,7 +29,7 @@ class TestPackageDB(TestCase):
 
         def generator():
             for package, section in packages_and_sections:
-                yield '{} {}'.format(package, section)
+                yield f'{package} {section}'
 
         db = PackageDB(generator)
 
@@ -53,7 +53,7 @@ class TestPackageDB(TestCase):
 
         def generator():
             for package, section in packages_and_sections:
-                yield '{} {}'.format(package, section)
+                yield f'{package} {section}'
 
         db = PackageDB(generator)
 
@@ -103,7 +103,7 @@ class TestDebianGenerator(TestCase):
 
             ctx = generator._make_debian_dir(ctx)
 
-            expected = '{}/DEBIAN'.format(pkgdir)
+            expected = f'{pkgdir}/DEBIAN'
             assert_that(ctx.debian_dir, equal_to(expected))
             assert_that(os.path.exists(expected), 'DEBIAN dir has not been created')
 

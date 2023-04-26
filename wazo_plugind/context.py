@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -15,7 +15,7 @@ class Context:
         self.with_fields(**kwargs)
 
     def log(self, logger, msg, *args, **kwargs):
-        log_msg = '[{}] {}'.format(self.uuid, msg)
+        log_msg = f'[{self.uuid}] {msg}'
         logger(log_msg, *args, **kwargs)
 
     def get_logger(self, logger):

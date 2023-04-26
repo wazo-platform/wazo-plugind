@@ -31,11 +31,10 @@ class PackageDB:
 
     @classmethod
     def _list_packages(cls):
-        cmd = ['dpkg-query', '-W', '-f={}'.format(cls._package_and_section_format)]
+        cmd = ['dpkg-query', '-W', f'-f={cls._package_and_section_format}']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         out, _ = p.communicate()
-        for line in out.decode('utf-8').split('\n'):
-            yield line
+        yield from out.decode('utf-8').split('\n')
 
 
 class Generator:
@@ -121,7 +120,7 @@ class Generator:
         )
 
     def _generate_backup_rules_path(self, ctx):
-        filename = 'rules.{}.{}'.format(ctx.name, ctx.namespace)
+        filename = f'rules.{ctx.name}.{ctx.namespace}'
         return os.path.join(self._backup_rules_dir, filename)
 
     def _generate_metadata_path(self, ctx):

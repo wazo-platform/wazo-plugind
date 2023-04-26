@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -15,8 +15,8 @@ _DEFAULT_HTTP_PORT = 9503
 _PLUGIN_DATA_DIR = 'wazo'
 _HOME_DIR = '/usr/lib/wazo-plugind'
 _DEFAULT_CONFIG = dict(
-    config_file='/etc/{}/config.yml'.format(_DAEMONNAME),
-    extra_config_files='/etc/{}/conf.d/'.format(_DAEMONNAME),
+    config_file=f'/etc/{_DAEMONNAME}/config.yml',
+    extra_config_files=f'/etc/{_DAEMONNAME}/conf.d/',
     home_dir=_HOME_DIR,
     download_dir='/var/lib/wazo-plugind/downloads',
     extract_dir='/var/lib/wazo-plugind/tmp',
@@ -35,7 +35,7 @@ _DEFAULT_CONFIG = dict(
     debian_package_section='wazo-plugind-plugin',
     debug=False,
     log_level='info',
-    log_file='/var/log/{}.log'.format(_DAEMONNAME),
+    log_file=f'/var/log/{_DAEMONNAME}.log',
     user=_DAEMONNAME,
     market={'host': 'apps.wazo.community'},
     confd={

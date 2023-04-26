@@ -1,4 +1,4 @@
-# Copyright 2017-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -137,7 +137,7 @@ class MarketDB:
         content = self._strict_filter(content, **filters)
 
         if not content:
-            raise LookupError('No such plugin {}'.format(filters))
+            raise LookupError(f'No such plugin {filters}')
 
         return content[0]
 
@@ -167,7 +167,7 @@ class MarketDB:
         order=None,
         direction=None,
         installed=None,
-        **kwargs
+        **kwargs,
     ):
         if installed is not None and 'installed_version' not in kwargs:
             kwargs['installed_version'] = InstalledVersionMatcher(installed)
@@ -243,7 +243,7 @@ class PluginDB:
             try:
                 plugin = Plugin.from_debian_package(self._config, debian_package)
                 result.append(plugin.metadata())
-            except (IOError, InvalidPackageNameException):
+            except (OSError, InvalidPackageNameException):
                 logger.info(
                     'no metadata file found for %s/%s', plugin.namespace, plugin.name
                 )
@@ -254,8 +254,8 @@ class Plugin:
     def __init__(self, config, namespace, name):
         self.namespace = namespace
         self.name = name
-        self.debian_package_name = '{}-{}-{}'.format(
-            config['default_debian_package_prefix'], name, namespace
+        self.debian_package_name = (
+            f'{config["default_debian_package_prefix"]}-{name}-{namespace}'
         )
         self.metadata_filename = os.path.join(
             config['metadata_dir'],
@@ -268,7 +268,7 @@ class Plugin:
     def is_installed(self, version=None):
         try:
             metadata = self.metadata()
-        except IOError:
+        except OSError:
             return False
 
         if metadata is None:
@@ -280,7 +280,7 @@ class Plugin:
 
     def metadata(self):
         if not self._metadata:
-            with open(self.metadata_filename, 'r') as f:
+            with open(self.metadata_filename) as f:
                 self._metadata = yaml.safe_load(f)
 
         return self._metadata
@@ -288,7 +288,7 @@ class Plugin:
     @staticmethod
     def _extract_namespace_and_name(package_name_prefix, package_name):
         package_name_pattern = re.compile(
-            r'^{}-([a-z0-9-]+)-([a-z0-9]+)$'.format(package_name_prefix)
+            fr'^{package_name_prefix}-([a-z0-9-]+)-([a-z0-9]+)$'
         )
         matches = package_name_pattern.match(package_name)
         if not matches:

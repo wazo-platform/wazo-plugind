@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -33,7 +33,7 @@ class TestContext(TestCase):
 
         ctx.log(logger_debug, 'my log %s', s.var)
 
-        expected_msg = '[{}] my log %s'.format(ctx.uuid)
+        expected_msg = f'[{ctx.uuid}] my log %s'
         logger_debug.assert_called_once_with(expected_msg, s.var)
 
     def test_get_logger(self):
@@ -43,4 +43,4 @@ class TestContext(TestCase):
         logger = ctx.get_logger(main_logger)
         logger('test')
 
-        main_logger.assert_called_once_with('[{}] test'.format(ctx.uuid))
+        main_logger.assert_called_once_with(f'[{ctx.uuid}] test')
