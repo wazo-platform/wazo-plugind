@@ -10,7 +10,7 @@ class CommandExecutionFailed(Exception):
         self._return_code = return_code
 
     def __str__(self):
-        return '{} returned {}'.format(self._command, self._return_code)
+        return f'{self._command} returned {self._return_code}'
 
 
 class UnsupportedDownloadMethod(APIException):
@@ -118,7 +118,7 @@ class PluginNotFoundException(APIException):
     def __init__(self, namespace, name):
         super().__init__(
             status_code=404,
-            message='Plugin not found {}/{}'.format(namespace, name),
+            message=f'Plugin not found {namespace}/{name}',
             error_id='plugin-not-found',
             resource='plugins',
             details={'name': name, 'namespace': namespace},

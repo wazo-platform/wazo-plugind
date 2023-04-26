@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
@@ -52,15 +52,13 @@ class HTTPAppTestCase(TestCase):
         ).test_client()
 
     def get_plugin(self, namespace, name, version=API_VERSION):
-        url = '/{version}/plugins/{namespace}/{name}'.format(
-            version=version, namespace=namespace, name=name
-        )
+        url = f'/{version}/plugins/{namespace}/{name}'
         result = self.app.get(url)
         return result.status_code, json.loads(result.data.decode(encoding='utf-8'))
 
     def post(self, body, version=API_VERSION):
         result = self.app.post(
-            '/{}/plugins'.format(version),
+            f'/{version}/plugins',
             data=json.dumps(body),
             headers={'content-type': 'application/json'},
         )

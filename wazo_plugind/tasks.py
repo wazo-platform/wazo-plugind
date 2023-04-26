@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -50,8 +50,8 @@ class UninstallTask:
                 step,
                 exc_info=self._debug_enabled,
             )
-            error_id = '{}-error'.format(step)
-            message = '{} Error'.format(step.capitalize())
+            error_id = f'{step}-error'
+            message = f'{step.capitalize()} Error'
             self._publisher.uninstall_error(ctx, error_id, message)
 
 
@@ -121,8 +121,8 @@ class PackageAndInstallTask:
             ctx.log(
                 logger.error, 'Unexpected error while %s', step, exc_info=debug_enabled
             )
-            error_id = '{}-error'.format(step.replace(' ', '-'))
-            message = '{} Error'.format(step.capitalize())
+            error_id = f'{step.replace(" ", "-")}-error'
+            message = f'{step.capitalize()} Error'
             details = {'install_options': dict(ctx.install_options)}
             self._publisher.install_error(ctx, error_id, message, details=details)
             self._builder.clean(ctx)
@@ -181,9 +181,7 @@ class _PackageBuilder:
         ctx = self._debian_file_generator.generate(ctx)
         cmd = ['dpkg-deb', '--build', ctx.pkgdir]
         self._exec(ctx, cmd, cwd=ctx.extract_path)
-        deb_path = os.path.join(
-            ctx.extract_path, '{}.deb'.format(self._config['build_dir'])
-        )
+        deb_path = os.path.join(ctx.extract_path, f'{self._config["build_dir"]}.deb')
         return ctx.with_fields(package_deb_file=deb_path)
 
     def download(self, ctx):
@@ -197,7 +195,7 @@ class _PackageBuilder:
         metadata_filename = os.path.join(
             extract_path, self._config['default_metadata_filename']
         )
-        with open(metadata_filename, 'r') as f:
+        with open(metadata_filename) as f:
             metadata = yaml.safe_load(f)
         return ctx.with_fields(
             metadata=metadata,

@@ -29,7 +29,7 @@ class _GitDownloader:
 
         proc = exec_and_log(logger.debug, logger.error, cmd)
         if proc.returncode:
-            raise Exception('Download failed {}'.format(url))
+            raise Exception(f'Download failed {url}')
 
         return ctx.with_fields(download_path=filename)
 
