@@ -1,4 +1,4 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from contextlib import contextmanager
@@ -6,7 +6,7 @@ from unittest import TestCase
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     empty,
     equal_to,
     has_entries,
@@ -60,7 +60,8 @@ class TestMarketPluginUpdater(TestCase):
         result = self.updater.update(plugin_info)
 
         assert_that(
-            result, has_entries('versions', contains(has_entries('upgradable', False)))
+            result,
+            has_entries('versions', contains_exactly(has_entries('upgradable', False))),
         )
 
     def test_upgradable_field_with_min_version_that_is_ok(self):
@@ -73,7 +74,8 @@ class TestMarketPluginUpdater(TestCase):
         result = self.updater.update(plugin_info)
 
         assert_that(
-            result, has_entries('versions', contains(has_entries('upgradable', True)))
+            result,
+            has_entries('versions', contains_exactly(has_entries('upgradable', True))),
         )
 
     def test_upgradable_field_with_max_version_too_low(self):
@@ -86,7 +88,8 @@ class TestMarketPluginUpdater(TestCase):
         result = self.updater.update(plugin_info)
 
         assert_that(
-            result, has_entries('versions', contains(has_entries('upgradable', False)))
+            result,
+            has_entries('versions', contains_exactly(has_entries('upgradable', False))),
         )
 
     def test_upgradable_field_with_max_version_that_is_ok(self):
@@ -99,7 +102,8 @@ class TestMarketPluginUpdater(TestCase):
         result = self.updater.update(plugin_info)
 
         assert_that(
-            result, has_entries('versions', contains(has_entries('upgradable', True)))
+            result,
+            has_entries('versions', contains_exactly(has_entries('upgradable', True))),
         )
 
     def test_upgradable_with_an_old_version(self):
@@ -113,7 +117,8 @@ class TestMarketPluginUpdater(TestCase):
             result = self.updater.update(plugin_info)
 
         assert_that(
-            result, has_entries('versions', contains(has_entries('upgradable', False)))
+            result,
+            has_entries('versions', contains_exactly(has_entries('upgradable', False))),
         )
 
     def test_upgradable_with_the_same_version(self):
@@ -127,7 +132,8 @@ class TestMarketPluginUpdater(TestCase):
             result = self.updater.update(plugin_info)
 
         assert_that(
-            result, has_entries('versions', contains(has_entries('upgradable', False)))
+            result,
+            has_entries('versions', contains_exactly(has_entries('upgradable', False))),
         )
 
     def test_upgradable_with_a_newer_version(self):
@@ -141,7 +147,8 @@ class TestMarketPluginUpdater(TestCase):
             result = self.updater.update(plugin_info)
 
         assert_that(
-            result, has_entries('versions', contains(has_entries('upgradable', True)))
+            result,
+            has_entries('versions', contains_exactly(has_entries('upgradable', True))),
         )
 
     @contextmanager
@@ -266,16 +273,16 @@ class TestMarketDB(TestCase):
         a, b, c = self.content
 
         results = self.db.list_(installed=True)
-        assert_that(results, contains(a, c))
+        assert_that(results, contains_exactly(a, c))
 
     def test_list_with_strict_filter(self):
         a, b, c = self.content
 
         results = self.db.list_(namespace='a')
-        assert_that(results, contains(c))
+        assert_that(results, contains_exactly(c))
 
         results = self.db.list_(name='a', namespace='c', author='me')
-        assert_that(results, contains(a))
+        assert_that(results, contains_exactly(a))
 
         results = self.db.list_(
             name='a', namespace='c', author='you'
@@ -305,31 +312,31 @@ class TestMarketDB(TestCase):
         a, b, c = self.content
 
         results = self.db.list_(search='a')
-        assert_that(results, contains(a, c))
+        assert_that(results, contains_exactly(a, c))
 
         results = self.db.list_(search='foo')
-        assert_that(results, contains(a))
+        assert_that(results, contains_exactly(a))
 
         results = self.db.list_(search='pe')
-        assert_that(results, contains(b))
+        assert_that(results, contains_exactly(b))
 
     def test_sort_direction(self):
         a, b, c = self.content
 
         results = self.db.list_(order='name', direction='asc')
-        assert_that(results, contains(a, b, c))
+        assert_that(results, contains_exactly(a, b, c))
 
         results = self.db.list_(order='name', direction='desc')
-        assert_that(results, contains(c, b, a))
+        assert_that(results, contains_exactly(c, b, a))
 
     def test_sort_order(self):
         a, b, c = self.content
 
         results = self.db.list_(order='name', direction='asc')
-        assert_that(results, contains(a, b, c))
+        assert_that(results, contains_exactly(a, b, c))
 
         results = self.db.list_(order='namespace', direction='asc')
-        assert_that(results, contains(c, a, b))
+        assert_that(results, contains_exactly(c, a, b))
 
         assert_that(
             calling(self.db.list_).with_args(order='d'),
@@ -340,22 +347,22 @@ class TestMarketDB(TestCase):
         a, b, c = self.content
 
         results = self.db.list_(limit=2)
-        assert_that(results, contains(a, b))
+        assert_that(results, contains_exactly(a, b))
 
         results = self.db.list_(limit=1)
-        assert_that(results, contains(a))
+        assert_that(results, contains_exactly(a))
 
     def test_offset(self):
         a, b, c = self.content
 
         results = self.db.list_(offset=1)
-        assert_that(results, contains(b, c))
+        assert_that(results, contains_exactly(b, c))
 
         results = self.db.list_(offset=2)
-        assert_that(results, contains(c))
+        assert_that(results, contains_exactly(c))
 
     def test_limit_and_offset(self):
         a, b, c = self.content
 
         results = self.db.list_(limit=1, offset=1)
-        assert_that(results, contains(b))
+        assert_that(results, contains_exactly(b))

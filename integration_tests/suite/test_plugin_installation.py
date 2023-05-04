@@ -4,7 +4,7 @@
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     equal_to,
     empty,
     has_entries,
@@ -46,7 +46,7 @@ class TestPluginList(BaseIntegrationTest):
         assert_that(result['total'], equal_to(1))
         assert_that(
             result['items'],
-            contains(has_entries(namespace='plugindtests', name='foobar')),
+            contains_exactly(has_entries(namespace='plugindtests', name='foobar')),
         )
 
 
@@ -380,7 +380,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         def assert_received_in_order(bus_accumulator):
             assert_that(
                 bus_accumulator.accumulate(with_headers=True),
-                contains(
+                contains_exactly(
                     has_entries(
                         message=has_entries(
                             data=has_entries(uuid=result['uuid'], status='starting'),
@@ -848,7 +848,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         def assert_received(bus_accumulator):
             assert_that(
                 bus_accumulator.accumulate(with_headers=True),
-                contains(
+                contains_exactly(
                     has_entries(
                         message=has_entries(
                             data=has_entries(uuid=result['uuid'], status='starting'),
