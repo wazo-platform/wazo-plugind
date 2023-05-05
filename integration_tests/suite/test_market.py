@@ -4,7 +4,7 @@
 from hamcrest import (
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     empty,
     equal_to,
     has_entries,
@@ -55,7 +55,7 @@ class TestMarket(BaseIntegrationTest):
         assert_that(response['filtered'], equal_to(1))
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries('name', 'admin-ui-conference', 'namespace', 'official')
             ),
         )
@@ -69,7 +69,7 @@ class TestMarket(BaseIntegrationTest):
         assert_that(response['filtered'], equal_to(16))
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries('name', 'admin-ui-group'),
                 has_entries('name', 'admin-ui-incall'),
                 has_entries('name', 'admin-ui-ivr'),
@@ -148,7 +148,7 @@ class TestMarket(BaseIntegrationTest):
         assert_that(response['filtered'], equal_to(1))
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries('installed_version', '0.0.1', 'namespace', ns, 'name', name)
             ),
         )
@@ -160,7 +160,7 @@ class TestMarket(BaseIntegrationTest):
         assert_that(response['filtered'], equal_to(1))
         assert_that(
             response['items'],
-            contains(
+            contains_exactly(
                 has_entries('installed_version', None, 'namespace', ns, 'name', name)
             ),
         )
@@ -176,7 +176,8 @@ class TestMarket(BaseIntegrationTest):
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(1))
         assert_that(
-            response['items'], contains(has_entries('namespace', ns, 'name', name))
+            response['items'],
+            contains_exactly(has_entries('namespace', ns, 'name', name)),
         )
 
         response = self.plugind.market.list(name=name, installed=False)
@@ -190,7 +191,8 @@ class TestMarket(BaseIntegrationTest):
         assert_that(response['total'], equal_to(PLUGIN_COUNT))
         assert_that(response['filtered'], equal_to(1))
         assert_that(
-            response['items'], contains(has_entries('namespace', ns, 'name', name))
+            response['items'],
+            contains_exactly(has_entries('namespace', ns, 'name', name)),
         )
 
         response = self.plugind.market.list(name=name, installed=True)

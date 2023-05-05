@@ -1,4 +1,4 @@
-# Copyright 2017-2021 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -8,7 +8,7 @@ from hamcrest import (
     all_of,
     assert_that,
     calling,
-    contains,
+    contains_exactly,
     has_entries,
     has_entry,
     has_key,
@@ -38,7 +38,9 @@ class TestMarketResultSchema(TestCase):
 
         assert_that(
             result,
-            has_entries('versions', contains({'version': '0.0.1', 'upgradable': True})),
+            has_entries(
+                'versions', contains_exactly({'version': '0.0.1', 'upgradable': True})
+            ),
         )
 
 
