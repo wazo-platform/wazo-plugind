@@ -4,12 +4,16 @@ info:
   title: wazo-plugind
   description: "Wazo's plugin management service"
   contact:
-    name: Wazo dev team
-    url: http://wazo.community
+    name: Wazo Dev Team
+    url: https://wazo-platform.org/
     email: dev@wazo.community
   license:
     name: GPLv3
     url: http://www.gnu.org/licenses/gpl-3.0.html
+  x-logo:
+    url: "https://wazo-platform.org/images/logo-black.svg"
+    backgroundColor: "#FAFAFA"
+    altText: "Wazo Logo"
 x-xivo-port: 9503
 x-xivo-name: plugind
 basePath: /0.2
