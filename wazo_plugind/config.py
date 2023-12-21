@@ -8,7 +8,6 @@ from xivo.chain_map import ChainMap
 from xivo.config_helper import parse_config_file, read_config_file_hierarchy
 from xivo.xivo_logging import get_log_level_by_name
 
-
 _MAX_PLUGIN_FORMAT_VERSION = 2
 _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTP_PORT = 9503

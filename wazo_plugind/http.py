@@ -2,33 +2,33 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+
 import requests
 import yaml
-
 from flask import Flask, make_response, request
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from marshmallow import ValidationError
 from pkg_resources import resource_string
+from werkzeug.local import LocalProxy as Proxy
 from xivo import http_helpers
-from xivo.http_helpers import add_logger, reverse_proxy_fix_api_spec
 from xivo.auth_verifier import AuthVerifier, required_acl, required_tenant
+from xivo.http_helpers import add_logger, reverse_proxy_fix_api_spec
 from xivo.rest_api_helpers import handle_api_exception
 from xivo.status import Status
-from werkzeug.local import LocalProxy as Proxy
 
-from .schema import (
-    MarketListRequestSchema,
-    MarketListResultSchema,
-    PluginInstallQueryStringSchema,
-    PluginInstallSchema,
-)
 from .exceptions import (
     InvalidInstallParamException,
     InvalidInstallQueryStringException,
     InvalidListParamException,
     MarketNotFoundException,
     NotInitializedException,
+)
+from .schema import (
+    MarketListRequestSchema,
+    MarketListResultSchema,
+    PluginInstallQueryStringSchema,
+    PluginInstallSchema,
 )
 
 logger = logging.getLogger(__name__)

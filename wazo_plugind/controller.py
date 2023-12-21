@@ -4,19 +4,20 @@
 import logging
 import signal
 import threading
-
-from cheroot import wsgi
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
+
+from cheroot import wsgi
 from wazo_auth_client import Client as AuthClient
-from wazo_plugind import http, service
-from wazo_plugind.bus import Publisher
 from werkzeug.middleware.proxy_fix import ProxyFix
 from xivo import http_helpers
 from xivo.consul_helpers import ServiceCatalogRegistration
-from xivo.status import StatusAggregator
 from xivo.http_helpers import ReverseProxied
+from xivo.status import StatusAggregator
 from xivo.token_renewer import TokenRenewer
+
+from wazo_plugind import http, service
+from wazo_plugind.bus import Publisher
 
 from .service_discovery import self_check
 

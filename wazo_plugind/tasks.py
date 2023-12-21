@@ -4,10 +4,12 @@
 import logging
 import os
 import shutil
+
 import yaml
 from marshmallow import ValidationError
-from .context import Context
+
 from . import bus, debian, download, schema
+from .context import Context
 from .exceptions import (
     CommandExecutionFailed,
     DependencyAlreadyInstalledException,

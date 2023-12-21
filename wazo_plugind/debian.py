@@ -1,9 +1,10 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import logging
 import os
 import subprocess
-import logging
+
 import jinja2
 
 logger = logging.getLogger(__name__)

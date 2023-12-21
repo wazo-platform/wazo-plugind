@@ -3,7 +3,6 @@
 
 from unittest import TestCase
 
-from marshmallow import ValidationError
 from hamcrest import (
     all_of,
     assert_that,
@@ -14,8 +13,9 @@ from hamcrest import (
     has_key,
     has_property,
 )
-
+from marshmallow import ValidationError
 from wazo_test_helpers.hamcrest.raises import raises
+
 from ..schema import MarketListResultSchema, PluginInstallSchema
 
 
