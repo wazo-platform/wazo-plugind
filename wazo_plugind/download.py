@@ -1,18 +1,20 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-import os
 import logging
+import os
+
 from marshmallow import ValidationError
+
 from . import db
+from .db import PluginDB
 from .exceptions import (
+    DependencyAlreadyInstalledException,
     InvalidInstallParamException,
     UnsupportedDownloadMethod,
-    DependencyAlreadyInstalledException,
 )
 from .helpers import exec_and_log
 from .schema import PluginInstallSchema
-from .db import PluginDB
 
 logger = logging.getLogger(__name__)
 

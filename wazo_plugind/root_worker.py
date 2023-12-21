@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-import signal
 import os
+import signal
 import sys
 from multiprocessing import Event, Process, Queue
 from queue import Empty
 from threading import Lock
+
 from .helpers import exec_and_log
 
 logger = logging.getLogger(__name__)

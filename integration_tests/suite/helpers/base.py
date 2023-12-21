@@ -2,20 +2,21 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
-
-from hamcrest import assert_that, has_entries, has_items, any_of
 from functools import wraps
+
+from hamcrest import any_of, assert_that, has_entries, has_items
 from requests import HTTPError
+from wazo_plugind_client import Client as PlugindClient
 from wazo_test_helpers import until
-from wazo_test_helpers.bus import BusClient
-from wazo_test_helpers.auth import AuthClient, MockUserToken, MockCredentials
 from wazo_test_helpers.asset_launching_test_case import (
     AssetLaunchingTestCase,
     NoSuchPort,
     NoSuchService,
     WrongClient,
 )
-from wazo_plugind_client import Client as PlugindClient
+from wazo_test_helpers.auth import AuthClient, MockCredentials, MockUserToken
+from wazo_test_helpers.bus import BusClient
+
 from .wait_strategy import EverythingOkWaitStrategy
 
 MAIN_TENANT = '00000000-0000-4000-8000-000000000201'

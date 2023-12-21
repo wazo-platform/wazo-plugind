@@ -4,13 +4,16 @@
 import logging
 import os
 import re
+
 import yaml
-from unidecode import unidecode
 from requests import HTTPError
+from unidecode import unidecode
 from wazo_market_client import Client as MarketClient
+
 from wazo_plugind.helpers import version
-from .exceptions import InvalidSortParamException, InvalidPackageNameException
+
 from . import debian
+from .exceptions import InvalidPackageNameException, InvalidSortParamException
 
 logger = logging.getLogger(__name__)
 

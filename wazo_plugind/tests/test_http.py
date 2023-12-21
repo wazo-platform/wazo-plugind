@@ -2,12 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
-
 from functools import wraps
-from hamcrest import assert_that, equal_to, has_entries
-from unittest.mock import ANY, Mock, patch, sentinel
 from unittest import TestCase
+from unittest.mock import ANY, Mock, patch, sentinel
 
+from hamcrest import assert_that, equal_to, has_entries
 from xivo.status import StatusAggregator
 
 from ..exceptions import PluginNotFoundException
@@ -36,7 +35,7 @@ class AuthVerifierMock:
 
 
 with patch('xivo.auth_verifier.AuthVerifier', AuthVerifierMock):
-    from ..http import new_app, MultiAPI, PlugindAPI
+    from ..http import MultiAPI, PlugindAPI, new_app
 
 
 class HTTPAppTestCase(TestCase):

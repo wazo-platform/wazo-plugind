@@ -4,15 +4,17 @@
 import os
 import random
 import tempfile
-from unittest import TestCase
-from string import ascii_lowercase
 from operator import itemgetter
-from hamcrest import assert_that, contains_inanyorder, equal_to
+from string import ascii_lowercase
+from unittest import TestCase
 from unittest.mock import sentinel as s
+
+from hamcrest import assert_that, contains_inanyorder, equal_to
 from jinja2 import DictLoader, Environment
+
+from ..config import _DEFAULT_CONFIG
 from ..context import Context
 from ..debian import Generator, PackageDB
-from ..config import _DEFAULT_CONFIG
 
 
 def random_string(min, max):

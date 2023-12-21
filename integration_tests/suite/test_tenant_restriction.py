@@ -1,16 +1,12 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    calling,
-    has_property,
-    not_,
-)
+from hamcrest import assert_that, calling, has_property, not_
 from requests import HTTPError
-from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers import until
-from .helpers.base import BaseIntegrationTest, TOKEN_SUB_TENANT
+from wazo_test_helpers.hamcrest.raises import raises
+
+from .helpers.base import TOKEN_SUB_TENANT, BaseIntegrationTest
 
 
 class TestTenantRestriction(BaseIntegrationTest):
