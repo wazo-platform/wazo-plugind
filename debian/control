@@ -30,7 +30,7 @@ Depends:
  wazo-auth-client-python3,
  wazo-confd-client-python3,
  wazo-market-client-python3,
- xivo-bus-python3,
+ wazo-bus-python3,
  xivo-lib-python-python3
 Description: Wazo plugin server
  Wazo is a system based on a powerful IPBX, to bring an easy to
