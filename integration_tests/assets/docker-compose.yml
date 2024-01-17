@@ -13,7 +13,7 @@ services:
     volumes:
       - "../..:/usr/src/wazo-plugind"
       - "./etc/wazo-plugind/conf.d/50-default.yml:/etc/wazo-plugind/conf.d/50-default.yml"
-      # - "${LOCAL_GIT_REPOS}/xivo-bus/xivo_bus:/opt/venv/lib/python3.9/site-packages/xivo_bus"
+      # - "${LOCAL_GIT_REPOS}/wazo-bus/wazo_bus:/opt/venv/lib/python3.9/site-packages/wazo_bus"
       # - "${LOCAL_GIT_REPOS}/xivo-lib-python/xivo:/opt/venv/lib/python3.9/site-packages/xivo"
       # - "${LOCAL_GIT_REPOS}/wazo-market-client/wazo_market_client:/opt/venv/lib/python3.9/site-packages/wazo_market_client"
     ports:

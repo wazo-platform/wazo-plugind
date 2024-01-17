@@ -1,8 +1,8 @@
-# Copyright 2017-2022 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from xivo_bus.publisher import BusPublisher
-from xivo_bus.resources.plugins.events import (
+from wazo_bus.publisher import BusPublisher
+from wazo_bus.resources.plugins.events import (
     PluginInstallProgressEvent,
     PluginUninstallProgressEvent,
 )
