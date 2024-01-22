@@ -2,10 +2,11 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+
 from . import db
-from .exceptions import PluginNotFoundException
-from .helpers import exec_and_log, WazoVersionFinder
 from .context import Context
+from .exceptions import PluginNotFoundException
+from .helpers import WazoVersionFinder, exec_and_log
 from .tasks import PackageAndInstallTask, UninstallTask
 
 logger = logging.getLogger(__name__)

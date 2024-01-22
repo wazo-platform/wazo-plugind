@@ -3,11 +3,9 @@
 
 from marshmallow import pre_load
 from xivo.mallow import fields
+from xivo.mallow.validate import Length, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
-from xivo.mallow.validate import OneOf
-from xivo.mallow.validate import Length
-from xivo.mallow.validate import Range
-from xivo.mallow.validate import Regexp
+
 from .config import _MAX_PLUGIN_FORMAT_VERSION
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0

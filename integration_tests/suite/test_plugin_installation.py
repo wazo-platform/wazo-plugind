@@ -1,24 +1,26 @@
 # Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+from unittest.mock import ANY
+
 from hamcrest import (
     assert_that,
     calling,
     contains_exactly,
-    equal_to,
     empty,
+    equal_to,
     has_entries,
     has_items,
+    has_length,
     has_property,
     is_,
-    has_length,
 )
 from requests import HTTPError
-from unittest.mock import ANY
 from wazo_test_helpers import until
 from wazo_test_helpers.hamcrest.raises import raises
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
-from .helpers.base import autoremove, BaseIntegrationTest
+
+from .helpers.base import BaseIntegrationTest, autoremove
 
 
 class TestPluginList(BaseIntegrationTest):

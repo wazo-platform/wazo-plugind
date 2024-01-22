@@ -1,11 +1,9 @@
-# Copyright 2018-2020 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from hamcrest import (
-    assert_that,
-    equal_to,
-)
 from unittest import TestCase
+
+from hamcrest import assert_that, equal_to
 
 from .. import version
 

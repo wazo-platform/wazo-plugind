@@ -13,6 +13,7 @@ from hamcrest import (
 )
 from requests import HTTPError
 from wazo_test_helpers.hamcrest.raises import raises
+
 from .helpers.base import BaseIntegrationTest
 
 PLUGIN_COUNT = 24

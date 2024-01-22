@@ -3,6 +3,8 @@
 
 from contextlib import contextmanager
 from unittest import TestCase
+from unittest.mock import Mock, patch
+
 from hamcrest import (
     assert_that,
     calling,
@@ -12,17 +14,16 @@ from hamcrest import (
     has_entries,
     raises,
 )
-from unittest.mock import Mock, patch
 
 from ..config import _DEFAULT_CONFIG
 from ..db import (
-    iin,
-    normalize_caseless,
     MarketDB,
     MarketPluginUpdater,
     MarketProxy,
     Plugin,
     PluginDB,
+    iin,
+    normalize_caseless,
 )
 from ..exceptions import InvalidSortParamException
 

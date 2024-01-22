@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
-from uuid import uuid4
 from functools import partial
+from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 

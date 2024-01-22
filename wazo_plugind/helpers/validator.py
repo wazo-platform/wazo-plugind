@@ -5,12 +5,10 @@ import logging
 import re
 
 from marshmallow import ValidationError
+
 from wazo_plugind.db import PluginDB
+from wazo_plugind.exceptions import PluginAlreadyInstalled, PluginValidationException
 from wazo_plugind.schema import PluginMetadataSchema as _PluginMetadataSchema
-from wazo_plugind.exceptions import (
-    PluginAlreadyInstalled,
-    PluginValidationException,
-)
 
 logger = logging.getLogger(__name__)
 

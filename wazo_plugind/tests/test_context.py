@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
+from unittest.mock import Mock
+from unittest.mock import sentinel as s
+
 from hamcrest import assert_that, equal_to
-from unittest.mock import Mock, sentinel as s
 from wazo_test_helpers.hamcrest.uuid_ import uuid_
 
 from ..context import Context
