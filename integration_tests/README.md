@@ -7,7 +7,7 @@ and execute make create-git.
 
 These repositories should not be commited.
 
-To reference the created repos in your test or docker-compose use the same name and location without the "-git"
+To reference the created repos in your test or docker compose use the same name and location without the "-git"
 
 Example:
 
