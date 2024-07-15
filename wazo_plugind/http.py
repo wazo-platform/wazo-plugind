@@ -84,8 +84,8 @@ class _BaseResource(Resource):
 
 class _AuthentificatedResource(_BaseResource):
     method_decorators = [
-        auth_verifier.verify_token,
         auth_verifier.verify_tenant,
+        auth_verifier.verify_token,
     ] + _BaseResource.method_decorators
 
 
