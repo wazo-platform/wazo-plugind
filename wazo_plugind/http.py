@@ -268,7 +268,6 @@ class MultiAPI:
 
 def new_app(config, *args, **kwargs):
     cors_config = config['rest_api']['cors']
-    auth_verifier.set_config(config['auth'])
     app = Flask('wazo_plugind')
     add_logger(app, logger)
     app.config.update(config)
