@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -100,6 +100,6 @@ class Controller:
         self._executor.shutdown()
 
     def stop(self, reason):
-        logger.warning('Stopping wazo-webhookd: %s', reason)
+        logger.warning('Stopping wazo-plugind: %s', reason)
         self._stopping_thread = threading.Thread(target=self._server.stop, name=reason)
         self._stopping_thread.start()
