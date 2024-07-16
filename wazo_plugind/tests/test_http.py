@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
@@ -16,9 +16,6 @@ API_VERSION = '0.2'
 
 
 class AuthVerifierMock:
-    def set_config(self, *args, **kwargs):
-        pass
-
     def verify_token(self, func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -34,7 +31,7 @@ class AuthVerifierMock:
         return wrapper
 
 
-with patch('xivo.auth_verifier.AuthVerifier', AuthVerifierMock):
+with patch('xivo.flask.auth_verifier.AuthVerifierFlask', AuthVerifierMock):
     from ..http import MultiAPI, PlugindAPI, new_app
 
 

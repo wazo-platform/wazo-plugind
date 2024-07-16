@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -12,7 +12,8 @@ from marshmallow import ValidationError
 from pkg_resources import resource_string
 from werkzeug.local import LocalProxy as Proxy
 from xivo import http_helpers
-from xivo.auth_verifier import AuthVerifier, required_acl, required_tenant
+from xivo.auth_verifier import required_acl, required_tenant
+from xivo.flask.auth_verifier import AuthVerifierFlask
 from xivo.http_helpers import add_logger, reverse_proxy_fix_api_spec
 from xivo.rest_api_helpers import handle_api_exception
 from xivo.status import Status
@@ -32,7 +33,7 @@ from .schema import (
 )
 
 logger = logging.getLogger(__name__)
-auth_verifier = AuthVerifier()
+auth_verifier = AuthVerifierFlask()
 
 
 class MasterTenant:
@@ -83,8 +84,8 @@ class _BaseResource(Resource):
 
 class _AuthentificatedResource(_BaseResource):
     method_decorators = [
-        auth_verifier.verify_token,
         auth_verifier.verify_tenant,
+        auth_verifier.verify_token,
     ] + _BaseResource.method_decorators
 
 
@@ -267,7 +268,6 @@ class MultiAPI:
 
 def new_app(config, *args, **kwargs):
     cors_config = config['rest_api']['cors']
-    auth_verifier.set_config(config['auth'])
     app = Flask('wazo_plugind')
     add_logger(app, logger)
     app.config.update(config)
