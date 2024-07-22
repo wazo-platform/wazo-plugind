@@ -1,4 +1,5 @@
 .tox/*
 .git/*
+.mypy_cache
 integration_tests/*
 debian/*
