@@ -9,6 +9,7 @@ Environment=PYTHONUNBUFFERED=TRUE
 ExecStart=/usr/bin/wazo-plugind
 Restart=on-failure
 RestartSec=5
+SyslogIdentifier=wazo-plugind
 
 [Install]
 WantedBy=multi-user.target
