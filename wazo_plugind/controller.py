@@ -7,10 +7,9 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 
-from cheroot import wsgi
 from wazo_auth_client import Client as AuthClient
 from werkzeug.middleware.proxy_fix import ProxyFix
-from xivo import http_helpers
+from xivo import http_helpers, wsgi
 from xivo.consul_helpers import ServiceCatalogRegistration
 from xivo.http_helpers import ReverseProxied
 from xivo.status import StatusAggregator
