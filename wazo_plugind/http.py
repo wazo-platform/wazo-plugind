@@ -232,7 +232,10 @@ class Swagger(_BaseResource):
 
     def get(self):
         try:
-            api_spec = yaml.load(resource_string(self.api_package, self.api_filename))
+            api_spec = yaml.load(
+                resource_string(self.api_package, self.api_filename),
+                Loader=yaml.FullLoader,
+            )
         except OSError:
             return {'error': "API spec does not exist"}, 404
 
