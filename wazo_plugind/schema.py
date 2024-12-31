@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import pre_load
@@ -19,7 +19,7 @@ class DependencyMetadataSchema(Schema):
 
 
 class GitInstallOptionsSchema(Schema):
-    ref = fields.String(missing='master', validate=Length(min=1))
+    ref = fields.String(load_default='master', validate=Length(min=1))
     url = fields.String(validate=Length(min=1), required=True)
 
 
@@ -30,11 +30,11 @@ class MarketInstallOptionsSchema(Schema):
 
 
 class MarketListRequestSchema(Schema):
-    direction = fields.String(validate=OneOf(['asc', 'desc']), missing='asc')
-    order = fields.String(validate=Length(min=1), missing='name')
-    limit = fields.Integer(validate=Range(min=0), missing=None)
-    offset = fields.Integer(validate=Range(min=0), missing=0)
-    search = fields.String(missing=None)
+    direction = fields.String(validate=OneOf(['asc', 'desc']), load_default='asc')
+    order = fields.String(validate=Length(min=1), load_default='name')
+    limit = fields.Integer(validate=Range(min=0), load_default=None)
+    offset = fields.Integer(validate=Range(min=0), load_default=0)
+    search = fields.String(load_default=None)
     installed = fields.Boolean()
 
 
@@ -54,7 +54,7 @@ class PluginMetadataSchema(Schema):
     version = fields.String(required=True)
     plugin_format_version = fields.Integer(
         validate=Range(min=0, max=_MAX_PLUGIN_FORMAT_VERSION),
-        missing=_DEFAULT_PLUGIN_FORMAT_VERSION,
+        load_default=_DEFAULT_PLUGIN_FORMAT_VERSION,
     )
     max_wazo_version = fields.String()
     min_wazo_version = fields.String()
@@ -98,7 +98,7 @@ class MarketListResultSchema(Schema):
     description = fields.String()
     short_description = fields.String()
     license = fields.String()
-    installed_version = fields.String(missing=None)
+    installed_version = fields.String(load_default=None)
 
 
 class OptionField(fields.Field):
@@ -121,4 +121,4 @@ class PluginInstallSchema(Schema):
 
 
 class PluginInstallQueryStringSchema(Schema):
-    reinstall = fields.Boolean(default=False, missing=False)
+    reinstall = fields.Boolean(dump_default=False, load_default=False)
