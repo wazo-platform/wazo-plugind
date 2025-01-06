@@ -9,7 +9,7 @@ flask-cors==3.0.9
 flask-restful==0.3.8
 flask==1.1.2
 itsdangerous==1.1.0  # from flask
-jinja2==3.0.3  # from flask
+jinja2==3.1.5  # from flask
 kombu==5.0.2
 markupsafe==2.0.1 # from jinja
 marshmallow==3.18.0
