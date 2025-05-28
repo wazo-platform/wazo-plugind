@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -53,13 +53,13 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         os.path.join(os.path.dirname(__file__), '../..', 'assets')
     )
     service = 'plugind'
-    bus_config = dict(
-        user='guest',
-        password='guest',
-        host='127.0.0.1',
-        exchange_name='wazo-headers',
-        exchange_type='headers',
-    )
+    bus_config = {
+        'user': 'guest',
+        'password': 'guest',
+        'host': '127.0.0.1',
+        'exchange_name': 'wazo-headers',
+        'exchange_type': 'headers',
+    }
 
     wait_strategy = EverythingOkWaitStrategy()
 

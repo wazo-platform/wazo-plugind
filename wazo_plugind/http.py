@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -183,7 +183,7 @@ class Plugins(_AuthentificatedResource):
 
         uuid = self.plugin_service.create(body['method'], params, body['options'])
 
-        return dict(uuid=uuid)
+        return {'uuid': uuid}
 
     @classmethod
     def add_resource(cls, api, *args, **kwargs):

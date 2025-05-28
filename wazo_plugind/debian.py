@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -88,12 +88,12 @@ class Generator:
 
     def _make_template_ctx(self, ctx):
         ctx = self._add_debian_depends_from_depends(ctx)
-        template_context = dict(
-            ctx.metadata,
-            rules_path=self._generate_rules_path(ctx),
-            backup_rules_path=self._generate_backup_rules_path(ctx),
-            debian_package_section=self._section,
-        )
+        template_context = {
+            **ctx.metadata,
+            'rules_path': self._generate_rules_path(ctx),
+            'backup_rules_path': self._generate_backup_rules_path(ctx),
+            'debian_package_section': self._section,
+        }
         return ctx.with_fields(template_context=template_context)
 
     def _make_debian_dir(self, ctx):

@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import ANY
@@ -296,7 +296,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
 
         result = self.install_plugin(
-            url='file:///data/git/repo', method='git', options=dict(ref='v2')
+            url='file:///data/git/repo', method='git', options={'ref': 'v2'}
         )
 
         assert_that(result, has_entries(uuid=uuid_()))

@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -256,7 +256,7 @@ class _PackageBuilder:
         pkgdir = os.path.join(ctx.extract_path, self._config['build_dir'])
         os.makedirs(pkgdir)
         cmd = ['fakeroot', ctx.installer_path, 'package']
-        self._exec(ctx, cmd, cwd=ctx.extract_path, env=dict(os.environ, pkgdir=pkgdir))
+        self._exec(ctx, cmd, cwd=ctx.extract_path, env={**os.environ, 'pkgdir': pkgdir})
         installed_plugin_data_path = os.path.join(
             pkgdir, 'usr/lib/wazo-plugind/plugins', ctx.namespace, ctx.name
         )

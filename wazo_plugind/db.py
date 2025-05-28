@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -130,10 +130,10 @@ class MarketDB:
         return len(content)
 
     def get(self, namespace, name):
-        filters = dict(
-            namespace=namespace,
-            name=name,
-        )
+        filters = {
+            'namespace': namespace,
+            'name': name,
+        }
 
         content = self._market_proxy.get_content()
         content = self._add_local_values(content)
