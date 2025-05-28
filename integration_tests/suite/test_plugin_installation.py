@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import ANY
@@ -296,7 +296,7 @@ class TestPluginInstallation(BaseIntegrationTest):
         events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
 
         result = self.install_plugin(
-            url='file:///data/git/repo', method='git', options=dict(ref='v2')
+            url='file:///data/git/repo', method='git', options={'ref': 'v2'}
         )
 
         assert_that(result, has_entries(uuid=uuid_()))
@@ -356,6 +356,52 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         assert_that(
             package_success_exists, is_(True), 'package_success was not created'
+        )
+
+    def _has_status(self, uuid, *expected_status):
+        expected_status = [
+            has_entries(
+                message=has_entries(data=has_entries(uuid=uuid, status=status)),
+            )
+            for status in expected_status
+        ]
+        return has_items(*expected_status)
+
+    def test_install_from_subdirectory(self):
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
+        result = self.install_plugin(
+            url='file:///data/git/subdirectory',
+            method='git',
+            options={'subdirectory': 'subdir'},
+        )
+
+        assert_that(result, has_entries(uuid=uuid_()))
+
+        def assert_received(bus_accumulator):
+            expected_status = [
+                'starting',
+                'downloading',
+                'extracting',
+                'building',
+                'packaging',
+                'updating',
+                'installing',
+                'completed',
+            ]
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                self._has_status(result['uuid'], *expected_status),
+            )
+
+        until.assert_(assert_received, events, tries=10)
+
+        package_success_exists = self.exists_in_container(
+            '/tmp/results/package_subdir_success'
+        )
+
+        assert_that(
+            package_success_exists, is_(True), 'package_subdir_success was not created'
         )
 
     def test_with_a_postrm(self):

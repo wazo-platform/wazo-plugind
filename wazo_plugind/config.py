@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import argparse
@@ -13,45 +13,45 @@ _DAEMONNAME = 'wazo-plugind'
 _DEFAULT_HTTP_PORT = 9503
 _PLUGIN_DATA_DIR = 'wazo'
 _HOME_DIR = '/usr/lib/wazo-plugind'
-_DEFAULT_CONFIG = dict(
-    config_file=f'/etc/{_DAEMONNAME}/config.yml',
-    extra_config_files=f'/etc/{_DAEMONNAME}/conf.d/',
-    home_dir=_HOME_DIR,
-    download_dir='/var/lib/wazo-plugind/downloads',
-    extract_dir='/var/lib/wazo-plugind/tmp',
-    metadata_dir=os.path.join(_HOME_DIR, 'plugins'),
-    template_dir=os.path.join(_HOME_DIR, 'templates'),
-    backup_rules_dir='/var/lib/wazo-plugind/rules',
-    build_dir='_pkg',
-    control_template='control.jinja',
-    postinst_template='postinst.jinja',
-    postrm_template='postrm.jinja',
-    prerm_template='prerm.jinja',
-    plugin_data_dir=_PLUGIN_DATA_DIR,
-    default_metadata_filename=os.path.join(_PLUGIN_DATA_DIR, 'plugin.yml'),
-    default_install_filename=os.path.join(_PLUGIN_DATA_DIR, 'rules'),
-    default_debian_package_prefix='wazo-plugind',
-    debian_package_section='wazo-plugind-plugin',
-    debug=False,
-    log_level='info',
-    log_file=f'/var/log/{_DAEMONNAME}.log',
-    user=_DAEMONNAME,
-    market={'host': 'apps.wazo.community'},
-    confd={
+_DEFAULT_CONFIG = {
+    'config_file': f'/etc/{_DAEMONNAME}/config.yml',
+    'extra_config_files': f'/etc/{_DAEMONNAME}/conf.d/',
+    'home_dir': _HOME_DIR,
+    'download_dir': '/var/lib/wazo-plugind/downloads',
+    'extract_dir': '/var/lib/wazo-plugind/tmp',
+    'metadata_dir': os.path.join(_HOME_DIR, 'plugins'),
+    'template_dir': os.path.join(_HOME_DIR, 'templates'),
+    'backup_rules_dir': '/var/lib/wazo-plugind/rules',
+    'build_dir': '_pkg',
+    'control_template': 'control.jinja',
+    'postinst_template': 'postinst.jinja',
+    'postrm_template': 'postrm.jinja',
+    'prerm_template': 'prerm.jinja',
+    'plugin_data_dir': _PLUGIN_DATA_DIR,
+    'default_metadata_filename': os.path.join(_PLUGIN_DATA_DIR, 'plugin.yml'),
+    'default_install_filename': os.path.join(_PLUGIN_DATA_DIR, 'rules'),
+    'default_debian_package_prefix': 'wazo-plugind',
+    'debian_package_section': 'wazo-plugind-plugin',
+    'debug': False,
+    'log_level': 'info',
+    'log_file': f'/var/log/{_DAEMONNAME}.log',
+    'user': _DAEMONNAME,
+    'market': {'host': 'apps.wazo.community'},
+    'confd': {
         'host': 'localhost',
         'port': 9486,
         'version': 1.1,
         'prefix': None,
         'https': False,
     },
-    rest_api={
+    'rest_api': {
         'listen': '127.0.0.1',
         'port': _DEFAULT_HTTP_PORT,
         'certificate': None,
         'private_key': None,
         'cors': {'enabled': True, 'allow_headers': ['Content-Type', 'X-Auth-Token']},
     },
-    bus={
+    'bus': {
         'username': 'guest',
         'password': 'guest',
         'host': 'localhost',
@@ -59,11 +59,11 @@ _DEFAULT_CONFIG = dict(
         'exchange_name': 'wazo-headers',
         'exchange_type': 'headers',
     },
-    consul={
+    'consul': {
         'scheme': 'http',
         'port': 8500,
     },
-    service_discovery={
+    'service_discovery': {
         'enabled': False,
         'advertise_address': 'auto',
         'advertise_address_interface': 'eth0',
@@ -73,14 +73,14 @@ _DEFAULT_CONFIG = dict(
         'retry_interval': 2,
         'extra_tags': [],
     },
-    auth={
+    'auth': {
         'host': 'localhost',
         'port': 9497,
         'prefix': None,
         'https': False,
         'key_file': '/var/lib/wazo-auth-keys/wazo-plugind-key.yml',
     },
-)
+}
 
 
 def load_config(args):
@@ -110,9 +110,7 @@ def _load_key_file(config):
 
 def _get_reinterpreted_raw_values(*configs):
     config = ChainMap(*configs)
-    return dict(
-        log_level=get_log_level_by_name(config['log_level']),
-    )
+    return {'log_level': get_log_level_by_name(config['log_level'])}
 
 
 def _parse_cli_args(args):

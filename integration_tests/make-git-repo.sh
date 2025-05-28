@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2017-2019 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 set -eux
@@ -13,7 +13,7 @@ for dir in $(find . -name '*-git'); do
     git add -A
     git config user.email "dev@wazo.community"
     git config user.name "Wazo Authors"
-    git commit --no-gpg-sign -m 'initial commit'
+    git commit --no-gpg-sign --no-verify --message 'initial commit'
     popd
 done
 
@@ -23,5 +23,5 @@ sed -i 's/package_success/package_success_2/' wazo/rules
 sed -i 's/0.0.1/0.0.2/' wazo/plugin.yml
 sed -i '/debian_depends/,/tig/d' wazo/plugin.yml
 git add -u
-git commit --no-gpg-sign -m 'second commit'
+git commit --no-gpg-sign --no-verify --message 'second commit'
 popd

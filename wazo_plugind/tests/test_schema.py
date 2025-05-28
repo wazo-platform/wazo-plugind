@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -62,10 +62,18 @@ class TestInstallationSchema(TestCase):
             ),
         )
 
-    def test_git_options_ref_default(self):
+    def test_git_options_default_values(self):
         input_ = {'method': 'git', 'options': {'url': 'file://my-git-repo.git'}}
         result = PluginInstallSchema().load(input_)
-        assert_that(result, has_entries(options=has_entries(ref='master')))
+        assert_that(
+            result,
+            has_entries(
+                options=has_entries(
+                    ref='master',
+                    subdirectory=None,
+                )
+            ),
+        )
 
     def test_market_options_required(self):
         input_ = {'method': 'market'}

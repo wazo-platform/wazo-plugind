@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import json
@@ -245,7 +245,7 @@ class TestPlugins(HTTPAppTestCase):
         self.plugin_service.create.assert_called_once_with(
             'git',
             {'reinstall': False},
-            dict(ref='master', **options),
+            {'ref': 'master', 'subdirectory': None, **options},
         )
 
     def test_git_install_with_a_branch_name(self):
@@ -253,7 +253,19 @@ class TestPlugins(HTTPAppTestCase):
         self.post({'method': 'git', 'options': options})
 
         self.plugin_service.create.assert_called_once_with(
-            'git', {'reinstall': False}, options
+            'git',
+            {'reinstall': False},
+            {'subdirectory': None, **options},
+        )
+
+    def test_git_install_with_subdirectory(self):
+        options = {'url': 'http://', 'subdirectory': 'sub/plugin'}
+        self.post({'method': 'git', 'options': options})
+
+        self.plugin_service.create.assert_called_once_with(
+            'git',
+            {'reinstall': False},
+            {'ref': 'master', **options},
         )
 
     def test_git_install_with_no_url(self):

@@ -4,8 +4,8 @@
 
 A microservice to manage plugins in the [Wazo PBX](http://wazo.community).
 
-wazo-plugind allows the administrator to manage plugins installed on a Wazo stack using
-a simple HTTP interface.
+wazo-plugind allows the administrator to manage plugins installed on a Wazo
+stack using a simple HTTP interface.
 
 ## Docker
 
