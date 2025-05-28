@@ -226,7 +226,7 @@ class StatusChecker(_AuthentificatedResource):
 
 
 class Swagger(_BaseResource):
-    api_package = 'wazo_plugind.swagger'
+    api_package = 'wazo_plugind.openapi'
     api_filename = 'api.yml'
     api_path = '/api/api.yml'
 
