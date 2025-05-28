@@ -193,7 +193,10 @@ class _PackageBuilder:
         extract_path = os.path.join(self._config['extract_dir'], ctx.uuid)
         ctx.log(logger.debug, 'extracting to %s', extract_path)
         shutil.rmtree(extract_path, ignore_errors=True)
-        shutil.move(ctx.download_path, extract_path)
+        download_path = ctx.download_path
+        if subdirectory := ctx.install_options.get('subdirectory'):
+            download_path = os.path.join(ctx.download_path, subdirectory)
+        shutil.move(download_path, extract_path)
         metadata_filename = os.path.join(
             extract_path, self._config['default_metadata_filename']
         )

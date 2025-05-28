@@ -358,6 +358,52 @@ class TestPluginInstallation(BaseIntegrationTest):
             package_success_exists, is_(True), 'package_success was not created'
         )
 
+    def _has_status(self, uuid, *expected_status):
+        expected_status = [
+            has_entries(
+                message=has_entries(data=has_entries(uuid=uuid, status=status)),
+            )
+            for status in expected_status
+        ]
+        return has_items(*expected_status)
+
+    def test_install_from_subdirectory(self):
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
+        result = self.install_plugin(
+            url='file:///data/git/subdirectory',
+            method='git',
+            options={'subdirectory': 'subdir'},
+        )
+
+        assert_that(result, has_entries(uuid=uuid_()))
+
+        def assert_received(bus_accumulator):
+            expected_status = [
+                'starting',
+                'downloading',
+                'extracting',
+                'building',
+                'packaging',
+                'updating',
+                'installing',
+                'completed',
+            ]
+            assert_that(
+                bus_accumulator.accumulate(with_headers=True),
+                self._has_status(result['uuid'], *expected_status),
+            )
+
+        until.assert_(assert_received, events, tries=10)
+
+        package_success_exists = self.exists_in_container(
+            '/tmp/results/package_subdir_success'
+        )
+
+        assert_that(
+            package_success_exists, is_(True), 'package_subdir_success was not created'
+        )
+
     def test_with_a_postrm(self):
         self.install_plugin(url='file:///data/git/postrm', method='git', _async=False)
 

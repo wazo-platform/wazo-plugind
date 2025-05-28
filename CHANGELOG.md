@@ -1,5 +1,9 @@
 # Changelog
 
+## 25.08
+
+* New option `subdirectory` has been added to `POST /plugins`
+
 ## 23.01
 
 * Bus configuration keys changed:

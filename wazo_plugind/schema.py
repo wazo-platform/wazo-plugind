@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import pre_load
@@ -20,6 +20,7 @@ class DependencyMetadataSchema(Schema):
 
 class GitInstallOptionsSchema(Schema):
     ref = fields.String(load_default='master', validate=Length(min=1))
+    subdirectory = fields.String(load_default=None, validate=Length(min=1))
     url = fields.String(validate=Length(min=1), required=True)
 
 
