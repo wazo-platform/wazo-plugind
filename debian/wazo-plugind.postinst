@@ -34,8 +34,8 @@ case "$1" in
         chmod 755 "${BACKUP_RULES_DIR}"
 
         if [[ -z "${previous_version}" ]]; then
-            ln -sf  /etc/nginx/locations/https-available/$DAEMONNAME \
-                    /etc/nginx/locations/https-enabled/$DAEMONNAME
+            ln -sf /etc/nginx/locations/https-available/$DAEMONNAME \
+                   /etc/nginx/locations/https-enabled/$DAEMONNAME
         fi
 
         chown -R "$USER:$GROUP" "$HOMEDIR"
