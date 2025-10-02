@@ -1,6 +1,6 @@
 Source: wazo-plugind
 Section: python
-Priority: extra
+Priority: optional
 Maintainer: Wazo Maintainers <dev+pkg@wazo.community>
 Build-Depends: debhelper (>= 12), dh-python, python3-all, python3-setuptools
 Standards-Version: 3.9.6
