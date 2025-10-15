@@ -1,10 +1,10 @@
 Source: wazo-plugind
 Section: python
-Priority: extra
+Priority: optional
 Maintainer: Wazo Maintainers <dev+pkg@wazo.community>
 Build-Depends: debhelper (>= 12), dh-python, python3-all, python3-setuptools
 Standards-Version: 3.9.6
-X-Python3-Version: >= 3.9
+X-Python3-Version: >= 3.11
 
 Package: wazo-plugind
 Architecture: all
@@ -20,6 +20,7 @@ Depends:
  python3-flask,
  python3-flask-cors,
  python3-flask-restful,
+ python3-jinja2,
  python3-kombu,
  python3-marshmallow,
  python3-netifaces,

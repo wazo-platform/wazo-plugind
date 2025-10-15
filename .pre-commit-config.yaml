@@ -15,7 +15,7 @@ repos:
     rev: v3.20.0
     hooks:
       - id: pyupgrade
-        args: [--py39-plus]
+        args: [--py311-plus]
   # Automatically sort and format imports (in black compatible way)
   - repo: https://github.com/pycqa/isort
     rev: 6.0.1
