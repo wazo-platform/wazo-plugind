@@ -22,6 +22,7 @@ Depends:
  python3-flask-restful,
  python3-jinja2,
  python3-kombu,
+ python3-looseversion,
  python3-marshmallow,
  python3-netifaces,
  python3-requests,
