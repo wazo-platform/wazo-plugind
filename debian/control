@@ -30,9 +30,9 @@ Depends:
  python3-unidecode,
  python3-werkzeug,
  wazo-auth-client-python3,
+ wazo-bus-python3,
  wazo-confd-client-python3,
  wazo-market-client-python3,
- wazo-bus-python3,
  xivo-lib-python-python3,
 # Indirect build dependencies for Python plugins
  python3-venv,
