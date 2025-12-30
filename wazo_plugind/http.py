@@ -172,7 +172,7 @@ class Plugins(_AuthentificatedResource):
     @required_acl('plugind.plugins.create')
     def post(self):
         try:
-            body = PluginInstallSchema().load(request.get_json())
+            body = PluginInstallSchema().load(request.get_json(force=True))
         except ValidationError as e:
             raise InvalidInstallParamException(e.messages)
 
