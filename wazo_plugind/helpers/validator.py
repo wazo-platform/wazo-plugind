@@ -1,8 +1,9 @@
-# Copyright 2018-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2018-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
 import re
+from typing import Any
 
 from marshmallow import ValidationError
 
@@ -12,11 +13,13 @@ from wazo_plugind.schema import PluginMetadataSchema as _PluginMetadataSchema
 
 logger = logging.getLogger(__name__)
 
+Errors = dict[str, Any]
+
 
 class Validator:
-    valid_namespace = re.compile(r'^[a-z0-9]+$')
-    valid_name = re.compile(r'^[a-z0-9-]+$')
-    required_fields = ['name', 'namespace', 'version']
+    valid_namespace = re.compile(r"^[a-z0-9]+$")
+    valid_name = re.compile(r"^[a-z0-9-]+$")
+    required_fields = ["name", "namespace", "version"]
 
     def __init__(self, plugin_db, current_wazo_version, install_params):
         self._db = plugin_db
@@ -29,24 +32,24 @@ class Validator:
         self._PluginMetadataSchema = PluginMetadataSchema
 
     def validate(self, metadata):
-        logger.debug('Using current version %s', self._current_wazo_version)
+        logger.debug("Using current version %s", self._current_wazo_version)
         logger.debug(
-            'max_wazo_version: %s', metadata.get('max_wazo_version', 'undefined')
+            "max_wazo_version: %s", metadata.get("max_wazo_version", "undefined")
         )
 
         try:
             body = self._PluginMetadataSchema().load(metadata)
         except ValidationError as e:
             raise PluginValidationException(e.messages)
-        logger.debug('validated metadata: %s', body)
+        logger.debug("validated metadata: %s", body)
 
-        if self._install_params['reinstall']:
+        if self._install_params["reinstall"]:
             return
 
         if self._db.is_installed(
-            metadata['namespace'], metadata['name'], metadata['version']
+            metadata["namespace"], metadata["name"], metadata["version"]
         ):
-            raise PluginAlreadyInstalled(metadata['namespace'], metadata['name'])
+            raise PluginAlreadyInstalled(metadata["namespace"], metadata["name"])
 
     @classmethod
     def new_from_config(cls, config, current_wazo_version, install_params):
