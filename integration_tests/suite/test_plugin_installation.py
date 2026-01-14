@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest.mock import ANY
@@ -942,3 +942,6 @@ class TestPluginInstallation(BaseIntegrationTest):
             )
 
         until.assert_(assert_received, events, tries=5)
+
+    def test_that_empty_body_for_post_plugins_returns_400(self):
+        self.assert_empty_body_returns_400([('post', 'plugins')])
