@@ -1,7 +1,8 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
+from importlib.resources import files
 
 import requests
 import yaml
@@ -9,7 +10,6 @@ from flask import Flask, make_response, request
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from marshmallow import ValidationError
-from pkg_resources import resource_string
 from werkzeug.local import LocalProxy as Proxy
 from xivo import http_helpers
 from xivo.auth_verifier import required_acl, required_tenant
@@ -233,7 +233,7 @@ class Swagger(_BaseResource):
     def get(self):
         try:
             api_spec = yaml.load(
-                resource_string(self.api_package, self.api_filename),
+                files(self.api_package).joinpath(self.api_filename).read_bytes(),
                 Loader=yaml.FullLoader,
             )
         except OSError:
