@@ -1,10 +1,12 @@
 # Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-from marshmallow import pre_load
+from marshmallow import ValidationError, pre_load, validates
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
+
+from wazo_plugind.helpers.version import less_than
 
 from .config import _MAX_PLUGIN_FORMAT_VERSION
 
@@ -72,17 +74,45 @@ class PluginMetadataSchema(Schema):
             data[field] = str(value)
         return data
 
-    def on_bind_field(self, field_name, field_obj):
-        if field_name == 'max_wazo_version':
-            self._set_max_wazo_version_parameters(field_obj)
-        elif field_name == 'min_wazo_version':
-            self._set_min_wazo_version_parameters(field_obj)
+    @validates('max_wazo_version')
+    def validate_max_wazo_version(self, value):
+        if self.current_version is None:
+            return
+        if not less_than(self.current_version, value):
+            raise ValidationError(
+                {
+                    'constraint_id': 'max_wazo_version',
+                    'constraint': {
+                        'max': value,
+                        'current': self.current_version,
+                    },
+                    'message': (
+                        f'current version ({self.current_version}) '
+                        f'must be less than or equal to max_wazo_version ({value})'
+                    ),
+                },
+                field_name='max_wazo_version',
+            )
 
-    def _set_max_wazo_version_parameters(self, field_obj):
-        field_obj.validators = [Range(min=self.current_version)]
-
-    def _set_min_wazo_version_parameters(self, field_obj):
-        field_obj.validators = [Range(max=self.current_version)]
+    @validates('min_wazo_version')
+    def validate_min_wazo_version(self, value):
+        if self.current_version is None:
+            return
+        if not less_than(value, self.current_version):
+            raise ValidationError(
+                {
+                    'constraint_id': 'min_wazo_version',
+                    'constraint': {
+                        'min': value,
+                        'current': self.current_version,
+                    },
+                    'message': (
+                        f'current version ({self.current_version}) '
+                        f'must be greater than or equal to min_wazo_version ({value})'
+                    ),
+                },
+                field_name='min_wazo_version',
+            )
 
 
 class MarketListResultSchema(Schema):
@@ -108,7 +138,7 @@ class OptionField(fields.Field):
         'market': fields.Nested(MarketInstallOptionsSchema),
     }
 
-    def _deserialize(self, value, attr, data, **kwargs):
+    def _deserialize(self, value, attr, data, **kwargs):  # noqa: E501
         method = data.get('method')
         concrete_options = self._options.get(method)
         if not concrete_options:

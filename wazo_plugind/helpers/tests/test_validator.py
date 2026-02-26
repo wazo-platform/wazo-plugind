@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -125,8 +125,11 @@ class TestValidator(TestCase):
 
         expected_details = {
             'max_wazo_version': {
-                'constraint_id': 'range',
-                'constraint': {'min': CURRENT_WAZO_VERSION},
+                'constraint_id': 'max_wazo_version',
+                'constraint': {
+                    'max': '16.16',
+                    'current': '17.10',
+                },
                 'message': ANY,
             }
         }
@@ -151,8 +154,11 @@ class TestValidator(TestCase):
 
         expected_details = {
             'min_wazo_version': {
-                'constraint_id': 'range',
-                'constraint': {'max': CURRENT_WAZO_VERSION},
+                'constraint_id': 'min_wazo_version',
+                'constraint': {
+                    'min': '17.11',
+                    'current': '17.10',
+                },
                 'message': ANY,
             }
         }
