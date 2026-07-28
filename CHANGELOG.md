@@ -1,5 +1,9 @@
 # Changelog
 
+## 26.09
+
+* Requests to wazo-auth now default to `localhost:80`, through nginx.
+
 ## 26.02
 
 * `POST` request bodies to endpoints accepting JSON payload are systematically parsed as JSON, with or without a proper `Content-Type` header;
