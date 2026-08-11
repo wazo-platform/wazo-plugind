@@ -24,8 +24,7 @@ bus:
 # Authentication server connection settings
 auth:
   host: localhost
-  port: 9497
-  prefix: null
+  port: 80
   https: false
 
 service_discovery:
