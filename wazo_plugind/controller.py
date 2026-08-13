@@ -1,4 +1,4 @@
-# Copyright 2017-2024 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -30,6 +30,8 @@ def _signal_handler(controller, signum, frame):
 class Controller:
     def __init__(self, config, root_worker):
         self._executor = ThreadPoolExecutor(max_workers=10)  # Make it configurable
+        self._stopped = threading.Event()
+        self._stopping_thread = None
         self._xivo_uuid = config.get('uuid')
         self._listen_addr = config['rest_api']['listen']
         self._listen_port = config['rest_api']['port']
@@ -92,7 +94,12 @@ class Controller:
         ):
             with self._token_renewer:
                 try:
-                    self._server.start()
+                    if self._stopped.is_set():
+                        logger.warning(
+                            'stop requested during startup: not starting the server'
+                        )
+                    else:
+                        self._server.start()
                 finally:
                     if self._stopping_thread:
                         self._stopping_thread.join()
@@ -100,5 +107,6 @@ class Controller:
 
     def stop(self, reason):
         logger.warning('Stopping wazo-plugind: %s', reason)
+        self._stopped.set()
         self._stopping_thread = threading.Thread(target=self._server.stop, name=reason)
         self._stopping_thread.start()
