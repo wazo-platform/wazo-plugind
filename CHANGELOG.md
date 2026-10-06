@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+* The generated `prerm` and `postrm` package scripts are now idempotent and failure-resilient:
+  removing and purging a plugin package no longer fails when the rules file is missing or when
+  the `uninstall`/`postrm` rules actions fail; see `docs/plugin-rules.md` for the rules guidelines.
+  Packages built by earlier versions keep their old scripts (see the same document to purge them).
+
 ## 26.09
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx.

@@ -5,10 +5,21 @@ set -e
 RULEFILE={{ rules_path }}
 BACKUP_RULES_FILE={{ backup_rules_path }}
 
+# Removal must always be possible: a failing plugin must not leave the
+# package stuck half-installed, so rules failures are reported but not fatal.
 case "$1" in
     remove)
-        cp "${RULEFILE}" "${BACKUP_RULES_FILE}"
-        "${RULEFILE}" uninstall
+        if [ -x "${RULEFILE}" ]; then
+            # the rules file is shipped by the package: keep a copy so the
+            # postrm action can still run once the package files are gone
+            mkdir -p "${BACKUP_RULES_FILE%/*}"
+            cp -f "${RULEFILE}" "${BACKUP_RULES_FILE}" \
+                || echo "warning: could not back up ${RULEFILE}" >&2
+            "${RULEFILE}" uninstall \
+                || echo "warning: plugin uninstall failed (exit $?), continuing" >&2
+        else
+            echo "warning: ${RULEFILE} not found, skipping plugin uninstall" >&2
+        fi
     ;;
 
     deconfigure|upgrade|failed-upgrade)
