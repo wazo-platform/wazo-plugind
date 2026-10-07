@@ -4,6 +4,14 @@ set -e
 
 RULEFILE={{ rules_path }}
 BACKUP_RULES_FILE={{ backup_rules_path }}
+{%- macro clean_python_bytecode() %}
+        # Python writes bytecode next to the modules when they are imported.
+        # dpkg does not know these files and keeps the directory holding them.
+        if command -v py3clean >/dev/null 2>&1; then
+            py3clean -p {{ debian_package_name }} \
+                || echo "warning: py3clean failed (exit $?), continuing" >&2
+        fi
+{%- endmacro %}
 
 # Removal must always be possible: a failing plugin must not leave the
 # package stuck half-installed, so rules failures are reported but not fatal.
@@ -20,9 +28,21 @@ case "$1" in
         else
             echo "warning: ${RULEFILE} not found, skipping plugin uninstall" >&2
         fi
+        {%- if ships_python|default(false) %}
+        # after the uninstall action: it can import the plugin again
+        {{- clean_python_bytecode() }}
+        {%- endif %}
     ;;
 
-    deconfigure|upgrade|failed-upgrade)
+    upgrade)
+        {%- if ships_python|default(false) %}
+        {{- clean_python_bytecode() }}
+        {%- else %}
+        :
+        {%- endif %}
+    ;;
+
+    deconfigure|failed-upgrade)
     ;;
 
     *)

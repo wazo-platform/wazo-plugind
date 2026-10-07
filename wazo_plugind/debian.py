@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import logging
@@ -93,8 +93,22 @@ class Generator:
             'rules_path': self._generate_rules_path(ctx),
             'backup_rules_path': self._generate_backup_rules_path(ctx),
             'debian_package_section': self._section,
+            'debian_package_name': self._debian_package_name_fmt.format(
+                name=ctx.name, namespace=ctx.namespace
+            ),
+            'ships_python': self._ships_python(getattr(ctx, 'pkgdir', None)),
         }
         return ctx.with_fields(template_context=template_context)
+
+    def _ships_python(self, pkgdir: str | None) -> bool:
+        if not pkgdir:
+            return False
+        for root, dirs, files in os.walk(pkgdir):
+            if root == pkgdir and self._debian_dir in dirs:
+                dirs.remove(self._debian_dir)
+            if any(name.endswith('.py') for name in files):
+                return True
+        return False
 
     def _make_debian_dir(self, ctx):
         debian_dir = os.path.join(ctx.pkgdir, self._debian_dir)

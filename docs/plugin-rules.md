@@ -29,6 +29,23 @@ maintainer scripts (`postinst`, `prerm`, `postrm`) that call the rules file.
   copy of the rules file. A purge succeeds even if the copy is already gone,
   and also when the package was removed a long time before.
 - Each maintainer script can be run again after an interruption.
+- When the package ships `.py` files, `prerm` runs `py3clean -p <package>` on
+  `remove`, after the `uninstall` action, and on `upgrade`. Python writes
+  bytecode (`__pycache__/*.pyc`) when it imports a module. dpkg does not own
+  these files, so without this step they keep the plugin directory on disk
+  after the package is removed. A missing or failing `py3clean` only gives a
+  warning.
+
+## Shipping files with the package
+
+Files that the `package` action copies into `$pkgdir` are part of the `.deb`.
+dpkg tracks them, removes them with the package and reports changes with
+`dpkg -V`. Files that the `install` action creates are not known to dpkg. The
+`uninstall` and `postrm` actions must remove them.
+
+Only files in the package can be cleaned by `py3clean`. Other files that your
+plugin writes when it runs (caches, logs, generated configuration) are your
+responsibility: remove them in `postrm`.
 
 wazo-plugind uninstalls plugins with `apt-get remove`, so a removed plugin stays
 in the `rc` state in dpkg until someone runs `apt purge`.
