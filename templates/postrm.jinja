@@ -4,14 +4,25 @@ set -e
 
 RULES={{ backup_rules_path }}
 
+# The rules action runs on "remove" and the backup is deleted on "purge":
+# purge always follows remove for an installed package, and a removed package
+# can still be purged later (e.g. by `apt purge`), so each step must succeed
+# even if the other one already ran, or never ran.
 case "$1" in
-    purge|remove)
+    remove)
         {%- if plugin_format_version|default(0) > 0 %}
-        "${RULES}" postrm
-        {% endif %}
+        if [ -x "${RULES}" ]; then
+            "${RULES}" postrm \
+                || echo "warning: plugin postrm failed (exit $?), continuing" >&2
+        else
+            echo "warning: ${RULES} not found, skipping plugin postrm" >&2
+        fi
+        {%- endif %}
+        ;;
+    purge)
         rm -f "${RULES}"
         ;;
-    upgrade|failed-upgrade|abort-install|abort-upgrade)
+    upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         ;;
     *)
         echo "postrm called with unknown argument \`$1'" >&2

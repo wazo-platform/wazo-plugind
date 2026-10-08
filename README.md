@@ -32,3 +32,8 @@ Building the docker image:
 ```sh
 docker build -t wazoplatform/wazo-plugind .
 ```
+
+## Plugin rules
+
+See [docs/plugin-rules.md](docs/plugin-rules.md) for the plugin rules actions, the life cycle of the generated
+package scripts, and the guidelines for plugin authors.

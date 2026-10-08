@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
@@ -95,8 +95,67 @@ class TestDebianGenerator(TestCase):
             'rules_path': '/usr/lib/wazo-plugind/foobar/foo/wazo/rules',
             'debian_package_section': s.section,
             'backup_rules_path': '/var/lib/wazo-plugind/rules/rules.foo.foobar',
+            'debian_package_name': 'wazo-plugind-foo-foobar',
+            'ships_python': False,
         }
         assert_that(ctx.template_context, equal_to(expected))
+
+    def test_ships_python_when_the_package_contains_python_files(self):
+        with tempfile.TemporaryDirectory() as pkgdir:
+            module_dir = os.path.join(pkgdir, 'usr/local/lib/python3.11/dist-packages')
+            os.makedirs(module_dir)
+            with open(os.path.join(module_dir, 'foo.py'), 'w'):
+                pass
+            ctx = self._make_ctx(pkgdir=pkgdir)
+
+            ctx = Generator(
+                metadata_dir='/usr/lib/wazo-plugind',
+                rules_path='wazo/rules',
+                backup_rules_dir='/var/lib/wazo-plugind/rules',
+            )._make_template_ctx(ctx)
+
+            assert_that(ctx.template_context['ships_python'], equal_to(True))
+
+    def test_does_not_ship_python_without_python_files(self):
+        with tempfile.TemporaryDirectory() as pkgdir:
+            os.makedirs(os.path.join(pkgdir, 'usr/share/foo'))
+            with open(os.path.join(pkgdir, 'usr/share/foo/foo.sh'), 'w'):
+                pass
+            ctx = self._make_ctx(pkgdir=pkgdir)
+
+            ctx = Generator(
+                metadata_dir='/usr/lib/wazo-plugind',
+                rules_path='wazo/rules',
+                backup_rules_dir='/var/lib/wazo-plugind/rules',
+            )._make_template_ctx(ctx)
+
+            assert_that(ctx.template_context['ships_python'], equal_to(False))
+
+    def test_python_files_in_the_control_directory_are_ignored(self):
+        with tempfile.TemporaryDirectory() as pkgdir:
+            os.makedirs(os.path.join(pkgdir, 'DEBIAN'))
+            with open(os.path.join(pkgdir, 'DEBIAN', 'helper.py'), 'w'):
+                pass
+            ctx = self._make_ctx(pkgdir=pkgdir)
+
+            ctx = Generator(
+                metadata_dir='/usr/lib/wazo-plugind',
+                rules_path='wazo/rules',
+                backup_rules_dir='/var/lib/wazo-plugind/rules',
+            )._make_template_ctx(ctx)
+
+            assert_that(ctx.template_context['ships_python'], equal_to(False))
+
+    def _make_ctx(self, **fields):
+        return Context(
+            _DEFAULT_CONFIG,
+            namespace='foobar',
+            name='foo',
+            metadata={},
+            destination_plugin_path='/var/lib/foobar',
+            installer_base_filename='wazo/rules',
+            **fields,
+        )
 
     def test_make_debian_dir(self):
         with tempfile.TemporaryDirectory() as pkgdir:
