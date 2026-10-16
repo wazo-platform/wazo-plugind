@@ -1,4 +1,4 @@
-# Copyright 2017-2025 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from marshmallow import ValidationError, pre_load, validates
@@ -75,10 +75,10 @@ class PluginMetadataSchema(Schema):
         return data
 
     @validates('max_wazo_version')
-    def validate_max_wazo_version(self, value):
+    def validate_max_wazo_version(self, value: str) -> None:
         if self.current_version is None:
             return
-        if not less_than(self.current_version, value):
+        if less_than(value, self.current_version):
             raise ValidationError(
                 {
                     'constraint_id': 'max_wazo_version',
@@ -95,10 +95,10 @@ class PluginMetadataSchema(Schema):
             )
 
     @validates('min_wazo_version')
-    def validate_min_wazo_version(self, value):
+    def validate_min_wazo_version(self, value: str) -> None:
         if self.current_version is None:
             return
-        if not less_than(value, self.current_version):
+        if less_than(self.current_version, value):
             raise ValidationError(
                 {
                     'constraint_id': 'min_wazo_version',
@@ -138,7 +138,7 @@ class OptionField(fields.Field):
         'market': fields.Nested(MarketInstallOptionsSchema),
     }
 
-    def _deserialize(self, value, attr, data, **kwargs):  # noqa: E501
+    def _deserialize(self, value, attr, data, **kwargs):
         method = data.get('method')
         concrete_options = self._options.get(method)
         if not concrete_options:

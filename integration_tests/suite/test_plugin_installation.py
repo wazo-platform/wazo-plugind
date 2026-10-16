@@ -634,7 +634,7 @@ class TestPluginInstallation(BaseIntegrationTest):
                 'max_wazo_version': {
                     'message': ANY,
                     'constraint': ANY,
-                    'constraint_id': 'range',
+                    'constraint_id': 'max_wazo_version',
                 }
             },
         }
@@ -687,7 +687,7 @@ class TestPluginInstallation(BaseIntegrationTest):
                 'min_wazo_version': {
                     'message': ANY,
                     'constraint': ANY,
-                    'constraint_id': 'range',
+                    'constraint_id': 'min_wazo_version',
                 }
             },
         }
