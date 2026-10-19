@@ -4,16 +4,20 @@
 from unittest.mock import ANY
 
 from hamcrest import (
+    all_of,
     assert_that,
     calling,
     contains_exactly,
+    contains_string,
     empty,
     equal_to,
     has_entries,
+    has_item,
     has_items,
     has_length,
     has_property,
     is_,
+    not_,
 )
 from requests import HTTPError
 from wazo_test_helpers import until
@@ -626,18 +630,18 @@ class TestPluginInstallation(BaseIntegrationTest):
 
         result = self.install_plugin(url='/data/git/max_version', method='git')
 
-        errors = {
-            'error_id': 'validation-error',
-            'message': 'Validation error',
-            'resource': 'plugins',
-            'details': {
-                'max_wazo_version': {
-                    'message': ANY,
-                    'constraint': ANY,
-                    'constraint_id': 'max_wazo_version',
-                }
-            },
-        }
+        errors = has_entries(
+            error_id='validation-error',
+            message='Validation error',
+            resource='plugins',
+            details=has_entries(
+                max_wazo_version=has_entries(
+                    message=all_of(contains_string('17.05'), contains_string('17.10')),
+                    constraint={'max': '17.05', 'current': '17.10'},
+                    constraint_id='max_wazo_version',
+                )
+            ),
+        )
 
         def assert_received(bus_accumulator):
             assert_that(
@@ -679,18 +683,18 @@ class TestPluginInstallation(BaseIntegrationTest):
 
     def test_with_a_min_version_too_high(self):
         events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
-        errors = {
-            'error_id': 'validation-error',
-            'message': 'Validation error',
-            'resource': 'plugins',
-            'details': {
-                'min_wazo_version': {
-                    'message': ANY,
-                    'constraint': ANY,
-                    'constraint_id': 'min_wazo_version',
-                }
-            },
-        }
+        errors = has_entries(
+            error_id='validation-error',
+            message='Validation error',
+            resource='plugins',
+            details=has_entries(
+                min_wazo_version=has_entries(
+                    message=all_of(contains_string('17.11'), contains_string('17.10')),
+                    constraint={'min': '17.11', 'current': '17.10'},
+                    constraint_id='min_wazo_version',
+                )
+            ),
+        )
 
         result = self.install_plugin(url='/data/git/min_version', method='git')
 
@@ -731,6 +735,86 @@ class TestPluginInstallation(BaseIntegrationTest):
             )
 
         until.assert_(assert_received, events, tries=5)
+
+    @autoremove('plugindtests', 'max-version-equal')
+    def test_with_a_max_version_equal_to_current(self):
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
+        result = self.install_plugin(
+            url='file:///data/git/max_version_equal', method='git'
+        )
+
+        def assert_received(bus_accumulator):
+            received = bus_accumulator.accumulate(with_headers=True)
+            assert_that(
+                received,
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='completed'),
+                        )
+                    ),
+                ),
+            )
+            assert_that(
+                received,
+                not_(
+                    has_item(
+                        has_entries(
+                            message=has_entries(
+                                data=has_entries(uuid=result['uuid'], status='error'),
+                            )
+                        )
+                    )
+                ),
+            )
+
+        until.assert_(assert_received, events, tries=10)
+
+    @autoremove('plugindtests', 'min-version-equal')
+    def test_with_a_min_version_equal_to_current(self):
+        events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
+
+        result = self.install_plugin(
+            url='file:///data/git/min_version_equal', method='git'
+        )
+
+        def assert_received(bus_accumulator):
+            received = bus_accumulator.accumulate(with_headers=True)
+            assert_that(
+                received,
+                has_items(
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='validating'),
+                        )
+                    ),
+                    has_entries(
+                        message=has_entries(
+                            data=has_entries(uuid=result['uuid'], status='completed'),
+                        )
+                    ),
+                ),
+            )
+            assert_that(
+                received,
+                not_(
+                    has_item(
+                        has_entries(
+                            message=has_entries(
+                                data=has_entries(uuid=result['uuid'], status='error'),
+                            )
+                        )
+                    )
+                ),
+            )
+
+        until.assert_(assert_received, events, tries=10)
 
     def test_with_invalid_namespace(self):
         events = self.bus.accumulator(headers={'name': 'plugin_install_progress'})
