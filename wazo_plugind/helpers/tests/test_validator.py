@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -125,8 +125,11 @@ class TestValidator(TestCase):
 
         expected_details = {
             'max_wazo_version': {
-                'constraint_id': 'range',
-                'constraint': {'min': CURRENT_WAZO_VERSION},
+                'constraint_id': 'max_wazo_version',
+                'constraint': {
+                    'max': '16.16',
+                    'current': '17.10',
+                },
                 'message': ANY,
             }
         }
@@ -144,6 +147,22 @@ class TestValidator(TestCase):
             ),
         )
 
+    def test_max_wazo_version_equal_to_current_is_valid(self):
+        self.plugin_db.is_installed.return_value = False
+        validator = self.new_validator()
+
+        metadata = self.new_metadata(max_wazo_version=CURRENT_WAZO_VERSION)
+
+        validator.validate(metadata)
+
+    def test_min_wazo_version_equal_to_current_is_valid(self):
+        self.plugin_db.is_installed.return_value = False
+        validator = self.new_validator()
+
+        metadata = self.new_metadata(min_wazo_version=CURRENT_WAZO_VERSION)
+
+        validator.validate(metadata)
+
     def test_min_wazo_version_too_high(self):
         validator = self.new_validator()
 
@@ -151,8 +170,11 @@ class TestValidator(TestCase):
 
         expected_details = {
             'min_wazo_version': {
-                'constraint_id': 'range',
-                'constraint': {'max': CURRENT_WAZO_VERSION},
+                'constraint_id': 'min_wazo_version',
+                'constraint': {
+                    'min': '17.11',
+                    'current': '17.10',
+                },
                 'message': ANY,
             }
         }
