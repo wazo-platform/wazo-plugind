@@ -192,6 +192,37 @@ class TestValidator(TestCase):
             ),
         )
 
+    def test_wazo_version_bounds_with_invalid_format(self):
+        validator = self.new_validator()
+
+        for field in ('min_wazo_version', 'max_wazo_version'):
+            metadata = self.new_metadata(**{field: 'abc'})
+
+            expected_details = {
+                field: {'constraint_id': 'regex', 'constraint': ANY, 'message': ANY}
+            }
+            assert_that(
+                calling(validator.validate).with_args(metadata),
+                raises(exceptions.PluginValidationException).matching(
+                    has_properties(
+                        'error_id',
+                        'validation-error',
+                        'details',
+                        expected_details,
+                    )
+                ),
+            )
+
+    def test_wazo_version_bounds_skipped_when_current_version_has_invalid_format(
+        self,
+    ):
+        self.plugin_db.is_installed.return_value = False
+        validator = self.new_validator(wazo_version='dev')
+
+        metadata = self.new_metadata(min_wazo_version='17.10', max_wazo_version='17.10')
+
+        validator.validate(metadata)
+
     def test_plugin_already_installed(self):
         validator = self.new_validator()
         metadata = self.new_metadata()

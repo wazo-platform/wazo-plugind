@@ -1,6 +1,9 @@
 # Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
+import logging
+import re
+
 from marshmallow import ValidationError, pre_load, validates
 from xivo.mallow import fields
 from xivo.mallow.validate import Length, OneOf, Range, Regexp
@@ -9,9 +12,12 @@ from xivo.mallow_helpers import Schema
 from .config import _MAX_PLUGIN_FORMAT_VERSION
 from .helpers.version import less_than
 
+logger = logging.getLogger(__name__)
+
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
 _PLUGIN_NAME_REGEXP = r'^[a-z0-9-]+$'
 _PLUGIN_NAMESPACE_REGEXP = r'^[a-z0-9]+$'
+_WAZO_VERSION_REGEXP = r'^\d+(\.\d+)*$'
 
 
 class DependencyMetadataSchema(Schema):
@@ -58,8 +64,8 @@ class PluginMetadataSchema(Schema):
         validate=Range(min=0, max=_MAX_PLUGIN_FORMAT_VERSION),
         load_default=_DEFAULT_PLUGIN_FORMAT_VERSION,
     )
-    max_wazo_version = fields.String()
-    min_wazo_version = fields.String()
+    max_wazo_version = fields.String(validate=Regexp(_WAZO_VERSION_REGEXP))
+    min_wazo_version = fields.String(validate=Regexp(_WAZO_VERSION_REGEXP))
     depends = fields.Nested(MarketInstallOptionsSchema, many=True)
 
     @pre_load
@@ -83,6 +89,13 @@ class PluginMetadataSchema(Schema):
 
     def _validate_wazo_version_bound(self, bound: str, kind: str) -> None:
         if self.current_version is None:
+            return
+        if not re.match(_WAZO_VERSION_REGEXP, self.current_version):
+            logger.warning(
+                'cannot check %s_wazo_version: unexpected current version format (%s)',
+                kind,
+                self.current_version,
+            )
             return
         field = f'{kind}_wazo_version'
         if kind == 'max':
