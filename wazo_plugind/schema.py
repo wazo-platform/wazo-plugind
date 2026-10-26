@@ -6,9 +6,8 @@ from xivo.mallow import fields
 from xivo.mallow.validate import Length, OneOf, Range, Regexp
 from xivo.mallow_helpers import Schema
 
-from wazo_plugind.helpers.version import less_than
-
 from .config import _MAX_PLUGIN_FORMAT_VERSION
+from .helpers.version import less_than
 
 _DEFAULT_PLUGIN_FORMAT_VERSION = 0
 _PLUGIN_NAME_REGEXP = r'^[a-z0-9-]+$'
@@ -76,42 +75,32 @@ class PluginMetadataSchema(Schema):
 
     @validates('max_wazo_version')
     def validate_max_wazo_version(self, value: str) -> None:
-        if self.current_version is None:
-            return
-        if less_than(value, self.current_version):
-            raise ValidationError(
-                {
-                    'constraint_id': 'max_wazo_version',
-                    'constraint': {
-                        'max': value,
-                        'current': self.current_version,
-                    },
-                    'message': (
-                        f'current version ({self.current_version}) '
-                        f'must be less than or equal to max_wazo_version ({value})'
-                    ),
-                },
-                field_name='max_wazo_version',
-            )
+        self._validate_wazo_version_bound(value, 'max')
 
     @validates('min_wazo_version')
     def validate_min_wazo_version(self, value: str) -> None:
+        self._validate_wazo_version_bound(value, 'min')
+
+    def _validate_wazo_version_bound(self, bound: str, kind: str) -> None:
         if self.current_version is None:
             return
-        if less_than(self.current_version, value):
+        field = f'{kind}_wazo_version'
+        if kind == 'max':
+            out_of_bound = less_than(bound, self.current_version)
+            comparison = 'less'
+        else:
+            out_of_bound = less_than(self.current_version, bound)
+            comparison = 'greater'
+        if out_of_bound:
             raise ValidationError(
                 {
-                    'constraint_id': 'min_wazo_version',
-                    'constraint': {
-                        'min': value,
-                        'current': self.current_version,
-                    },
+                    'constraint_id': field,
+                    'constraint': {kind: bound, 'current': self.current_version},
                     'message': (
                         f'current version ({self.current_version}) '
-                        f'must be greater than or equal to min_wazo_version ({value})'
+                        f'must be {comparison} than or equal to {field} ({bound})'
                     ),
-                },
-                field_name='min_wazo_version',
+                }
             )
 
 
