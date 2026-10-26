@@ -1,5 +1,10 @@
 # Changelog
 
+## 26.11
+
+* Validation errors for `min_wazo_version` and `max_wazo_version` now use `constraint_id` `min_wazo_version` / `max_wazo_version` (previously `range`), and the `constraint` holds the plugin bound and the `current` Wazo version.
+* `min_wazo_version` and `max_wazo_version` must now be dot-separated numbers (e.g. `25.15`); other values return a validation error with `constraint_id` `regex`.
+
 ## 26.09
 
 * Requests to wazo-auth now default to `localhost:80`, through nginx.

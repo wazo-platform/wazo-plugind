@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from unittest import TestCase
@@ -125,8 +125,11 @@ class TestValidator(TestCase):
 
         expected_details = {
             'max_wazo_version': {
-                'constraint_id': 'range',
-                'constraint': {'min': CURRENT_WAZO_VERSION},
+                'constraint_id': 'max_wazo_version',
+                'constraint': {
+                    'max': '16.16',
+                    'current': '17.10',
+                },
                 'message': ANY,
             }
         }
@@ -143,6 +146,22 @@ class TestValidator(TestCase):
                 )
             ),
         )
+
+    def test_max_wazo_version_equal_to_current_is_valid(self):
+        self.plugin_db.is_installed.return_value = False
+        validator = self.new_validator()
+
+        metadata = self.new_metadata(max_wazo_version=CURRENT_WAZO_VERSION)
+
+        validator.validate(metadata)
+
+    def test_min_wazo_version_equal_to_current_is_valid(self):
+        self.plugin_db.is_installed.return_value = False
+        validator = self.new_validator()
+
+        metadata = self.new_metadata(min_wazo_version=CURRENT_WAZO_VERSION)
+
+        validator.validate(metadata)
 
     def test_min_wazo_version_too_high(self):
         validator = self.new_validator()
@@ -151,8 +170,11 @@ class TestValidator(TestCase):
 
         expected_details = {
             'min_wazo_version': {
-                'constraint_id': 'range',
-                'constraint': {'max': CURRENT_WAZO_VERSION},
+                'constraint_id': 'min_wazo_version',
+                'constraint': {
+                    'min': '17.11',
+                    'current': '17.10',
+                },
                 'message': ANY,
             }
         }
@@ -169,6 +191,37 @@ class TestValidator(TestCase):
                 )
             ),
         )
+
+    def test_wazo_version_bounds_with_invalid_format(self):
+        validator = self.new_validator()
+
+        for field in ('min_wazo_version', 'max_wazo_version'):
+            metadata = self.new_metadata(**{field: 'abc'})
+
+            expected_details = {
+                field: {'constraint_id': 'regex', 'constraint': ANY, 'message': ANY}
+            }
+            assert_that(
+                calling(validator.validate).with_args(metadata),
+                raises(exceptions.PluginValidationException).matching(
+                    has_properties(
+                        'error_id',
+                        'validation-error',
+                        'details',
+                        expected_details,
+                    )
+                ),
+            )
+
+    def test_wazo_version_bounds_skipped_when_current_version_has_invalid_format(
+        self,
+    ):
+        self.plugin_db.is_installed.return_value = False
+        validator = self.new_validator(wazo_version='dev')
+
+        metadata = self.new_metadata(min_wazo_version='17.10', max_wazo_version='17.10')
+
+        validator.validate(metadata)
 
     def test_plugin_already_installed(self):
         validator = self.new_validator()
