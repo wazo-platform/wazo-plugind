@@ -15,13 +15,12 @@ from wazo_test_helpers.asset_launching_test_case import (
     NoSuchService,
     WrongClient,
 )
-from wazo_test_helpers.auth import AuthClient, MockCredentials, MockUserToken
+from wazo_test_helpers.auth import AuthClient, MockUserToken
 from wazo_test_helpers.bus import BusClient
 
 from .wait_strategy import EverythingOkWaitStrategy
 
 MAIN_TENANT = '00000000-0000-4000-8000-000000000201'
-MAIN_USER_UUID = '00000000-0000-4000-8000-000000000301'
 TOKEN = '00000000-0000-4000-8000-000000000101'
 
 SUB_TENANT = '00000000-0000-4000-8000-000000000202'
@@ -86,14 +85,6 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
 
         cls.auth.set_token(
             MockUserToken(
-                TOKEN,
-                MAIN_USER_UUID,
-                WAZO_UUID,
-                {'tenant_uuid': MAIN_TENANT, 'uuid': MAIN_USER_UUID},
-            )
-        )
-        cls.auth.set_token(
-            MockUserToken(
                 TOKEN_SUB_TENANT,
                 SUB_USER_UUID,
                 WAZO_UUID,
@@ -114,14 +105,6 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         )
 
     @classmethod
-    def configure_service_token(cls):
-        if isinstance(cls.auth, WrongClient):
-            return
-
-        credentials = MockCredentials('plugind-service', 'plugind-password')
-        cls.auth.set_valid_credentials(credentials, TOKEN)
-
-    @classmethod
     def make_auth(cls):
         try:
             port = cls.service_port(9497, 'auth')
@@ -137,7 +120,6 @@ class BaseIntegrationTest(AssetLaunchingTestCase):
         super().setUpClass()
         cls.auth = cls.make_auth()
         cls.configure_token()
-        cls.configure_service_token()
         cls.plugind = cls.make_plugind()
         cls.bus = cls.setup_bus()
         cls.wait_strategy.wait(cls)

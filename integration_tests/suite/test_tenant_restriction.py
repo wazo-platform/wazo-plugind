@@ -1,4 +1,4 @@
-# Copyright 2017-2023 The Wazo Authors  (see the AUTHORS file)
+# Copyright 2017-2026 The Wazo Authors  (see the AUTHORS file)
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 from hamcrest import assert_that, calling, has_property, not_
@@ -64,7 +64,6 @@ class TestTenantRestriction(BaseIntegrationTest):
         self.reset_clients()
         until.true(self.auth.is_up, tries=10)
         self.configure_token()
-        self.configure_service_token()
 
         def _plugind_does_not_return_503():
             assert_that(
